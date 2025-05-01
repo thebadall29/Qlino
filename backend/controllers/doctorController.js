@@ -32,7 +32,8 @@ exports.getDashboard = async (req, res) => {
         country: doctor.country,
         about: doctor.about,
         workingDays: doctor.workingDays || {},
-        treatments: doctor.treatments || []
+        treatments: doctor.treatments || [],
+        bookingPreference: doctor.bookingPreference
       }
     });
   } catch (error) {
@@ -60,7 +61,7 @@ exports.updateProfile = async (req, res) => {
     const updateFields = [
       'firstName', 'lastName', 'email', 'specialization', 
       'experience', 'qualification', 'mobile', 'emergency',
-      'address', 'city', 'state', 'country', 'about'
+      'address', 'city', 'state', 'country', 'about','bookingPreference'
     ];
     
     updateFields.forEach(field => {
@@ -101,7 +102,8 @@ exports.updateProfile = async (req, res) => {
         country: doctor.country,
         about: doctor.about,
         workingDays: doctor.workingDays,
-        treatments: doctor.treatments
+        treatments: doctor.treatments,
+        bookingPreference: doctor.bookingPreference
       }
     });
   } catch (error) {

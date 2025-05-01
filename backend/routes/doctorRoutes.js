@@ -3,6 +3,7 @@ const router = express.Router();
 const doctorController = require('../controllers/doctorController');
 const { auth, authorize } = require('../middleware/auth');
 
+
 // Get doctor dashboard data
 router.get('/doctor-dashboard', auth, authorize(['doctor']), doctorController.getDashboard);
 

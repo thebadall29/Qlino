@@ -83,6 +83,10 @@ const DoctorSchema = new mongoose.Schema({
   treatments: {
     type: Array,
     default: []
+  },
+  bookingPreference:{
+    type: String,
+    default: 'slot'
   }
 }, {
   timestamps: true
