@@ -1,0 +1,76 @@
+.qlino-app-section {
+    background-color: #f9f9f9;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.col-lg-6 {
+    flex: 0 0 50%;
+    max-width: 50%;
+    padding: 20px;
+}
+
+.app-mockup {
+    text-align: center;
+}
+
+.mockup-image {
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 20px;
+}
+
+.app-info h2 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.app-features {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 30px;
+}
+
+.app-features li {
+    font-size: 1.2rem;
+    color: #555;
+    margin-bottom: 10px;
+    position: relative;
+    padding-left: 30px; /* Add padding to make space for the checkmark */
+
+    &::before {
+        content: '✓'; /* Unicode for checkmark */
+        position: absolute;
+        left: 0;
+        top: 0;
+        color: #10b981; /* Green color for the checkmark */
+        font-size: 1.4rem; /* Size of the checkmark */
+        font-weight: bold;
+    }
+}
+
+.app-buttons {
+    display: flex;
+    gap: 20px;
+}
+
+.app-buttons a img {
+    max-height: 50px;
+    width: auto;
+    transition: transform 0.3s ease;
+}
+
+.app-buttons a:hover img {
+    transform: translateY(-5px);
+}

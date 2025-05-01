@@ -1,0 +1,109 @@
+.medical-record-intro {
+    padding: 4rem 2rem;
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    text-align: center;
+  
+    .intro-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+  
+    .intro-title {
+      font-size: 3rem;
+      font-weight: 700;
+      color: #4b5563;
+      margin-bottom: 1.5rem;
+      line-height: 1.2;
+  
+      .highlight {
+        display: block;
+        color: #3b82f6; /* Ensure a single color is applied */
+        margin-top: 0.5rem;
+        font-size: 4rem; /* Increased size for emphasis */
+        font-weight: 900; /* Bold for emphasis */
+        text-transform: uppercase; /* Uppercase for impact */
+        letter-spacing: 0.1rem; /* Added spacing for readability */
+        background: none; /* Remove any background or gradient */
+        -webkit-background-clip: text; /* Ensure text color is applied */
+        -webkit-text-fill-color: #3b82f6; /* Ensure text color is applied */
+      }
+    }
+  
+    .intro-description {
+      font-size: 1.2rem;
+      color: #4b5563;
+      max-width: 800px;
+      margin: 0 auto 2rem;
+      line-height: 1.6;
+    }
+  
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem;
+      margin: 3rem auto;
+  
+      .feature-item {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s ease;
+  
+        &:hover {
+          transform: translateY(-5px);
+        }
+  
+        .feature-icon {
+          font-size: 2rem;
+          margin-bottom: 1rem;
+        }
+  
+        .feature-text {
+          font-weight: 500;
+          color: #1f2937;
+        }
+      }
+    }
+  
+    .cta-button {
+        background: linear-gradient(135deg, #2d68f8 0%, #2753c0 100%);
+      color: white;
+      padding: 1rem 2rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      margin: 0px auto;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+      width: 21rem;
+      position: relative;
+      top: -20px;
+    
+  
+      &:hover {
+        background: #2563eb;
+        transform: translateY(-2px);
+      }
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .medical-record-intro {
+      padding: 2rem 1rem;
+  
+      .intro-title {
+        font-size: 2rem;
+      }
+  
+      .intro-description {
+        font-size: 1rem;
+      }
+  
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  }

@@ -1,0 +1,177 @@
+.health-concerns-section {
+  padding: 3rem 2rem;
+  background: #fff;
+  perspective: 1000px;
+  
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2.5rem;
+    max-width: 1200px;
+    margin: 0 auto 2.5rem;
+    
+    .header-content {
+      text-align: left;
+      
+      h2 {
+        font-size: 1.75rem;
+        color: #1a2b4b;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+      }
+      
+      p {
+        color: #64748b;
+        margin-bottom: 0;
+        font-size: 1rem;
+      }
+    }
+    
+    .view-all {
+      color: #0066ff;
+      text-decoration: none;
+      font-size: 0.95rem;
+      padding: 0.5rem 1rem;
+      border: 1px solid #0066ff;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      
+      &:hover {
+        background: #0066ff;
+        color: white;
+        text-decoration: none;
+      }
+    }
+  }
+  
+  .concerns-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 1.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .concern-card {
+    text-decoration: none;
+    text-align: center;
+    padding: 1.5rem;
+    border-radius: 16px;
+    background: #f8f9fc;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transform-style: preserve-3d;
+    position: relative;
+    height: 100%;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    
+    &:hover {
+      transform: translateY(-5px) rotateX(5deg) rotateY(5deg);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+      
+      .concern-icon {
+        transform: translateZ(20px);
+        box-shadow: 0 8px 16px rgba(0, 102, 255, 0.2);
+        
+        img {
+          transform: scale(1.1);
+        }
+      }
+      
+      .consult-now {
+        color: #0052cc;
+        transform: translateZ(15px);
+      }
+    }
+    
+    .concern-icon {
+      width: 75px;
+      height: 75px;
+      margin: 0 auto 1.25rem;
+      background: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.4s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      position: relative;
+      overflow: hidden;
+      
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.4s ease;
+      }
+    }
+    
+    h3 {
+      color: #1a2b4b;
+      font-size: 0.95rem;
+      margin-bottom: 0.75rem;
+      font-weight: 500;
+      line-height: 1.4;
+      transform: translateZ(10px);
+    }
+    
+    .consult-now {
+      color: #0066ff;
+      font-size: 0.8rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      display: inline-block;
+      padding: 0.5rem 0;
+    }
+  }
+}
+
+@media (max-width: 1024px) {
+  .concerns-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .health-concerns-section {
+    padding: 2rem 1rem;
+    
+    .concerns-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+    
+    .section-header {
+      h2 {
+        font-size: 1.5rem;
+      }
+    }
+    
+    .concern-card {
+      padding: 1.25rem;
+      
+      .concern-icon {
+        width: 64px;
+        height: 64px;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .health-concerns-section {
+    .section-header {
+      flex-direction: column;
+      text-align: center;
+      gap: 1rem;
+      
+      .header-content {
+        text-align: center;
+      }
+      
+      .view-all {
+        margin-top: 0.5rem;
+      }
+    }
+  }
+}

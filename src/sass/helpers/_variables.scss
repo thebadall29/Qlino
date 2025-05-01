@@ -1,0 +1,37 @@
+/*---------------------------
+	Fonts
+----------------------------*/
+@import url('https://fonts.googleapis.com/css2?family=Italiana&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+
+
+// fonts
+$base-font-size: 15;
+$base-font: 'Space Mono';
+$heading-font: 'Italiana';
+
+
+
+// color
+$dark-gray: #1F1F1F;
+$white: #fff;
+$light: #8188a9;
+$black: #000;
+$small-black: #333;
+$cyan: #848892;
+
+$theme-primary-color: #FF4A3B;
+$theme-primary-color-s2: #F2C94C;
+$theme-primary-color-s3: #2F80ED;
+$theme-primary-color-s4: #50B0A1;
+$body-bg-color: #1F1F1F;
+$section-bg-color: #FCFDFA;
+$section-bg-color-s2: #FAF2EE;
+$section-bg-color-s3: #F1F3EE;
+$section-bg-color-s4: #F5F5F5;
+$text-color: #5C5C5C;
+$text-light-color: #7b7b7b;
+$heading-color: $dark-gray;
+$heading-color2: #3F3F3F;
+$border-color: #F3ECE9;
+$border-color-s2: #e4ebf2;

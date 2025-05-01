@@ -1,0 +1,180 @@
+/* =======================
+8.0 Team Page
+ ========================*/
+
+.team-page {
+
+	//  event-section
+
+	.event-section {
+		.event-items {
+			h3 {
+				color: $dark-gray;
+			}
+
+			.event-item {
+
+				h4,
+				span {
+					color: $dark-gray;
+				}
+			}
+		}
+
+		.event-left-img {
+			text-align: center;
+
+			@media(max-width:991px) {
+				display: none;
+			}
+		}
+	}
+
+
+
+}
+
+
+.team-single-page {
+
+	.team-details-img {
+		img {
+			width: 100%;
+			max-height: 800px;
+			object-fit: cover;
+		}
+	}
+	.team-details-text {
+		@media(max-width:1199px) {
+			margin-top: 30px;
+		}
+
+		h2 {
+			font-size: 80px;
+			font-style: normal;
+			font-weight: 400;
+			line-height: normal;
+			margin-bottom: 20px;
+
+			@media(max-width:1199px) {
+				font-size: 50px;
+			}
+
+			@media(max-width:991px) {
+				font-size: 40px;
+			}
+		}
+
+		.team-text-items {
+			display: flex;
+			flex-wrap: wrap;
+
+			.team-text-item {
+				flex-basis: 50%;
+				margin-bottom: 30px;
+
+				h4 {
+					font-family: $base-font;
+					font-size: 18px;
+					font-style: normal;
+					font-weight: 700;
+					line-height: 29px;
+					text-transform: uppercase;
+				}
+
+				span {
+					font-size: 16px;
+					font-style: normal;
+					font-weight: 400;
+					line-height: 29px;
+
+					@media(max-width:991px) {
+						font-size: 13px;
+					}
+				}
+
+				.social {
+					display: flex;
+
+					a {
+						font-size: 16px;
+						font-style: normal;
+						font-weight: 400;
+						line-height: 29px;
+						display: block;
+						color: $dark-gray;
+
+						&+a {
+							margin-left: 20px;
+						}
+					}
+				}
+			}
+
+		}
+
+		p {
+			margin-bottom: 0;
+
+			@media(max-width:1199px) {
+				font-size: 15px;
+			}
+		}
+	}
+
+
+	.contact-area {
+		.contact-area-wrapper {
+			background: $white;
+			box-shadow: 0 1px 15px 0 rgba(62, 65, 159, .15);
+
+			.contact-info-wrap {
+				.contact-info-title {
+
+					h3,
+					p {
+						color: $dark-gray;
+					}
+				}
+
+				.contact-info-text {
+					h4 {
+						color: $dark-gray;
+					}
+				}
+
+				.contact-info-icon i {
+					color: $dark-gray;
+				}
+			}
+
+			.contact-form-area {
+				.form-control {
+					background: #FDF9F6;
+					color: $dark-gray;
+
+					&::-webkit-input-placeholder {
+						color: $dark-gray;
+					}
+
+					&::-moz-placeholder {
+						color: $dark-gray;
+					}
+
+					&:-ms-input-placeholder {
+						color: $dark-gray;
+					}
+
+					&:-moz-placeholder {
+						color: $dark-gray;
+					}
+
+				}
+
+				.submit-area button {
+					color: $dark-gray;
+				}
+			}
+		}
+	}
+}

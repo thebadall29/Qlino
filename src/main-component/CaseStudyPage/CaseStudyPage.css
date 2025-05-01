@@ -1,0 +1,255 @@
+
+  .case-study-button {
+    background-color: #fbbf24;
+    color: black;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 20px;
+  }
+  
+  .casestudy-title {
+    font-size: 3rem;
+    font-weight: bold;
+    color: white;
+  }
+  
+  .underline {
+    width: 100px;
+    height: 4px;
+    background-color: #fbbf24;
+    margin-top: 8px;
+  }
+  
+  .description {
+    font-size: 1.2rem;
+    max-width: 600px;
+    margin-top: 20px;
+  }
+
+  /* Mission section  */
+  .mission-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 40px;
+  padding: 60px;
+  max-width: 1200px;
+  margin: auto;
+}
+
+.mission-content {
+  flex: 1;
+  max-width: 600px;
+  color: #fff;
+}
+
+.mission-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: #ecb11d;
+}
+
+.mission-content p {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  margin-bottom: 20px;
+}
+
+.mission-content ul {
+  padding-left: 20px;
+}
+
+.mission-content ul li {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  list-style-type: disc;
+}
+
+.wistia-section {
+    display: flex;
+    justify-content: center; /* Center the videos horizontally */
+    align-items: center; /* Align videos properly */
+    flex-wrap: wrap; /* Ensure responsiveness */
+    gap: 20px;
+    max-width: 100%;
+    margin: auto;
+    padding-top: 20px; /* Add some spacing */
+  }
+  
+  .wistia-video-container {
+    position: relative;
+    width: 45%; /* Each video takes 45% width */
+    max-width: 300px; /* Restrict max width */
+    padding-top: 56.25%; /* 16:9 Aspect Ratio */
+    background: #000;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  
+  .wistia-video-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+  
+ 
+  
+
+  
+  /* outcome css  */
+
+  .outcome-section {
+    background: linear-gradient(to bottom, #1f1f1f, #0e0e0e);
+    color: white;
+    text-align: center;
+    padding: 0px 20px;
+  }
+  
+  .outcome-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #ffae42;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  
+  .outcome-description {
+    font-size: 1.2rem;
+    max-width: 700px;
+    margin: 0 auto 20px;
+    line-height: 1.6;
+  }
+  
+  .outcome-list {
+    list-style: none;
+    padding: 0;
+    max-width: 900px;
+    margin: 0 auto;
+    text-align: left;
+  }
+  
+  .outcome-list li {
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+    line-height: 1.6;
+  }
+  
+  .outcome-list li strong {
+    color: #ffae42;
+  }
+  
+ .image-container img {
+    margin-top: 40px;
+    width: 70vw;
+  }
+  
+  .outcome-image {
+    max-width: 70vw;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0px 0px 20px rgba(255, 255, 255, 0.1);
+  }
+
+  /* result section  */
+
+  .results-section {
+    background: linear-gradient(to bottom, #0d0d0d, #202021);
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+  }
+  
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 15px;
+    max-width: 70vw;
+    margin: 0 auto;
+  }
+  
+  .results-card {
+    background-color: #1a1a1a;
+    padding: 15px 20px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    font-weight: bold;
+    gap: 10px;
+    box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.1);
+  }
+  
+  .icon {
+    color: #ffae42;
+    font-size: 1.3rem;
+  }
+  
+  .video-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+  }
+  
+  .video-card {
+    background-color: #1a1a1a;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    transition: transform 0.3s ease;
+    aspect-ratio: 16 / 9; /* Add this line */
+    position: relative;
+  }
+  
+  .video-card iframe,
+  .video-card .wistia_embed {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+  
+  
+  .video-card:hover {
+    transform: translateY(-6px);
+  }
+  
+
+  
+  
+  .images-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-top: 40px;
+  }
+  
+  .result-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0px 0px 15px rgba(255, 255, 255, 0.1);
+  }
+
+   /* Responsive adjustments */
+   @media (max-width: 768px) {
+    .wistia-video-container {
+      width: 90%; /* Full width on small screens */
+    }
+
+    .mission-container{
+      flex-direction: column-reverse;
+      gap: 27rem;
+      padding: 20px 20px;
+    }
+  }
+  

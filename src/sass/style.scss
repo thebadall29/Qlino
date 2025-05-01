@@ -1,0 +1,84 @@
+
+// helpers
+@import "helpers/variables";
+@import "helpers/mixins";
+
+// base
+@import "base/base";
+
+
+// components
+@import "components/marquee";
+@import "components/section-title";
+@import "components/buttons";
+@import "components/form";
+@import "components/social-links";
+@import "components/page-title";
+@import "components/preloader";
+@import "components/pagination";
+@import "components/service";
+
+// layout
+@import "layout/header";
+@import "layout/hero-slider";
+@import "layout/footer";
+
+// components
+@import "components/sticky-header";
+
+
+// page
+@import "page/home-default";
+@import "page/about";
+@import "page/services";
+@import "page/team";
+@import "page/portfolio";
+@import "page/pricing";
+@import "page/contact";
+@import "page/blog";
+@import "page/blog-single";
+@import "page/404";
+
+// helpers
+@import "helpers/variables";
+@import "helpers/mixins";
+
+// base
+@import "base/base";
+
+
+// components
+@import "components/section-title";
+@import "components/buttons";
+@import "components/form";
+@import "components/social-links";
+@import "components/page-title";
+@import "components/preloader";
+@import "components/pagination";
+@import "components/search";
+@import "components/medicine-reminder" ;
+@import "components/appointment-section";
+@import "components/medical-record";
+@import "components/qlino-app";
+@import "components/patient-login";
+
+// layout
+@import "layout/header";
+@import "layout/hero-slider";
+@import "layout/footer";
+
+// components
+@import "components/sticky-header";
+
+
+// page
+@import "page/home-default";
+@import "page/about";
+@import "page/services";
+@import "page/team";
+@import "page/portfolio";
+@import "page/pricing";
+@import "page/contact";
+@import "page/blog";
+@import "page/blog-single";
+@import "page/404";

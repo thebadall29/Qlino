@@ -1,0 +1,117 @@
+/* Background with Red Gradient and Smooth Blending */
+.custom-video-grid {
+  position: relative;
+  background: linear-gradient(to top, rgb(104 46 46),rgba(31, 31, 31, 0.9),);
+  backdrop-filter: blur(10px);
+  padding: 2rem auto;
+}
+
+/* Glassmorphism Effect on Grid Container */
+.custom-grid-container {
+  max-width: 75%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 2rem auto;
+  border-radius: 15px;
+  backdrop-filter: blur(20px);
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+/* Glowing Shapes */
+.custom-video-grid::before,
+.custom-video-grid::after {
+  content: "";
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0));
+  filter: blur(50px);
+  z-index: 0;
+  padding: 2rem auto;
+}
+
+/* Top Left Shape */
+.custom-video-grid::before {
+  top: -50px;
+  left: -50px;
+  padding: 2rem auto;
+}
+
+/* Bottom Right Shape */
+.custom-video-grid::after {
+  bottom: -50px;
+  right: -50px;
+  padding: 2rem auto;
+}
+
+/* Video Items */
+.custom-wistia-grid {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
+}
+
+.custom-wistia-responsive-padding {
+  flex: 1 1 calc(33.33% - 20px);
+  padding-top: 45%;
+  height: auto;
+  max-width: 300px;
+  margin-bottom: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  backdrop-filter: blur(15px);
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.2);
+}
+
+/* Long Video Styling */
+.custom-wistia-responsive-padding-long {
+  padding: 5% 0 0 0 !important;
+  height: auto;
+  border-radius: 10px;
+}
+
+/* More Button */
+.custom-more-button {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  position: relative;
+  z-index: 2;
+}
+
+.more-button-link {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 10px 30px;
+  text-decoration: none;
+  border-radius: 5px;
+  font-weight: bold;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.more-button-link:hover {
+  background: rgba(255, 255, 255, 0.4);
+  transform: scale(1.05);
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .custom-wistia-grid {
+      flex-direction: column;
+  }
+
+  .custom-wistia-responsive-padding {
+      flex: 1 1 100%;
+      max-width: 100%;
+      padding-top: 177%;
+      margin-bottom: 20px;
+  }
+}

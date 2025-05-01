@@ -1,0 +1,199 @@
+.doctor-auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 2rem;
+    background-color: #f8f9fa;
+    
+    .auth-card {
+      width: 100%;
+      max-width: 550px;
+      background-color: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      padding: 2rem;
+      
+      .logo-container {
+        text-align: center;
+        margin-bottom: 1.5rem;
+        
+        .auth-logo {
+          max-width: 150px;
+          height: auto;
+        }
+      }
+      
+      .auth-title {
+        text-align: center;
+        font-size: 1.8rem;
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+      }
+      
+      .error-message {
+        background-color: #fff5f5;
+        color: #e53e3e;
+        padding: 0.8rem;
+        border-radius: 5px;
+        margin-bottom: 1rem;
+        border-left: 4px solid #e53e3e;
+      }
+      
+      .success-message {
+        background-color: #f0fff4;
+        color: #38a169;
+        padding: 0.8rem;
+        border-radius: 5px;
+        margin-bottom: 1rem;
+        border-left: 4px solid #38a169;
+      }
+      
+      form {
+        .form-row {
+          display: flex;
+          gap: 1rem;
+          margin-bottom: 1rem;
+          
+          @media (max-width: 576px) {
+            flex-direction: column;
+            gap: 0;
+          }
+        }
+        
+        .form-group {
+          margin-bottom: 1rem;
+          flex: 1;
+          
+          label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #4a5568;
+            
+            .input-icon {
+              margin-right: 0.5rem;
+              color: #4285f4;
+            }
+          }
+          
+          input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            
+            &:focus {
+              outline: none;
+              border-color: #4285f4;
+              box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+            }
+          }
+        }
+        
+        .forgot-password {
+          text-align: right;
+          margin-bottom: 1rem;
+          
+          a {
+            color: #4285f4;
+            text-decoration: none;
+            font-size: 0.9rem;
+            
+            &:hover {
+              text-decoration: underline;
+            }
+          }
+        }
+        
+        .auth-button {
+          width: 100%;
+          padding: 0.8rem;
+          background-color: #4285f4;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          font-size: 1rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: background-color 0.3s ease;
+          
+          &:hover {
+            background-color: #3367d6;
+          }
+          
+          &:disabled {
+            background-color: #a0aec0;
+            cursor: not-allowed;
+          }
+        }
+        
+        .divider {
+          display: flex;
+          align-items: center;
+          margin: 1.5rem 0;
+          
+          &::before,
+          &::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #e2e8f0;
+          }
+          
+          span {
+            padding: 0 1rem;
+            color: #a0aec0;
+            font-size: 0.9rem;
+          }
+        }
+        
+        .google-button {
+          width: 100%;
+          padding: 0.8rem;
+          background-color: white;
+          color: #4a5568;
+          border: 1px solid #e2e8f0;
+          border-radius: 5px;
+          font-size: 1rem;
+          font-weight: 500;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.3s ease;
+          
+          .google-icon {
+            margin-right: 0.8rem;
+            color: #ea4335;
+          }
+          
+          &:hover {
+            background-color: #f8f9fa;
+            border-color: #cbd5e0;
+          }
+        }
+      }
+      
+      .toggle-form {
+        margin-top: 1.5rem;
+        text-align: center;
+        font-size: 0.9rem;
+        color: #4a5568;
+        
+        button {
+          background: none;
+          border: none;
+          color: #4285f4;
+          font-weight: 500;
+          cursor: pointer;
+          
+          &:hover {
+            text-decoration: underline;
+          }
+        }
+      }
+    }
+  }

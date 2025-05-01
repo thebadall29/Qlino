@@ -1,0 +1,2534 @@
+.doctor-dashboard {
+  max-width: 99vw; 
+    margin: 5rem auto;
+    padding: 20px;
+  }
+  
+
+// chat 
+.chat-container {
+    display: flex;
+    height: calc(100vh - 200px);
+    min-height: 500px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+  }
+  
+  .chat-sidebar {
+    width: 280px;
+    border-right: 1px solid #e5e7eb;
+    background-color: #f9fafb;
+  }
+  
+  .chat-patients {
+    overflow-y: auto;
+    height: 100%;
+  }
+  
+  .chat-patient {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    gap: 12px;
+  }
+  
+  .chat-patient:hover {
+    background-color: #f3f4f6;
+  }
+  
+  .chat-patient.active {
+    background-color: #eff6ff;
+  }
+  
+  .patient-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #3b82f6;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    font-size: 14px;
+  }
+  
+  .patient-chat-info {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .patient-name {
+    font-weight: 500;
+    color: #1f2937;
+  }
+  
+  .unread-count {
+    background-color: #ef4444;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  
+  .chat-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .chat-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid #e5e7eb;
+    background-color: #ffffff;
+  }
+  
+  .chat-header h3 {
+    margin: 0;
+    color: #1f2937;
+  }
+  
+  .messages {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    background-color: #f9fafb;
+  }
+  
+  .message {
+    max-width: 70%;
+    padding: 12px 16px;
+    border-radius: 12px;
+    position: relative;
+  }
+  
+  .message.sent {
+    align-self: flex-end;
+    background-color: #3b82f6;
+    color: white;
+    border-bottom-right-radius: 4px;
+  }
+  
+  .message.received {
+    align-self: flex-start;
+    background-color: #e5e7eb;
+    color: #1f2937;
+    border-bottom-left-radius: 4px;
+  }
+  
+  .message-content {
+    margin-bottom: 4px;
+    line-height: 1.4;
+  }
+  
+  .message-time {
+    font-size: 12px;
+    opacity: 0.8;
+  }
+  
+  .message.sent .message-time {
+    color: rgba(255, 255, 255, 0.8);
+  }
+  
+  .message.received .message-time {
+    color: #6b7280;
+  }
+  
+  .message-form {
+    padding: 15px 20px;
+    border-top: 1px solid #e5e7eb;
+    background-color: #ffffff;
+    display: flex;
+    gap: 10px;
+  }
+  
+  .message-form input {
+    flex: 1;
+    padding: 10px 15px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    font-size: 14px;
+  }
+  
+  .message-form input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  }
+  
+  .message-form button {
+    padding: 10px 20px;
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  
+  .message-form button:hover {
+    background-color: #2563eb;
+  }
+  
+  .no-chat-selected {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280;
+    font-size: 16px;
+    background-color: #f9fafb;
+  }
+  
+  /* Responsive Styles */
+  @media (max-width: 768px) {
+    .chat-container {
+      flex-direction: column;
+      height: calc(100vh - 150px);
+    }
+  
+    .chat-sidebar {
+      width: 100%;
+      height: 200px;
+      border-right: none;
+      border-bottom: 1px solid #e5e7eb;
+    }
+  
+    .chat-patients {
+      display: flex;
+      overflow-x: auto;
+      height: auto;
+    }
+  
+    .chat-patient {
+      flex-shrink: 0;
+      width: 200px;
+    }
+  
+    .messages {
+      padding: 15px;
+    }
+  
+    .message {
+      max-width: 85%;
+    }
+  }
+
+// Profile 
+.profile-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    padding: 20px;
+  }
+  
+  .profile-section, 
+  .bookings-section {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+  }
+  
+  /* Profile Section Styles */
+  .profile-header,
+  .bookings-header {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  
+    h2 {
+      color: #1f2937;
+      font-size: 20px;
+      margin: 0;
+    }
+  }
+  
+  .profile-content {
+    display: flex;
+    gap: 24px;
+  }
+  
+  .doctor-avatar-large {
+    width: 120px;
+    height: 120px;
+    background-color: #3b82f6;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    font-weight: 500;
+  }
+  
+  .doctor-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .info-group {
+    label {
+      display: block;
+      color: #6b7280;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+  
+    .info-display {
+      padding: 10px;
+      background-color: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      color: #1f2937;
+      font-size: 15px;
+    }
+  }
+  
+  /* Bookings Section Styles */
+  .total-bookings {
+    background-color: #dbeafe;
+    color: #1e40af;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  
+  .bookings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .booking-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+  
+    &:hover {
+      transform: translateX(4px);
+      border-color: #3b82f6;
+    }
+  }
+  
+  .booking-time {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  
+    .time {
+      font-weight: 500;
+      color: #1f2937;
+    }
+  
+    .queue {
+      font-size: 13px;
+      color: #6b7280;
+    }
+  }
+  
+  .booking-details {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  
+    .patient-name {
+      font-weight: 500;
+      color: #1f2937;
+    }
+  
+    .view-details {
+      padding: 6px 12px;
+      background-color: #eff6ff;
+      color: #3b82f6;
+      border: none;
+      border-radius: 4px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+  
+      &:hover {
+        background-color: #dbeafe;
+      }
+    }
+  }
+  
+  /* Responsive Styles */
+  @media (max-width: 1024px) {
+    .profile-container {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .profile-content {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+  
+    .doctor-info {
+      width: 100%;
+    }
+  
+    .booking-card {
+      flex-direction: column;
+      text-align: center;
+      gap: 12px;
+    }
+  
+    .booking-details {
+      flex-direction: column;
+      gap: 8px;
+    }
+  }
+
+  // Add these new styles to your existing SCSS file
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .header-buttons {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  
+  .edit-button {
+    padding: 8px 16px;
+    background-color: #f3f4f6;
+    color: #4b5563;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: #e5e7eb;
+    }
+  }
+
+
+
+  .save-button {
+    padding: 8px 16px;
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: #2563eb;
+    }
+  }
+
+  
+  .edit-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    font-size: 14px;
+  
+    &:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .section-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+  
+      .header-buttons {
+        width: 100%;
+  
+        button {
+          flex: 1;
+        }
+      }
+    }
+  }
+  
+  .working-days-section {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #e5e7eb;
+  
+    h4 {
+      margin-bottom: 16px;
+      color: #1f2937;
+    }
+  }
+  
+  .days-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  
+  .day-toggle {
+    label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+  
+      input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+      }
+  
+      span {
+        color: #4b5563;
+        font-size: 14px;
+      }
+    }
+  }
+  
+  .action-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+  }
+  
+  .save-button {
+    padding: 10px 20px;
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  
+    &:hover {
+      background-color: #2563eb;
+    }
+  }
+  
+  /* Responsive Styles */
+  @media (max-width: 768px) {
+    .days-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  
+    .action-buttons {
+      flex-direction: column;
+      
+      button {
+        width: 100%;
+      }
+    }
+  }
+
+  .section-container {
+    padding: 20px;
+  }
+  
+  .section-header {
+    display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  }
+
+  h3 {
+    color: #1f2937;
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+  }
+  
+  .search-box {
+    flex: 1;
+    position: relative;
+  
+    input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: all 0.2s ease;
+  
+      &:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+      }
+    }
+  }
+  
+  .add-patient {
+    padding: 12px 20px;
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  
+    &:hover {
+      background-color: #2563eb;
+    }
+  }
+  
+  .patients-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+  }
+  
+  .patient-card {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 20px;
+    transition: all 0.2s ease;
+  
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+  }
+  
+  .patient-info {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+  }
+  
+  .patient-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #3b82f6;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    font-size: 16px;
+  }
+  
+  .patient-details {
+    flex: 1;
+  
+    h4 {
+      margin: 0 0 8px;
+      color: #1f2937;
+      font-size: 16px;
+    }
+  
+    p {
+      margin: 0 0 4px;
+      color: #6b7280;
+      font-size: 14px;
+    }
+  }
+  
+  .patient-actions {
+    display: flex;
+    gap: 10px;
+  
+    button {
+      flex: 1;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+  
+    .view-profile {
+      background-color: #eff6ff;
+      color: #3b82f6;
+  
+      &:hover {
+        background-color: #dbeafe;
+      }
+    }
+  
+    .schedule {
+      background-color: #3b82f6;
+      color: white;
+  
+      &:hover {
+        background-color: #2563eb;
+      }
+    }
+  }
+  
+
+  .add-patient-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  
+    button {
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+  
+      &[type="submit"] {
+        background-color: #3b82f6;
+        color: white;
+  
+        &:hover {
+          background-color: #2563eb;
+        }
+      }
+  
+      &[type="button"] {
+        background-color: #f3f4f6;
+        color: #4b5563;
+  
+        &:hover {
+          background-color: #e5e7eb;
+        }
+      }
+    }
+  }
+  
+  /* Responsive Styles */
+  @media (max-width: 768px) {
+    .section-header {
+      flex-direction: column;
+    }
+  
+    .search-box {
+      width: 100%;
+    }
+  
+    .add-patient {
+      width: 100%;
+    }
+  
+    .patients-list {
+      grid-template-columns: 1fr;
+    }
+  
+    .patient-actions {
+      flex-direction: column;
+    }
+  }
+
+//   Appointment 
+
+.section-container {
+    padding: 20px;
+  }
+  
+  .booking-mode-toggle {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 24px;
+  
+    button {
+      padding: 12px 24px;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      background-color: #f9fafb;
+      color: #6b7280;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+  
+      &:hover {
+        background-color: #f3f4f6;
+      }
+  
+      &.active {
+        background-color: #3b82f6;
+        color: white;
+        border-color: #3b82f6;
+      }
+    }
+  }
+  
+  .slot-booking {
+    .date-picker {
+      margin-bottom: 20px;
+      padding: 15px;
+      background-color: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+    }
+  
+    .time-slots {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+    }
+  
+    .time-slot {
+      padding: 15px;
+      background-color: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+  
+      &:hover:not(.occupied) {
+        border-color: #3b82f6;
+        transform: translateY(-2px);
+      }
+  
+      &.occupied {
+        background-color: #f3f4f6;
+        cursor: not-allowed;
+      }
+  
+      .slot-time {
+        font-weight: 500;
+        color: #1f2937;
+        margin-bottom: 8px;
+      }
+  
+      .slot-patient {
+        font-size: 14px;
+        color: #6b7280;
+      }
+    }
+  }
+  
+  .queue-booking {
+    .current-queue {
+      margin-bottom: 20px;
+    }
+  
+    .queue-item {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 15px;
+      background-color: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      margin-bottom: 10px;
+  
+      &:last-child {
+        margin-bottom: 0;
+      }
+  
+      .queue-number {
+        background-color: #3b82f6;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-weight: 500;
+        min-width: 40px;
+        text-align: center;
+      }
+  
+      .queue-patient {
+        flex: 1;
+        font-weight: 500;
+        color: #1f2937;
+      }
+  
+      .queue-status {
+        padding: 4px 12px;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: 500;
+  
+        &:contains("In Progress") {
+          background-color: #dbeafe;
+          color: #1e40af;
+        }
+  
+        &:contains("Waiting") {
+          background-color: #fef3c7;
+          color: #92400e;
+        }
+      }
+    }
+  
+    .add-to-queue {
+      width: 100%;
+      padding: 12px;
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+  
+      &:hover {
+        background-color: #2563eb;
+      }
+    }
+  }
+  .custom-calendar {
+    width: 100%;
+    max-width: 400px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+  
+    .react-calendar__tile {
+      padding: 10px;
+      
+      &--active {
+        background: #3b82f6 !important;
+        color: white;
+      }
+  
+      &--now {
+        background: #dbeafe;
+      }
+    }
+  }
+  
+  .selected-date {
+    margin: 20px 0;
+    
+    h4 {
+      color: #1f2937;
+      font-size: 18px;
+      font-weight: 500;
+    }
+  }
+  
+  .time-slots {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+  }
+  
+  .time-slot {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  
+    &:not(.occupied):hover {
+      border-color: #3b82f6;
+      transform: translateY(-2px);
+    }
+  
+    &.occupied {
+      background-color: #f3f4f6;
+      cursor: not-allowed;
+    }
+  
+    .slot-time {
+      font-weight: 500;
+      color: #1f2937;
+    }
+  
+    .slot-patient {
+      margin-top: 8px;
+      font-size: 14px;
+      color: #6b7280;
+    }
+  }
+  // ... existing code ...
+  
+  .not-working-day {
+    color: #ef4444;
+    font-size: 14px;
+    margin-top: 8px;
+  }
+  
+  .react-calendar__tile:disabled {
+    background-color: #f3f4f6;
+    cursor: not-allowed;
+    
+    &:hover {
+      background-color: #f3f4f6;
+    }
+    
+    abbr {
+      color: #9ca3af;
+    }
+  }
+  
+  // ... existing code ...
+  
+  .date-picker {
+    .react-calendar {
+      width: 100%;
+      max-width: 400px;
+      background: white;
+      border: 1px solid #e6e6e6;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      font-family: Arial, sans-serif;
+      line-height: 1.125em;
+      padding: 1rem;
+  
+      &__navigation {
+        height: 44px;
+        margin-bottom: 1em;
+  
+        button {
+          min-width: 44px;
+          background: none;
+          border: none;
+          border-radius: 4px;
+          
+          &:hover {
+            background-color: #f8f8f8;
+          }
+  
+          &:disabled {
+            background-color: #f0f0f0;
+          }
+        }
+      }
+  
+      &__month-view {
+        &__weekdays {
+          text-align: center;
+          text-transform: uppercase;
+          font-weight: bold;
+          font-size: 0.8em;
+          padding: 0.5rem 0;
+          
+          abbr {
+            text-decoration: none;
+            cursor: default;
+          }
+        }
+  
+        &__days {
+          button {
+            margin: 3px;
+            border: none;
+            border-radius: 4px;
+            background: none;
+            padding: 0.75rem;
+            
+            &:hover {
+              background-color: #e6e6e6;
+            }
+  
+            &:disabled {
+              background-color: #f5f5f5;
+              color: #ccc;
+              cursor: not-allowed;
+            }
+          }
+        }
+      }
+  
+      .react-calendar__tile {
+        max-width: 100%;
+        text-align: center;
+        padding: 0.75em 0.5em;
+  
+        &--now {
+          background: #ffeb3b33;
+          &:hover {
+            background: #ffeb3b66;
+          }
+        }
+  
+        &--active {
+          background: #2196f3;
+          color: white;
+          &:hover {
+            background: #1976d2;
+          }
+        }
+      }
+    }
+  }
+  
+  .selected-date {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    
+    h4 {
+      margin: 0;
+      color: #2c3e50;
+      font-size: 1.2rem;
+    }
+  
+    .not-working-day {
+      margin-top: 0.5rem;
+      color: #dc3545;
+      font-style: italic;
+    }
+  }
+  
+    
+    /* Medication Plan Styles */
+    .medications-table-container {
+      overflow-x: auto;
+    }
+    
+    .medications-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    .medications-table th, .medications-table td {
+      text-align: left;
+      padding: 12px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .medications-table th {
+      background-color: #f3f4f6;
+      font-weight: 500;
+    }
+    
+    .medications-table tr:hover {
+      background-color: #f9fafb;
+    }
+    
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .delete-button {
+      background-color: #f3f4f6;
+      color: #ef4444;
+    }
+    
+    .delete-button:hover {
+      background-color: #fee2e2;
+    }
+    
+    button.small {
+      padding: 6px 10px;
+      font-size: 12px;
+    }
+    
+    .no-medications {
+      color: #6b7280;
+      font-style: italic;
+    }
+    
+  /* Responsive Styles */
+  @media (max-width: 768px) {
+    .section-container {
+      padding: 15px;
+    }
+  
+    .booking-mode-toggle {
+      flex-direction: column;
+  
+      button {
+        width: 100%;
+      }
+    }
+  
+    .time-slots {
+      grid-template-columns: 1fr !important;
+    }
+  
+    .queue-item {
+      flex-direction: column;
+      text-align: center;
+  
+      .queue-number {
+        margin: 0 auto;
+      }
+  
+      .queue-status {
+        width: 100%;
+        text-align: center;
+      }
+    }
+  }
+
+  .treatments-section {
+    margin-top: 24px;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  
+    h4 {
+      margin-bottom: 16px;
+      color: #1f2937;
+      font-size: 18px;
+      font-weight: 600;
+    }
+  }
+  
+  .treatments-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  
+  .treatment-card {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+
+    
+  
+    &:hover {
+      background-color: #f8fafc;
+      border-color: #3b82f6;
+    }
+  
+    .treatment-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex: 1;
+      gap: 16px;
+    }
+  
+    .treatment-name {
+      color: #1f2937;
+      font-weight: 500;
+      font-size: 15px;
+    }
+  
+    .treatment-fee {
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: background-color 0.2s ease;
+  
+      &:hover {
+        background-color: #f3f4f6;
+      }
+    }
+    .treatment-fee-input {
+      width: 100px;
+      padding: 4px 8px;
+      border: 1px solid #e5e7eb;
+      border-radius: 4px;
+      font-size: 14px;
+      color: #1f2937;
+      
+      &:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+      }
+    }
+  
+    .remove-treatment {
+      background: none;
+      border: none;
+      color: #ef4444;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 0 0 0 16px;
+      display: flex;
+      align-items: center;
+      
+      &:hover {
+        color: #dc2626;
+      }
+    }
+  }
+  
+  .add-treatment-form {
+    display: grid;
+    grid-template-columns: 1fr 150px auto;
+    gap: 16px;
+    margin-top: 20px;
+    align-items: start;
+  
+    .treatment-input {
+      padding: 10px 14px;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      font-size: 14px;
+  
+      &:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+      }
+    }
+  
+    .add-treatment-button {
+      padding: 10px 18px;
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+  
+      &:hover {
+        background-color: #2563eb;
+        transform: translateY(-1px);
+      }
+    }
+  }
+  
+  /* Responsive styles */
+  @media (max-width: 768px) {
+    .add-treatment-form {
+      grid-template-columns: 1fr;
+  
+      .add-treatment-button {
+        width: 100%;
+      }
+    }
+  }
+  .working-hours {
+    margin-top: 24px;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  
+    h4 {
+      color: #1f2937;
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+  
+    .hours-list.horizontal {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+  
+    .day-column {
+      background-color: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+  
+      .day-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+  
+      .day-name {
+        font-weight: 500;
+        color: #1f2937;
+        font-size: 14px;
+      }
+  
+      .day-toggle {
+        input[type="checkbox"] {
+          width: 16px;
+          height: 16px;
+          cursor: pointer;
+        }
+      }
+  
+      .time-range {
+        color: #4b5563;
+        font-size: 13px;
+        
+        &.closed {
+          color: #ef4444;
+        }
+      }
+  
+      .time-inputs {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+  
+        input[type="time"] {
+          padding: 4px 8px;
+          border: 1px solid #e5e7eb;
+          border-radius: 4px;
+          font-size: 13px;
+          color: #1f2937;
+          width: 100%;
+          
+          &:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+          }
+        }
+  
+        span {
+          color: #6b7280;
+          font-size: 12px;
+          text-align: center;
+        }
+      }
+    }
+  
+    .action-buttons {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 20px;
+  
+      .save-button {
+        padding: 10px 24px;
+        background-color: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+  
+        &:hover {
+          background-color: #2563eb;
+        }
+      }
+    }
+  }
+  
+  /* Update responsive styles */
+  @media (max-width: 1024px) {
+    .working-hours {
+      .hours-list.horizontal {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .working-hours {
+      .hours-list.horizontal {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .working-hours {
+      .hours-list.horizontal {
+        grid-template-columns: 1fr;
+      }
+    }
+  }
+
+
+
+  // Patinet managment 
+
+  
+  .slot-booking {
+    .appointment-grid {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 2rem;
+      align-items: start;
+      margin-top: 2rem;
+    }
+  
+    .calendar-section {
+      .react-calendar {
+        width: 350px;
+        background: white;
+        border: 1px solid #e6e6e6;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 1rem;
+        font-family: 'Arial', sans-serif;
+  
+        &__navigation {
+          height: 44px;
+          margin-bottom: 1em;
+  
+          button {
+            min-width: 44px;
+            background: none;
+            border: none;
+            border-radius: 8px;
+            color: #333;
+            
+            &:hover {
+              background-color: #f0f0f0;
+            }
+  
+            &:disabled {
+              color: #d4d4d4;
+            }
+          }
+        }
+  
+        &__month-view {
+          &__weekdays {
+            text-align: center;
+            text-transform: uppercase;
+            font-weight: bold;
+            font-size: 0.75em;
+            color: #666;
+            padding: 0.5rem 0;
+            
+            abbr {
+              text-decoration: none;
+              cursor: default;
+            }
+          }
+  
+          &__days {
+            button {
+              margin: 3px;
+              border: none;
+              border-radius: 8px;
+              padding: 0.75rem;
+              
+              &:hover:not(:disabled) {
+                background-color: #e6f3ff;
+              }
+  
+              &:disabled {
+                background-color: #f5f5f5;
+                color: #ccc;
+              }
+            }
+          }
+        }
+  
+        .react-calendar__tile {
+          max-width: 100%;
+          text-align: center;
+          padding: 0.75em 0.5em;
+  
+          &--now {
+            background: #e6f3ff;
+            &:hover {
+              background: #cce4ff;
+            }
+          }
+  
+          &--active {
+            background: #1a73e8;
+            color: white;
+            &:hover {
+              background: #1557b0;
+            }
+          }
+        }
+      }
+    }
+  
+    .slots-section {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 1.5rem;
+      min-height: 400px;
+  
+      .selected-date {
+        margin-bottom: 1.5rem;
+        
+        h4 {
+          color: #1a73e8;
+          font-size: 1.25rem;
+          margin: 0 0 0.5rem 0;
+        }
+  
+        .not-working-day {
+          color: #dc3545;
+          font-style: italic;
+          margin: 0;
+        }
+      }
+  
+      .time-slots {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+  
+        .time-slot {
+          background: white;
+          border: 1px solid #e6e6e6;
+          border-radius: 8px;
+          padding: 1rem;
+          cursor: pointer;
+          transition: all 0.2s ease;
+  
+          &:not(.occupied):hover {
+            border-color: #1a73e8;
+            box-shadow: 0 2px 4px rgba(26, 115, 232, 0.1);
+          }
+  
+          &.occupied {
+            background: #f5f5f5;
+            cursor: not-allowed;
+          }
+  
+          .slot-time {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+          }
+  
+          .slot-patient {
+            font-size: 0.875rem;
+            color: #666;
+          }
+        }
+      }
+    }
+  }
+
+  .react-calendar {
+  
+    &__month-view {
+      &__weekdays {
+        display: grid !important;
+        grid-template-columns: repeat(7, 1fr);
+  
+        &__weekday {
+          text-align: center;
+          text-transform: uppercase;
+          font-weight: bold;
+          font-size: 0.8em;
+          padding: 0.5rem 0;
+          
+          abbr {
+            text-decoration: none;
+            cursor: default;
+          }
+        }
+      }
+  
+      &__days {
+        display: grid !important;
+        grid-template-columns: repeat(7, 1fr);
+      }
+    }
+  }
+
+  // ... existing code ...
+
+.today-appointments {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+  h3 {
+    color: #1f2937;
+    margin-bottom: 1rem;
+  }
+
+  .appointments-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+
+    th, td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    th {
+      background-color: #f9fafb;
+      font-weight: 500;
+      color: #4b5563;
+    }
+
+    tr:hover {
+      background-color: #f9fafb;
+    }
+
+    td {
+      color: #1f2937;
+    }
+  }
+
+  .no-appointments {
+    text-align: center;
+    color: #6b7280;
+    padding: 2rem;
+    background: #f9fafb;
+    border-radius: 6px;
+    font-style: italic;
+  }
+}
+// ... existing code ...
+// ... existing code ...
+// ... existing code ...
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-wrapper {
+  background: white;
+  padding: 24px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  position: relative;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  max-height: 90vh;
+  overflow-y: auto;
+
+  h3 {
+    margin-bottom: 20px;
+    color: #1f2937;
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  .selected-slot-info {
+    background: #f3f4f6;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    color: #4b5563;
+  }
+
+  .form-group {
+    margin-bottom: 16px;
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #374151;
+      font-weight: 500;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      font-size: 14px;
+
+      &:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+      }
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+  }
+
+  .form-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+
+    button {
+      flex: 1;
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &.submit-button {
+        background-color: #3b82f6;
+        color: white;
+        border: none;
+
+        &:hover {
+          background-color: #2563eb;
+        }
+      }
+
+      &.cancel-button {
+        background-color: #f3f4f6;
+        color: #4b5563;
+        border: 1px solid #e5e7eb;
+
+        &:hover {
+          background-color: #e5e7eb;
+        }
+      }
+    }
+  }
+}
+// ... existing code ...
+
+.appointments-list-section {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #e5e7eb;
+
+  h4 {
+    color: #1f2937;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+
+  .appointments-table-container {
+    overflow-x: auto;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+  }
+
+  .appointments-table {
+    width: 100%;
+    border-collapse: collapse;
+    
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    th {
+      background-color: #f9fafb;
+      color: #4b5563;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    td {
+      color: #1f2937;
+      font-size: 14px;
+    }
+
+    tbody tr:hover {
+      background-color: #f9fafb;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+
+      &.scheduled {
+        background-color: #dbeafe;
+        color: #1e40af;
+      }
+
+      &.completed {
+        background-color: #dcfce7;
+        color: #166534;
+      }
+
+      &.cancelled {
+        background-color: #fee2e2;
+        color: #991b1b;
+      }
+    }
+  }
+
+  .no-appointments {
+    text-align: center;
+    color: #6b7280;
+    font-style: italic;
+    padding: 24px;
+    background: #f9fafb;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+  }
+}
+
+.time-slot {
+
+  &.occupied {
+    background-color: #f3f4f6;
+    cursor: not-allowed;
+  }
+
+}
+
+.no-appointments {
+  text-align: center;
+  color: #6b7280;
+  padding: 2rem;
+  background: #f9fafb;
+  border-radius: 6px;
+  font-style: italic;
+}
+
+// Add these styles to your DoctorDashboard.scss file
+
+// Calendar Styles
+.custom-calendar {
+  width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  
+  .react-calendar__tile {
+    padding: 10px;
+    border-radius: 4px;
+    
+    &:enabled:hover {
+      background-color: #e6f2ff;
+    }
+    
+    &--active {
+      background-color: #4a89dc !important;
+      color: white;
+    }
+    
+    &:disabled {
+      background-color: #f5f5f5;
+      color: #ccc;
+      text-decoration: line-through;
+    }
+    
+    &.has-queue {
+      position: relative;
+      
+      &::after {
+        content: "";
+        position: absolute;
+        bottom: 4px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background-color: #ff9800;
+      }
+    }
+  }
+  
+  .react-calendar__month-view__weekdays__weekday {
+    padding: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+  }
+}
+
+// Appointment Grid Layout
+.appointment-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 20px;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Calendar Section
+.calendar-section {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  
+  .queue-info {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+    
+    h3 {
+      font-size: 1.1rem;
+      margin-bottom: 10px;
+    }
+    
+    .not-working-day {
+      color: #f44336;
+      font-weight: 500;
+    }
+  }
+}
+
+// Queue Section
+.queue-section {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  
+  .selected-date {
+    margin-bottom: 15px;
+    
+    h4 {
+      font-size: 1.1rem;
+      margin-bottom: 5px;
+    }
+  }
+  
+  .current-queue {
+    margin-bottom: 20px;
+    max-height: 400px;
+    overflow-y: auto;
+    
+    .empty-queue {
+      text-align: center;
+      padding: 30px;
+      color: #888;
+      font-style: italic;
+    }
+  }
+}
+
+// Queue Item
+.queue-item {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  background-color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+  
+  &.waiting {
+    border-left: 4px solid #ff9800;
+  }
+  
+  &.in-progress {
+    border-left: 4px solid #2196f3;
+    background-color: #f0f8ff;
+  }
+  
+  &.completed {
+    border-left: 4px solid #4caf50;
+    background-color: #f1f8e9;
+    opacity: 0.8;
+  }
+  
+  .queue-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #4a89dc;
+    color: white;
+    font-weight: bold;
+    margin-right: 15px;
+  }
+  
+  .queue-details {
+    flex-grow: 1;
+    
+    .queue-patient {
+      font-weight: 500;
+      font-size: 1rem;
+      margin-bottom: 5px;
+    }
+    
+    .queue-time {
+      font-size: 0.85rem;
+      color: #666;
+    }
+  }
+  
+  .queue-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    
+    .queue-status {
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin-bottom: 8px;
+      
+      &.waiting {
+        color: #ff9800;
+      }
+      
+      &.in-progress {
+        color: #2196f3;
+      }
+      
+      &.completed {
+        color: #4caf50;
+      }
+    }
+    
+    .status-controls {
+      display: flex;
+      gap: 8px;
+      
+      .status-button {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        font-weight: 500;
+        
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+        
+        &.in-progress {
+          background-color: #2196f3;
+          color: white;
+        }
+        
+        &.completed {
+          background-color: #4caf50;
+          color: white;
+        }
+      }
+    }
+  }
+}
+
+// Add to Queue Button
+.add-to-queue-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 6px;
+  background-color: #4a89dc;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  
+  &:hover {
+    background-color: #3a79cc;
+  }
+  
+  &:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+  }
+}
+
+// Modal Styles
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-wrapper {
+  width: 100%;
+  max-width: 500px;
+  background-color: white;
+  border-radius: 8px;
+  padding: 25px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  
+  h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.3rem;
+    font-weight: 600;
+  }
+  
+  .selected-slot-info {
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+  
+  .form-group {
+    margin-bottom: 16px;
+    
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 500;
+      font-size: 0.95rem;
+    }
+    
+    input, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 1rem;
+      
+      &:focus {
+        outline: none;
+        border-color: #4a89dc;
+        box-shadow: 0 0 0 2px rgba(74, 137, 220, 0.2);
+      }
+    }
+    
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+  }
+  
+  .form-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+
+    button {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 4px;
+      font-weight: 500;
+      cursor: pointer;
+      
+      &.submit-button {
+        background-color: #4a89dc;
+        color: white;
+        
+        &:hover {
+          background-color: #3a79cc;
+        }
+      }
+      
+      &.cancel-button {
+        background-color: #f5f5f5;
+        color: #333;
+        
+        &:hover {
+          background-color: #e5e5e5;
+        }
+      }
+    }
+  }
+}
+
+
+// todays booking 
+// ... existing code ...
+
+.booking-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.notify-button {
+  padding: 5px 10px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.notify-button:hover {
+  background-color: #2563eb;
+}
+
+// ... existing code ...
+// ... existing code ...
+
+.todays-bookings-container {
+  padding: 20px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #1a1a1a;
+  }
+
+  .bookings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .booking-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: #f1f3f5;
+      transform: translateY(-2px);
+    }
+
+    &.completed {
+      opacity: 0.8;
+    }
+  }
+
+  .booking-info {
+    flex: 1;
+  }
+
+  .booking-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .queue-number {
+    font-weight: 600;
+    color: #2563eb;
+  }
+
+  .patient-name {
+    font-size: 1.1rem;
+    font-weight: 500;
+  }
+
+  .booking-details {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .booking-time {
+    color: #4b5563;
+  }
+
+  .status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    font-weight: 500;
+
+    &.waiting {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    &.ready {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    &.in-process {
+      background: #e0e7ff;
+      color: #3730a3;
+    }
+
+    &.completed {
+      background: #d1fae5;
+      color: #065f46;
+    }
+  }
+
+  .booking-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .status-button, .notify-button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
+  .status-button {
+    &.in-process {
+      background: #3b82f6;
+      color: white;
+
+      &:hover {
+        background: #2563eb;
+      }
+    }
+
+    &.completed {
+      background: #10b981;
+      color: white;
+
+      &:hover {
+        background: #059669;
+      }
+    }
+  }
+
+  .notify-button {
+    background: #f3f4f6;
+    color: #374151;
+
+    &:hover {
+      background: #e5e7eb;
+    }
+  }
+
+  .completed-section {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid #e5e7eb;
+  }
+}
+
+@media (max-width: 768px) {
+  .todays-bookings-container {
+    padding: 16px;
+
+    .booking-item {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .booking-actions {
+      width: 100%;
+      justify-content: flex-end;
+    }
+  }
+}
+
+/* Add these styles to your existing CSS file */
+
+.edit-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.3s;
+}
+
+.edit-input:focus {
+  border-color: #4a90e2;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+.edit-textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  resize: vertical;
+  min-height: 100px;
+  transition: border-color 0.3s;
+}
+
+.edit-textarea:focus {
+  border-color: #4a90e2;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+.edit-row {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.edit-row .edit-input {
+  flex: 1;
+}
+
+.save-button {
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.3s;
+}
+
+.save-button:hover {
+  background-color: #3a7bc8;
+}
+
+.edit-button {
+  background-color: #f5f5f5;
+  color: #333;
+  border: 1px solid #ddd;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.3s;
+  margin-right: 10px;
+}
+
+.edit-button:hover {
+  background-color: #e5e5e5;
+}

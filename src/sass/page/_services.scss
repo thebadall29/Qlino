@@ -1,0 +1,150 @@
+/* =======================
+7.0 Services Page    
+ ========================*/
+
+ @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Edu+AU+VIC+WA+NT+Hand:wght@400..700&family=Kalnia+Glaze:wght@100..700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Teko:wght@300..700&display=swap');
+
+ 
+
+/* 3.2 service-page */
+
+.image-icon img {
+	width: 10rem;
+	filter: invert(1) sepia(1) saturate(10000%) hue-rotate(180deg);
+	transition: filter 0.3s ease;
+}
+
+.image-icon img:hover {
+	filter: invert(1) sepia(1) saturate(10000%) hue-rotate(-120deg);
+}
+
+.service-page {
+	.service-section-s2 {
+		padding-bottom: 50px;
+	}
+
+	//   exprience-service
+
+	.exprience-service {
+		.exprience-service-wrap {
+			background: $dark-gray;
+			padding: 0;
+
+			.exprience-service-item {
+				border-color: rgba(0, 0, 0, 0.10);
+
+				ul li {
+					b {
+						color: $white;
+					}
+
+					&:first-child::before {
+						background: rgba(0, 0, 0, 0.10);
+						;
+					}
+
+					span {
+						color: $dark-gray;
+					}
+				}
+
+				&:hover {
+					ul li {
+						i svg {
+							stroke: $white;
+						}
+					}
+				}
+			}
+		}
+	}
+
+
+}
+
+
+// service-single-page
+
+.service-single-page {
+
+	.service-single-wrap {
+		h2 {
+			font-size: 80px;
+			font-style: normal;
+			font-weight: 400;
+			line-height: normal;
+			margin-bottom: 20px;
+
+			@media(max-width:991px) {
+				font-size: 60px;
+			}
+			@media(max-width:575px) {
+				font-size: 40px;
+			}
+		}
+
+		@media(max-width:575px) {
+			text-align: center;
+		}
+
+		.inner-img {
+			padding: 60px 0;
+
+			img {
+				margin-bottom: 10px;
+				width: 100%;
+			}
+		}
+	}
+
+	.event-section {
+		padding: 60px 0 100px;
+
+		@media(max-width:1199px) {
+			padding: 80px 0;
+		}
+
+		@media(max-width:991px) {
+			padding-bottom: 0;
+			padding-top: 0;
+		}
+
+		.event-items {
+
+			@media(max-width:991px) {
+				text-align: center;
+			}
+
+			h3 {
+				color: $dark-gray;
+			}
+
+			.event-item {
+				h4 {
+					color: $dark-gray;
+				}
+
+				span {
+					color: $dark-gray;
+				}
+			}
+		}
+
+		.event-left-img {
+			position: relative;
+			width: 360%;
+
+			@media(max-width:991px) {
+				width: 100%;
+				margin-bottom: 0;
+			}
+		}
+	}
+
+	.blog-sidebar {
+		@media(max-width:991px) {
+			padding-bottom: 60px;
+		}
+	}
+}
+

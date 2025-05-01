@@ -1,0 +1,203 @@
+/* ShortFormVideoEditing.css */
+.short-form-editing {
+    background-color: #0A0A0A;
+    color: white;
+    // padding: 50px 0;
+    text-align: center;
+}
+
+.short-form-editing h1 {
+    font-size: 3rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: white;
+}
+
+.short-form-editing h1 span {
+    color: yellow;
+    position: relative;
+}
+
+.short-form-editing h1 span::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 0;
+    height: 5px;
+    width: 100%;
+    background-color: red;
+}
+
+.cta-b {
+    margin-top: -1rem;
+  }
+  
+  @media (max-width: 600px) {
+    .cta-b {
+      margin-top: 24rem;
+    }
+  }
+
+.short-form-editing p {
+    margin-bottom: 40px;
+    font-size: 1rem;
+    color: #CCCCCC;
+}
+
+.thumbnail-grid {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.thumbnail-grid video {
+    width: 150px;
+    height: 266px;
+    /* 9:16 aspect ratio */
+    border-radius: 10px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.thumbnail-grid video:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 20px rgba(255, 255, 0, 0.8);
+    /* Optional shadow effect */
+}
+
+.cta-button {
+    background-color: white;
+    color: black;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    top: -40px;
+}
+
+.wistia-grid {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 1024px) {
+    .wistia-grid {
+        gap: 100px; /* Reduce gap on medium screens */
+    }
+}
+
+/* Media Query for mobile devices */
+@media (max-width: 600px) {
+    .wistia-grid {
+        gap: 320px; 
+    }
+}
+
+// @media (max-width: 600px) {
+//     .cta-b {
+//         margin-top: 22rem;
+//     }
+// }
+
+.wistia_responsive_padding {
+    position: relative;
+    width: 300px;
+    /* Adjust width as needed */
+    margin-bottom: 10px;
+    /* Reduced margin between rows */
+    padding: 48% 0 0 0 !important;
+}
+
+@media (max-width: 820px) {
+    .cta-button {
+        margin-top: 150px;
+    }
+
+}
+@media (max-width: 480px) {
+    .wistia-grid {
+        gap: 350px;
+    }
+    .cta-button {
+        margin-top: 350px;
+    }
+}
+
+//   long form 
+.long-form-editing {
+    background-color: #0A0A0A;
+    color: white;
+    // padding: 40px 0;
+    text-align: center;
+}
+
+.long-form-editing h1 {
+    font-size: 3rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: white;
+}
+
+.long-form-editing h1 span {
+    color: yellow;
+    position: relative;
+}
+
+.long-form-editing h1 span::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 0;
+    height: 5px;
+    width: 100%;
+    background-color: red;
+}
+
+.long-form-editing p {
+    // margin-bottom: 40px;
+    font-size: 1rem;
+    color: #CCCCCC;
+}
+
+.long-form-grid {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    flex-direction: column;
+    width: 70vw;
+    margin: 0 auto;
+}
+
+
+.wistia_responsive_wrapper_long {
+    height: "100%";
+    position: relative;
+    left: 0;
+        top: 0;
+        width: 70vw;
+}
+
+.wistia_responsive_padding_long{
+    position: relative;
+    margin-bottom: 10px;
+    margin: auto 10px;
+    /* Reduced margin between rows */
+    padding: 2% 0 0 0 !important;
+}
+
+.cta-button-long{
+    background-color: white;
+    color: black;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    top: 50px;
+    top: 50px;
+    width: 165px;
+    margin: auto;
+}
+
+// home vidoe

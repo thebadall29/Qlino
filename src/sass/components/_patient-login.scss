@@ -1,0 +1,306 @@
+// Variables
+$primary-color: #3b82f6;
+$secondary-color: #10b981;
+$text-color: #333;
+$light-gray: #f9fafb;
+$border-color: #e5e7eb;
+$shadow-color: rgba(0, 0, 0, 0.1);
+$font-family: 'Poppins', sans-serif;
+
+.patient-auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+  background-color: $light-gray;
+  font-family: $font-family;
+  
+  .auth-card {
+    width: 100%;
+    max-width: 400px; // Made smaller
+    padding: 25px; // Made smaller
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+    animation: fadeIn 0.6s ease-out, floatUp 0.8s ease-out;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin-top: 2rem;
+    
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
+    }
+    
+    .logo-container {
+      text-align: center;
+      margin-bottom: 15px;
+      
+      .auth-logo {
+        height: 45px;
+        width: auto;
+        animation: pulse 2s infinite;
+      }
+    }
+    
+    .auth-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: $text-color;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .form-group {
+      margin-bottom: 15px;
+      
+      label {
+        display: flex;
+        align-items: center;
+        margin-bottom: 5px;
+        font-size: 13px;
+        color: $text-color;
+        
+        .input-icon {
+          margin-right: 8px;
+          color: $primary-color;
+          animation: fadeIn 0.5s ease-out;
+        }
+      }
+      
+      input {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid $border-color;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        
+        &:focus {
+          outline: none;
+          border-color: $primary-color;
+          box-shadow: 0 0 0 2px rgba($primary-color, 0.15);
+          transform: translateY(-2px);
+        }
+        
+        &::placeholder {
+          color: #9ca3af;
+        }
+      }
+    }
+    
+    // New styles for side-by-side inputs in signup
+    .form-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+      
+      .form-group {
+        flex: 1;
+        margin-bottom: 0;
+      }
+    }
+    
+    .forgot-password {
+      text-align: right;
+      margin-bottom: 15px;
+      
+      a {
+        font-size: 12px;
+        color: $primary-color;
+        text-decoration: none;
+        transition: color 0.3s ease;
+        
+        &:hover {
+          color: darken($primary-color, 15%);
+          text-decoration: underline;
+        }
+      }
+    }
+    
+    .auth-button {
+      width: 100%;
+      padding: 10px;
+      background-color: $primary-color;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      
+      &:hover {
+        background-color: darken($primary-color, 8%);
+        transform: translateY(-2px);
+      }
+      
+      &:active {
+        transform: translateY(1px);
+      }
+      
+      &::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 5px;
+        height: 5px;
+        background: rgba(255, 255, 255, 0.5);
+        opacity: 0;
+        border-radius: 100%;
+        transform: scale(1, 1) translate(-50%);
+        transform-origin: 50% 50%;
+      }
+      
+      &:focus:not(:active)::after {
+        animation: ripple 1s ease-out;
+      }
+    }
+    
+    .divider {
+      display: flex;
+      align-items: center;
+      margin: 15px 0;
+      
+      &::before,
+      &::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background-color: $border-color;
+      }
+      
+      span {
+        padding: 0 10px;
+        color: #6b7280;
+        font-size: 12px;
+      }
+    }
+    
+    .google-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 9px;
+      background-color: white;
+      color: $text-color;
+      border: 1px solid $border-color;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      
+      .google-icon {
+        margin-right: 10px;
+        color: #ea4335;
+      }
+      
+      &:hover {
+        background-color: #f8f9fa;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+        transform: translateY(-2px);
+      }
+    }
+    
+    .toggle-form {
+      margin-top: 15px;
+      text-align: center;
+      
+      p {
+        font-size: 12px;
+        color: #6b7280;
+      }
+      
+      button {
+        background: none;
+        border: none;
+        color: $primary-color;
+        font-weight: 500;
+        cursor: pointer;
+        transition: color 0.3s ease;
+        
+        &:hover {
+          color: darken($primary-color, 15%);
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+}
+
+// Animations
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes floatUp {
+  from {
+    transform: translateY(20px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0, 0);
+    opacity: 1;
+  }
+  20% {
+    transform: scale(25, 25);
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(40, 40);
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 576px) {
+  .patient-auth-container {
+    padding: 10px;
+    
+    .auth-card {
+      padding: 20px 15px;
+      
+      .auth-title {
+        font-size: 18px;
+      }
+      
+      .form-group {
+        input {
+          padding: 8px 10px;
+        }
+      }
+      
+      .form-row {
+        flex-direction: column;
+        gap: 15px;
+      }
+    }
+  }
+}

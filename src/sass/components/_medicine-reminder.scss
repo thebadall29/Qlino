@@ -1,0 +1,554 @@
+.medicine-reminder-section {
+  padding: 4rem 2rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  perspective: 1000px;
+  overflow: hidden;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 50% 50%, rgba(0, 179, 155, 0.1) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .reminder-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 30px;
+    padding: 3rem;
+    box-shadow: 
+      0 20px 40px rgba(0, 0, 0, 0.1),
+      0 0 100px rgba(0, 179, 155, 0.1);
+    backdrop-filter: blur(10px);
+    transform-style: preserve-3d;
+    animation: containerFloat 6s ease-in-out infinite;
+  }
+
+  .reminder-intro {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4rem;
+    padding: 2rem 0;
+
+    .intro-content {
+      flex: 1;
+      max-width: 600px;
+      transform-style: preserve-3d;
+      animation: contentSlide 1s ease-out;
+
+      h1 {
+        font-size: 3.5rem;
+        color: #333;
+        line-height: 1.2;
+        margin-bottom: 1rem;
+        transform: translateZ(30px);
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      p {
+        font-size: 1.2rem;
+        color: #666;
+        margin-bottom: 2rem;
+        transform: translateZ(20px);
+      }
+
+      .feature-list {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+        transform: translateZ(10px);
+
+        .feature-item {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          padding: 1rem;
+          background: rgba(255, 255, 255, 0.8);
+          border-radius: 12px;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+          transition: all 0.3s ease;
+
+          &:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+          }
+
+          i {
+            font-size: 1.5rem;
+            color: #2d68f8;
+            animation: iconPulse 2s infinite;
+          }
+
+          span {
+            font-size: 1rem;
+            color: #555;
+            font-weight: 500;
+          }
+        }
+      }
+
+      .add-medicine-btn {
+        background: linear-gradient(135deg, #2d68f8 0%, #2753c0 100%);
+        color: white;
+        border: none;
+        padding: 1.2rem 2.5rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        transform: translateZ(40px);
+        box-shadow: 0 4px 15px rgba(0, 179, 155, 0.3);
+
+        &:hover {
+          transform: translateZ(40px) translateY(-5px);
+          box-shadow: 
+            0 8px 25px rgba(0, 179, 155, 0.4),
+            0 0 0 2px rgba(0, 179, 155, 0.2);
+        }
+      }
+    }
+
+    .intro-illustration {
+      flex: 1;
+      max-width: 450px;
+      transform-style: preserve-3d;
+      animation: illustrationFloat 1s ease-out;
+
+      .medicine-box-graphic {
+        width: 100%;
+        height: 400px;
+        border-radius: 30px;
+        overflow: hidden;
+        box-shadow: 
+          0 20px 40px rgba(0, 179, 155, 0.2),
+          0 0 0 1px rgba(255, 255, 255, 0.1);
+        transform: translateZ(50px) rotateY(-5deg);
+        transition: all 0.5s ease;
+
+        &:hover {
+          transform: translateZ(60px) rotateY(0deg);
+        }
+
+        .medicine-image {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform 0.5s ease;
+          filter: brightness(1.05) contrast(1.05);
+
+          &:hover {
+            transform: scale(1.05);
+          }
+        }
+      }
+    }
+  }
+}
+
+@keyframes containerFloat {
+  0%, 100% {
+    transform: translateY(0) rotateX(2deg);
+  }
+  50% {
+    transform: translateY(-10px) rotateX(0deg);
+  }
+}
+
+@keyframes contentSlide {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes illustrationFloat {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes iconPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 992px) {
+  .medicine-reminder-section {
+    .reminder-intro {
+      flex-direction: column;
+      text-align: center;
+      gap: 2rem;
+
+      .intro-content {
+        max-width: 100%;
+
+        .feature-list {
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          justify-items: center;
+        }
+
+        h1 {
+          font-size: 3rem;
+        }
+      }
+
+      .intro-illustration {
+        max-width: 100%;
+        
+        .medicine-box-graphic {
+          transform: translateZ(30px) rotateY(0deg);
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .medicine-reminder-section {
+    padding: 2rem 1rem;
+
+    .reminder-container {
+      padding: 1.5rem;
+    }
+
+    .reminder-intro {
+      padding: 1rem 0;
+
+      .intro-content {
+        h1 {
+          font-size: 2rem;
+        }
+
+        p {
+          font-size: 1rem;
+        }
+
+        .feature-list {
+          grid-template-columns: 1fr;
+        }
+      }
+    }
+  }
+}
+
+  .reminder-header {
+    text-align: center;
+    margin-bottom: 2rem;
+
+    h2 {
+      font-size: 2rem;
+      color: #333;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      color: #666;
+      font-size: 1.1rem;
+    }
+  }
+
+  .upcoming-doses {
+    margin-bottom: 3rem;
+
+    h3 {
+      font-size: 1.5rem;
+      color: #333;
+      margin-bottom: 1rem;
+    }
+
+    .dose-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .dose-card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+
+      .dose-time {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #00b39b;
+      }
+
+      .dose-details {
+        flex: 1;
+
+        h4 {
+          margin: 0;
+          color: #333;
+          font-size: 1.1rem;
+        }
+
+        p {
+          margin: 0.25rem 0;
+          color: #666;
+        }
+
+        .instructions {
+          font-size: 0.9rem;
+          color: #888;
+        }
+      }
+
+      .dose-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+
+        button {
+          padding: 0.5rem 1rem;
+          border-radius: 6px;
+          border: none;
+          cursor: pointer;
+          font-weight: 500;
+          transition: all 0.3s ease;
+
+          &.take-btn {
+            background: #00b39b;
+            color: white;
+
+            &:hover {
+              background: darken(#00b39b, 10%);
+            }
+          }
+
+          &.skip-btn {
+            background: #f0f0f0;
+            color: #666;
+
+            &:hover {
+              background: darken(#f0f0f0, 10%);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .medicine-list {
+    .list-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+
+      h3 {
+        font-size: 1.5rem;
+        color: #333;
+      }
+
+      .add-medicine-btn {
+        background: #00b39b;
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s ease;
+
+        &:hover {
+          background: darken(#00b39b, 10%);
+          transform: translateY(-2px);
+        }
+      }
+    }
+
+    .medicine-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+
+      .medicine-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+
+        h4 {
+          margin: 0 0 1rem;
+          color: #333;
+          font-size: 1.1rem;
+        }
+
+        .medicine-info {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+
+          .info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: #666;
+
+            i {
+              color: #00b39b;
+              font-size: 1.1rem;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .add-medicine-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+
+    .modal-content {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 500px;
+
+      h3 {
+        margin: 0 0 1.5rem;
+        color: #333;
+      }
+
+      .form-group {
+        margin-bottom: 1rem;
+
+        label {
+          display: block;
+          margin-bottom: 0.5rem;
+          color: #555;
+        }
+
+        input, textarea {
+          width: 100%;
+          padding: 0.75rem;
+          border: 1px solid #ddd;
+          border-radius: 6px;
+          font-size: 1rem;
+
+          &:focus {
+            outline: none;
+            border-color: #00b39b;
+          }
+        }
+
+        textarea {
+          height: 100px;
+          resize: vertical;
+        }
+      }
+
+      .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 1.5rem;
+
+        button {
+          padding: 0.75rem 1.5rem;
+          border-radius: 6px;
+          border: none;
+          cursor: pointer;
+          font-weight: 500;
+          transition: all 0.3s ease;
+
+          &:first-child {
+            background: #f0f0f0;
+            color: #666;
+
+            &:hover {
+              background: darken(#f0f0f0, 10%);
+            }
+          }
+
+          &:last-child {
+            background: #00b39b;
+            color: white;
+
+            &:hover {
+              background: darken(#00b39b, 10%);
+            }
+          }
+        }
+      }
+    }
+  }
+
+
+@media (max-width: 768px) {
+  .medicine-reminder-section {
+    padding: 1.5rem;
+
+    .dose-card {
+      flex-direction: column;
+      text-align: center;
+
+      .dose-actions {
+        flex-direction: row;
+        justify-content: center;
+      }
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .medicine-reminder-section {
+    padding: 2rem 1rem;
+  }
+
+  .reminder-intro {
+    padding: 1rem 0;
+
+    .intro-content {
+      h1 {
+        font-size: 2rem;
+      }
+
+      p {
+        font-size: 1rem;
+      }
+
+      .feature-list {
+        grid-template-columns: 1fr;
+      }
+    }
+  }
+}
