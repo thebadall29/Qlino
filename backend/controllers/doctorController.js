@@ -18,6 +18,7 @@ exports.getDashboard = async (req, res) => {
     res.json({
       doctor: {
         id: doctor._id,
+        username: doctor.username, // Include username in the response
         firstName: doctor.firstName,
         lastName: doctor.lastName,
         email: doctor.email,
@@ -59,9 +60,9 @@ exports.updateProfile = async (req, res) => {
     
     // Update doctor data with all fields from request
     const updateFields = [
-      'firstName', 'lastName', 'email', 'specialization', 
+      'username', 'firstName', 'lastName', 'email', 'specialization', 
       'experience', 'qualification', 'mobile', 'emergency',
-      'address', 'city', 'state', 'country', 'about','bookingPreference'
+      'address', 'city', 'state', 'country', 'about', 'bookingPreference'
     ];
     
     updateFields.forEach(field => {
@@ -69,6 +70,11 @@ exports.updateProfile = async (req, res) => {
         doctor[field] = req.body[field];
       }
     });
+    
+    // If username is not provided in the request, use email as username
+    if (!doctor.username && doctor.email) {
+      doctor.username = doctor.email.split('@')[0];
+    }
     
     // Update working days and treatments
     if (req.body.workingDays) {
@@ -88,6 +94,7 @@ exports.updateProfile = async (req, res) => {
       message: 'Profile updated successfully',
       doctor: {
         id: doctor._id,
+        username: doctor.username,
         firstName: doctor.firstName,
         lastName: doctor.lastName,
         email: doctor.email,

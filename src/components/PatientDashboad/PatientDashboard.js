@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useLocation } from 'react-router-dom';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import './PatientDashboard.scss';
 import UserProfile from './tabs/UserProfile';
 import SymptomChecker from './tabs/SymptomChecker';
@@ -13,6 +13,7 @@ const PatientDashboardCompo = () => {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [dashboardTitle, setDashboardTitle] = useState('Patient Admin Panel');
+  const navigate = useNavigate();
   
   // Get URL parameters and query parameters
   const params = useParams();
@@ -63,6 +64,15 @@ const PatientDashboardCompo = () => {
 
     fetchUserData();
   }, [params.title, queryParams]);
+
+  const handleLogout = () => {
+    // Clear authentication data
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    
+    // Redirect to home page
+    navigate('/');
+  };
 
   if (loading) {
     return <div>Loading...</div>;
@@ -135,6 +145,15 @@ const PatientDashboardCompo = () => {
               >
                 <span className="icon">📚</span>
                 Educational Resources
+              </button>
+            </li>
+            <li className="logout-item">
+              <button 
+                onClick={handleLogout}
+                className="logout-button"
+              >
+                <span className="icon">🚪</span>
+                Logout
               </button>
             </li>
           </ul>

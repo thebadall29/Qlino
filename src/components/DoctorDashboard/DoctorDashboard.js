@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './DoctorDashboard.scss';
 import Profile from './tabs/Profile';
 import PatientManagement from './tabs/PatientManagement';
@@ -15,6 +16,7 @@ const DoctorDashboardCompo = () => {
     availability: ""
   });
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   // Fetch doctor data when component mounts
   useEffect(() => {
@@ -77,6 +79,13 @@ const DoctorDashboardCompo = () => {
     }
   };
 
+  const handleLogout = () => {
+    // Clear the authentication token
+    localStorage.removeItem('token');
+    // Redirect to login page
+    navigate('/');
+  };
+
   return (
     <div className="doctor-dashboard">
       <header className="dashboard-header">
@@ -133,6 +142,15 @@ const DoctorDashboardCompo = () => {
               >
                 <span className="icon">📋</span>
                 Today's Bookings
+              </button>
+            </li>
+            <li className="logout-item">
+              <button 
+                onClick={handleLogout}
+                className="logout-button"
+              >
+                <span className="icon">🚪</span>
+                Logout
               </button>
             </li>
           </ul>

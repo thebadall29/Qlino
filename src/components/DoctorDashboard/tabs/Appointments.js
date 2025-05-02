@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import "../DoctorDashboard.scss";
-import { mockDoctorData } from '../mockData';
 
 // Day names constant for mapping day numbers to names
 const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
@@ -13,9 +12,9 @@ const formatDate = (date) => {
 };
 
 // Get available time slots for a specific date based on doctor's schedule
-const getAvailableSlots = (date, schedule) => {
+const getAvailableSlots = (date, workingDays) => {
   const dayName = dayNames[date.getDay()];
-  const daySchedule = mockDoctorData.workingDays[dayName];
+  const daySchedule = workingDays[dayName];
   
   // Return empty array if doctor is not available on this day
   if (!daySchedule || !daySchedule.active) {
@@ -43,34 +42,10 @@ const getAvailableSlots = (date, schedule) => {
 };
 
 // Helper function to check if doctor is available on a given date
-const isDoctorAvailable = (date) => {
+const isDoctorAvailable = (date, workingDays) => {
+  if (!workingDays) return false;
   const dayName = dayNames[date.getDay()];
-  return mockDoctorData.workingDays[dayName] && mockDoctorData.workingDays[dayName].active;
-};
-
-// Helper function to find the next available time slot
-const findNextAvailableSlot = (date, appointments) => {
-  if (!isDoctorAvailable(date)) {
-    return null;
-  }
-  
-  const formattedDate = new Date(date).toISOString().split('T')[0];
-  let availableSlots = appointments[formattedDate] || getAvailableSlots(date);
-  
-  // Filter to only get available slots
-  availableSlots = availableSlots.filter(slot => slot.available);
-  
-  // If it's today, only show slots from current time onwards
-  if (isToday(date)) {
-    const currentTime = new Date();
-    availableSlots = availableSlots.filter(slot => {
-      const slotTime = parseTimeString(slot.time);
-      return slotTime > currentTime;
-    });
-  }
-  
-  // Return the first available slot, or null if none available
-  return availableSlots.length > 0 ? availableSlots[0] : null;
+  return workingDays[dayName] && workingDays[dayName].active;
 };
 
 // Helper to check if a date is today
@@ -99,7 +74,8 @@ const parseTimeString = (timeStr) => {
 };
 
 const Appointments = () => {
-  const [bookingMode, setBookingMode] = useState('queue'); // Default to queue mode
+  const [doctorData, setDoctorData] = useState(null);
+  const [bookingPreference, setBookingPreference] = useState('slot'); // Default to slot
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showAddPatientForm, setShowAddPatientForm] = useState(false);
   const [newPatient, setNewPatient] = useState({
@@ -108,41 +84,93 @@ const Appointments = () => {
     reason: '',
     date: new Date()
   });
+  const [loading, setLoading] = useState(true);
 
-  // Mock data for appointments
-  const [appointments, setAppointments] = useState({
-    '2024-04-26': [
-      { time: "09:00 AM", available: true },
-      { time: "09:30 AM", available: false, patient: "John Doe" },
-      { time: "10:00 AM", available: true },
-      { time: "10:30 AM", available: true },
-      { time: "11:00 AM", available: false, patient: "Jane Smith" },
-      { time: "11:30 AM", available: true },
-    ],
-    '2024-04-27': [
-      { time: "09:00 AM", available: true },
-      { time: "09:30 AM", available: true },
-      { time: "10:00 AM", available: false, patient: "Mike Johnson" },
-      { time: "10:30 AM", available: true },
-      { time: "11:00 AM", available: true },
-      { time: "11:30 AM", available: true },
-    ]
-  });
-
-  // Queue data - stored by date
-  const [queuesByDate, setQueuesByDate] = useState({
-    [formatDate(new Date())]: [
-      { number: 1, name: "Jane Smith", status: "In Progress", time: "10:00 AM" },
-      { number: 2, name: "Mike Johnson", status: "Waiting", time: "10:30 AM" },
-    ]
-  });
-
-  // Today's appointments
+  // State for appointments and queues
+  const [appointments, setAppointments] = useState({});
+  const [queuesByDate, setQueuesByDate] = useState({});
   const [todayAppointments, setTodayAppointments] = useState([]);
+  
+  // State for booking modal
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [bookingDetails, setBookingDetails] = useState({
+    patientName: '',
+    contact: '',
+    reason: ''
+  });
+
+  // Fetch doctor data when component mounts
+  useEffect(() => {
+    const fetchDoctorData = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+          console.error('No authentication token found');
+          return;
+        }
+
+        const response = await fetch('http://localhost:5000/api/doctor/doctor-dashboard', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch doctor data: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('Doctor data from API:', data);
+        
+        // Set doctor data
+        setDoctorData(data.doctor);
+        
+        // Set booking preference from API data
+        if (data.doctor && data.doctor.bookingPreference) {
+          setBookingPreference(data.doctor.bookingPreference);
+        }
+      } catch (error) {
+        console.error('Error fetching doctor data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDoctorData();
+    
+    // Initialize with some mock data for demonstration
+    const today = formatDate(new Date());
+    setAppointments({
+      [today]: [
+        { time: "09:00 AM", available: true },
+        { time: "09:30 AM", available: false, patient: "John Doe", contact: "9876543210", reason: "Follow-up" },
+        { time: "10:00 AM", available: true },
+        { time: "10:30 AM", available: true },
+        { time: "11:00 AM", available: false, patient: "Jane Smith", contact: "8765432109", reason: "Consultation" },
+        { time: "11:30 AM", available: true },
+      ]
+    });
+    
+    // Initialize queue data
+    setQueuesByDate({
+      [today]: [
+        { number: 1, name: "Jane Smith", status: "In Progress", contact: "8765432109", reason: "Consultation" },
+        { number: 2, name: "Mike Johnson", status: "Waiting", contact: "7654321098", reason: "New patient" }
+      ]
+    });
+    
+    // Set today's appointments
+    setTodayAppointments([
+      { time: "09:30 AM", patient: "John Doe", contact: "9876543210", reason: "Follow-up", available: false, status: 'Scheduled' },
+      { time: "11:00 AM", patient: "Jane Smith", contact: "8765432109", reason: "Consultation", available: false, status: 'Scheduled' }
+    ]);
+  }, []);
 
   // Get today's date in YYYY-MM-DD format
   const getTodayDate = () => {
-    return new Date().toISOString().split('T')[0];
+    return formatDate(new Date());
   };
 
   // Get queue for the selected date
@@ -159,7 +187,7 @@ const Appointments = () => {
   // Handle adding patient to queue
   const handleAddToQueue = () => {
     // Check if doctor is available on selected date
-    if (!isDoctorAvailable(selectedDate)) {
+    if (!doctorData || !isDoctorAvailable(selectedDate, doctorData.workingDays)) {
       alert("Cannot add patients to queue when doctor is not available on the selected date");
       return;
     }
@@ -187,29 +215,20 @@ const Appointments = () => {
     const formattedDate = formatDate(queueDate);
     
     // Check doctor availability
-    if (!isDoctorAvailable(queueDate)) {
+    if (!doctorData || !isDoctorAvailable(queueDate, doctorData.workingDays)) {
       alert("Cannot add patients to queue when doctor is not available on the selected date");
-      return;
-    }
-    
-    // Find next available slot
-    const nextAvailableSlot = findNextAvailableSlot(queueDate, appointments);
-    
-    if (!nextAvailableSlot) {
-      alert("No available time slots for the selected date. Please choose another date.");
       return;
     }
     
     // Get current queue for date or initialize new one
     const currentQueue = queuesByDate[formattedDate] || [];
     
-    // Create queue item
+    // Create queue item without time for queue-based booking
     const newQueueItem = {
       number: currentQueue.length + 1,
       name: newPatient.name,
       contact: newPatient.contact,
       reason: newPatient.reason,
-      time: nextAvailableSlot.time,
       status: "Waiting",
       timestamp: new Date().getTime()
     };
@@ -220,76 +239,26 @@ const Appointments = () => {
       [formattedDate]: [...(prevQueues[formattedDate] || []), newQueueItem]
     }));
     
-    // Also create appointment for this queue item
-    const newAppointment = {
-      time: nextAvailableSlot.time,
-      patient: newPatient.name,
-      contact: newPatient.contact,
-      reason: newPatient.reason,
-      available: false,
-      status: 'Scheduled from Queue'
-    };
-    
-    // Update appointments
-    setAppointments(prevAppointments => {
-      const updatedAppointments = { ...prevAppointments };
-      
-      if (updatedAppointments[formattedDate]) {
-        updatedAppointments[formattedDate] = updatedAppointments[formattedDate].map(slot => {
-          if (slot.time === nextAvailableSlot.time) {
-            return newAppointment;
-          }
-          return slot;
-        });
-      } else {
-        const availableSlots = getAvailableSlots(queueDate);
-        updatedAppointments[formattedDate] = availableSlots.map(slot => {
-          if (slot.time === nextAvailableSlot.time) {
-            return newAppointment;
-          }
-          return slot;
-        });
-      }
-      
-      return updatedAppointments;
-    });
-    
-    // Update today's appointments if date is today
-    if (formattedDate === getTodayDate()) {
-      setTodayAppointments(prev => sortAppointmentsByTime([...prev, newAppointment]));
-    }
-    
     // Reset form and close modal
     setNewPatient({ name: '', contact: '', reason: '', date: new Date() });
     setShowAddPatientForm(false);
-    
-   
   };
 
-  // Get appointments for specific date
+  // Get appointments for specific date based on doctor's working hours
   const getAppointmentsForDate = (date) => {
     // If doctor is not available on this day, return empty array
-    if (!isDoctorAvailable(date)) {
+    if (!doctorData || !isDoctorAvailable(date, doctorData.workingDays)) {
       return [];
     }
     
     const formattedDate = formatDate(date);
-    return appointments[formattedDate] || getAvailableSlots(date);
+    return appointments[formattedDate] || getAvailableSlots(date, doctorData.workingDays);
   };
-
-  // State for appointment booking modal
-  const [showBookingModal, setShowBookingModal] = useState(false);
-  const [selectedSlot, setSelectedSlot] = useState(null);
-  const [bookingDetails, setBookingDetails] = useState({
-    patientName: '',
-    contact: '',
-    reason: ''
-  });
 
   // Handle time slot click for slot-based booking
   const handleSlotClick = (slot) => {
     // Only allow slot selection if doctor is available on selected date
-    if (slot.available && isDoctorAvailable(selectedDate)) {
+    if (slot.available && doctorData && isDoctorAvailable(selectedDate, doctorData.workingDays)) {
       setSelectedSlot(slot);
       setShowBookingModal(true);
     }
@@ -300,7 +269,7 @@ const Appointments = () => {
     e.preventDefault();
     
     // Check if doctor is available on the selected date
-    if (!isDoctorAvailable(selectedDate)) {
+    if (!doctorData || !isDoctorAvailable(selectedDate, doctorData.workingDays)) {
       alert("Cannot book appointments on days the doctor is not available");
       setShowBookingModal(false);
       return;
@@ -333,7 +302,7 @@ const Appointments = () => {
         });
       } else {
         // If this is a new date, initialize with slots
-        const availableSlots = getAvailableSlots(selectedDate);
+        const availableSlots = getAvailableSlots(selectedDate, doctorData.workingDays);
         updatedAppointments[formattedDate] = availableSlots.map(slot => {
           if (slot.time === selectedSlot.time) {
             return newAppointment;
@@ -373,24 +342,25 @@ const Appointments = () => {
     });
   };
 
+  // Only render this information display while data is loading
+  if (loading) {
+    return <div className="section-container">Loading doctor's preference...</div>;
+  }
+
+  // Display booking mode based on doctor's preference from API
   return (
     <div className="section-container">
-      <div className="booking-mode-toggle">
-        <button 
-          className={bookingMode === 'slot' ? 'active' : ''}
-          onClick={() => setBookingMode('slot')}
-        >
-          Slot-based
-        </button>
-        <button 
-          className={bookingMode === 'queue' ? 'active' : ''}
-          onClick={() => setBookingMode('queue')}
-        >
-          Queue-based
-        </button>
+      {/* Information display that shows current booking mode */}
+      <div className="booking-mode-info">
+        <h3>Current Booking Mode: {bookingPreference === 'queue' ? 'Queue-based' : 'Slot-based'}</h3>
+        <p className="booking-mode-description">
+          {bookingPreference === 'queue' 
+            ? 'Patients are added to a queue without specific time slots.' 
+            : 'Patients can book specific time slots directly.'}
+        </p>
       </div>
 
-      {bookingMode === 'slot' ? (
+      {bookingPreference === 'slot' ? (
         <div className="slot-booking">
           <div className="appointment-grid">
             <div className="calendar-section">
@@ -404,8 +374,10 @@ const Appointments = () => {
                   date.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 3)
                 }
                 tileDisabled={({date}) => {
+                  if (!doctorData || !doctorData.workingDays) return true;
+                  
                   const dayName = dayNames[date.getDay()];
-                  return !mockDoctorData.workingDays[dayName] || !mockDoctorData.workingDays[dayName].active;
+                  return !doctorData.workingDays[dayName] || !doctorData.workingDays[dayName].active;
                 }}
               />
             </div>
@@ -417,13 +389,13 @@ const Appointments = () => {
                   month: 'long',
                   day: 'numeric'
                 })}</h4>
-                {!isDoctorAvailable(selectedDate) && (
+                {(!doctorData || !isDoctorAvailable(selectedDate, doctorData.workingDays)) && (
                   <p className="not-working-day">Doctor is not available on this day</p>
                 )}
               </div>
               
               {/* Only show time slots if doctor is available */}
-              {isDoctorAvailable(selectedDate) && (
+              {doctorData && isDoctorAvailable(selectedDate, doctorData.workingDays) && (
                 <div className="time-slots">
                   {getAppointmentsForDate(selectedDate).map((slot, index) => (
                     <div 
@@ -450,7 +422,7 @@ const Appointments = () => {
                 })}</h4>
                 
                 {/* Conditional display based on doctor availability and date */}
-                {!isDoctorAvailable(selectedDate) ? (
+                {(!doctorData || !isDoctorAvailable(selectedDate, doctorData.workingDays)) ? (
                   <p className="no-appointments">Doctor is not available on this day</p>
                 ) : formatDate(selectedDate) === getTodayDate() ? (
                   todayAppointments.length > 0 ? (
@@ -535,8 +507,10 @@ const Appointments = () => {
                   date.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 3)
                 }
                 tileDisabled={({date}) => {
+                  if (!doctorData || !doctorData.workingDays) return true;
+                  
                   const dayName = dayNames[date.getDay()];
-                  return !mockDoctorData.workingDays[dayName] || !mockDoctorData.workingDays[dayName].active;
+                  return !doctorData.workingDays[dayName] || !doctorData.workingDays[dayName].active;
                 }}
                 tileClassName={({date}) => {
                   const formattedDate = formatDate(date);
@@ -552,8 +526,8 @@ const Appointments = () => {
                   day: 'numeric'
                 })}</h3>
                 
-                {isDoctorAvailable(selectedDate) ? (
-                  <p>Patients added to the queue will be assigned the next available time slot</p>
+                {doctorData && isDoctorAvailable(selectedDate, doctorData.workingDays) ? (
+                  <p>Patients added to the queue will be seen in order</p>
                 ) : (
                   <p className="not-working-day">Doctor is not available on this date. Queue is closed.</p>
                 )}
@@ -577,7 +551,8 @@ const Appointments = () => {
                       <div className="queue-number">#{item.number}</div>
                       <div className="queue-details">
                         <div className="queue-patient">{item.name}</div>
-                        <div className="queue-time">Time: {item.time || "Not assigned"}</div>
+                        <div className="queue-contact">{item.contact}</div>
+                        <div className="queue-reason">{item.reason}</div>
                       </div>
                       <div className="queue-actions">
                         <div className="queue-status">{item.status}</div>
@@ -608,7 +583,7 @@ const Appointments = () => {
               <button 
                 className="add-to-queue-btn" 
                 onClick={handleAddToQueue}
-                disabled={!isDoctorAvailable(selectedDate)}
+                disabled={!doctorData || !isDoctorAvailable(selectedDate, doctorData.workingDays)}
               >
                 Add Patient to Queue
               </button>
@@ -617,7 +592,7 @@ const Appointments = () => {
         </div>
       )}
 
-      {/* Add Patient Modal Form */}
+      {/* Add Patient Modal Form for Queue-based booking */}
       {showAddPatientForm && (
         <div className="modal-overlay">
           <div className="modal-wrapper">
@@ -658,7 +633,7 @@ const Appointments = () => {
                   onChange={(e) => {
                     const newDate = new Date(e.target.value);
                     // Check if doctor is available
-                    if (!isDoctorAvailable(newDate)) {
+                    if (!doctorData || !isDoctorAvailable(newDate, doctorData.workingDays)) {
                       alert("Doctor is not available on this date. Please select another date.");
                       return;
                     }
@@ -686,7 +661,7 @@ const Appointments = () => {
       )}
 
       {/* Booking Modal for Slot-based system */}
-      {showBookingModal && isDoctorAvailable(selectedDate) && (
+      {showBookingModal && doctorData && isDoctorAvailable(selectedDate, doctorData.workingDays) && (
         <div className="modal-overlay">
           <div className="modal-wrapper">
             <h3>Book Appointment</h3>

@@ -24,7 +24,8 @@ const Profile = () => {
     city: '',
     state: '',
     country: '',
-    about: ''
+    about: '',
+    bookingPreference: ''
   });
 
   useEffect(() => {
@@ -69,7 +70,8 @@ const Profile = () => {
           city: data.doctor?.city || '',
           state: data.doctor?.state || '',
           country: data.doctor?.country || '',
-          about: data.doctor?.about || ''
+          about: data.doctor?.about || '',
+          bookingPreference: data.doctor?.bookingPreference || ''
         });
         
         // Set treatments
@@ -177,7 +179,8 @@ const Profile = () => {
           city: data.doctor.city || '',
           state: data.doctor.state || '',
           country: data.doctor.country || '',
-          about: data.doctor.about || ''
+          about: data.doctor.about || '',
+          bookingPreference: data.doctor.bookingPreference || ''
         });
         setTreatments(data.doctor.treatments || []);
         setWorkingDays(data.doctor.workingDays || {});
@@ -459,6 +462,70 @@ const Profile = () => {
             />
           ) : (
             <div className="info-display">{doctorData?.about || ''}</div>
+          )}
+        </div>
+
+        <div className="booking-preference-section">
+          <h4>Booking Preference</h4>
+          {isEditing ? (
+            <div className="booking-preference-options">
+              <label className={`preference-card ${editableData.bookingPreference === 'slot' ? 'selected' : ''}`}>
+                <div className="preference-radio">
+                  <input
+                    type="radio"
+                    name="bookingPreference"
+                    value="slot"
+                    checked={editableData.bookingPreference === 'slot'}
+                    onChange={(e) => setEditableData({
+                      ...editableData,
+                      bookingPreference: e.target.value
+                    })}
+                  />
+                  <div className="radio-circle"></div>
+                </div>
+                <div className="preference-content">
+                  <span className="preference-title">Slot Based Booking</span>
+                  <span className="preference-description">
+                    Patients can book specific time slots from your schedule
+                  </span>
+                </div>
+              </label>
+              
+              <label className={`preference-card ${editableData.bookingPreference === 'queue' ? 'selected' : ''}`}>
+                <div className="preference-radio">
+                  <input
+                    type="radio"
+                    name="bookingPreference"
+                    value="queue"
+                    checked={editableData.bookingPreference === 'queue'}
+                    onChange={(e) => setEditableData({
+                      ...editableData,
+                      bookingPreference: e.target.value
+                    })}
+                  />
+                  <div className="radio-circle"></div>
+                </div>
+                <div className="preference-content">
+                  <span className="preference-title">Queue Based Booking</span>
+                  <span className="preference-description">
+                    Patients join a queue and are served on a first-come, first-served basis
+                  </span>
+                </div>
+              </label>
+            </div>
+          ) : (
+            <div className="preference-card view-mode">
+              <div className="preference-content">
+                <span className="preference-title">
+                  {editableData.bookingPreference === 'queue' ? 'Queue Based Booking' : 'Slot Based Booking'}
+                </span>
+                <span className="preference-description">
+                  {editableData.bookingPreference === 'queue' 
+                    ? 'Patients join a queue and are served on a first-come, first-served basis'
+                    : 'Patients can book specific time slots from your schedule'}
+                </span>
+              </div>
+            </div>
           )}
         </div>
 
