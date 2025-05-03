@@ -12,8 +12,9 @@ const EventSectionS2 = (props) => {
             <h2 className="hidden">some</h2>
             <div className="container">
                 <div className="row">
-                    <div className="col-lg-3 col-md-6 col-sm-6 col-12">
-                        <div className="event-items">
+                    <div className="col-/..lg-3 col-md-6 col-sm-6 col-12">
+                        <div className="event-i   ..
+                        2222222222222230tems">
                             <h3>Awards</h3>
                             <div className="event-item">
                                 <div className="icon"><img src={eImg1} alt=""/></div>

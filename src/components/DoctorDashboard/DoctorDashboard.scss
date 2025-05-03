@@ -2816,4 +2816,59 @@
   }
 }
 
-// ... existing code ...
+.time-slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.time-slot {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:not(.occupied):hover {
+    border-color: #3b82f6;
+    transform: translateY(-2px);
+  }
+
+  &.occupied {
+    background-color: #f3f4f6;
+  }
+
+  .slot-time {
+    font-weight: 500;
+    color: #1f2937;
+  }
+
+  .slot-patient {
+    margin-top: 8px;
+    font-size: 14px;
+    color: #6b7280;
+  }
+}
+
+.add-appointment-container {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.add-appointment-btn {
+  padding: 12px 24px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: #2563eb;
+  }
+}
