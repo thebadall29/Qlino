@@ -25,7 +25,7 @@ const AppointmentSchema = new mongoose.Schema({
   },
   contactNumber: {
     type: String,
-    required: true,
+    // required: true,
     trim: true,
     match: [/^[0-9]{10}$/, 'Please enter a valid 10-digit contact number']
   },
@@ -41,7 +41,7 @@ const AppointmentSchema = new mongoose.Schema({
   },
   time: {
     type: String,
-    required: true,
+    // required: true,
     match: [/^(0?[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$/, 'Please enter time in format: HH:MM AM/PM']
   },
   reason: {

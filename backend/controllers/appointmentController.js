@@ -588,7 +588,6 @@ exports.getQueue = async (req, res) => {
   try {
     const { date } = req.params;
     
-    // Fix: Use req.user.id instead of req.doctor._id
     if (!req.user || !req.user.id) {
       return res.status(400).json({
         success: false,
@@ -597,23 +596,36 @@ exports.getQueue = async (req, res) => {
     }
     
     const doctorId = req.user.id;
-    
-    // Find queue for this date
-    const queue = await Queue.findOne({
+    const formattedDate = formatDate(date);
+
+    // Get all appointments for the date, sorted by creation time
+    const appointments = await Appointment.find({
       doctorId,
-      date: new Date(formatDate(date))
-    }).populate('items.patientId', 'firstName lastName fullName mobile');
-    
-    if (!queue) {
-      return res.status(200).json({
-        success: true,
-        queue: []
-      });
-    }
-    
+      date: {
+        $gte: new Date(`${formattedDate}T00:00:00.000Z`),
+        $lt: new Date(`${formattedDate}T23:59:59.999Z`)
+      }
+    })
+    .sort({ createdAt: 1 }) // Sort by creation date (oldest first)
+    .populate('patientId', 'firstName lastName fullName mobile');
+
+    // Map appointments to queue format
+    const queueItems = appointments.map((appt, index) => ({
+      queueNumber: index + 1,
+      id: appt._id,
+      name: appt.patientName || appt.patientId?.fullName,
+      contact: appt.contactNumber || appt.patientId?.mobile,
+      email: appt.patientEmail,
+      reason: appt.reason,
+      status: appt.status,
+      type: appt.type,
+      createdAt: appt.createdAt,
+      time: appt.time
+    }));
+
     res.status(200).json({
       success: true,
-      queue: queue.items
+      queue: queueItems
     });
   } catch (error) {
     console.error('Error fetching queue:', error);

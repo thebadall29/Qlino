@@ -633,7 +633,6 @@
   .patient-info {
     display: flex;
     gap: 15px;
-    margin-bottom: 15px;
   }
   
   .patient-avatar {
@@ -2870,5 +2869,108 @@
 
   &:hover {
     background-color: #2563eb;
+  }
+}
+
+// ... existing code ...
+// ... existing code ...
+// Queue Section Styling
+.queue-section {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: 24px;
+  margin-bottom: 24px;
+  
+  h4 {
+    color: #3b82f6;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  .queue-item {
+    background: #f9fafb;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    border-left: 4px solid #3b82f6;
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .queue-number {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      background-color: #3b82f6;
+      color: white;
+      border-radius: 50%;
+      font-weight: 600;
+      margin-right: 16px;
+      font-size: 0.9rem;
+    }
+    
+    .patient-info {
+      flex: 1;
+      
+      .patient-name {
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: #1f2937;
+        margin-bottom: 4px;
+      }
+      
+      .patient-email {
+        color: #6b7280;
+        font-size: 1rem;
+      }
+    }
+  }
+  
+  .add-patient-button {
+    width: 100%;
+    padding: 14px;
+    background-color: #f3f4f6;
+    border: 1px dashed #d1d5db;
+    border-radius: 8px;
+    color: #4b5563;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 16px;
+    
+    &:hover {
+      background-color: #e5e7eb;
+      color: #1f2937;
+    }
+    
+    &:before {
+      content: "+";
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .queue-section {
+    .queue-item {
+      padding: 12px;
+    }
   }
 }

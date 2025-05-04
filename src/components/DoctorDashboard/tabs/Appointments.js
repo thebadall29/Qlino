@@ -15,7 +15,7 @@ const formatDate = (date) => {
 const getAvailableSlots = (date, workingDays) => {
   const dayName = dayNames[date.getDay()];
   const daySchedule = workingDays[dayName];
-  
+
   // Return empty array if doctor is not available on this day
   if (!daySchedule || !daySchedule.active) {
     return [];
@@ -24,20 +24,20 @@ const getAvailableSlots = (date, workingDays) => {
   const slots = [];
   const startTime = new Date(`2000/01/01 ${daySchedule.startTime}`);
   const endTime = new Date(`2000/01/01 ${daySchedule.endTime}`);
-  
+
   let currentTime = startTime;
   while (currentTime < endTime) {
     slots.push({
-      time: currentTime.toLocaleTimeString('en-US', { 
-        hour: 'numeric', 
-        minute: '2-digit', 
-        hour12: true 
+      time: currentTime.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
       }),
       available: true
     });
     currentTime = new Date(currentTime.getTime() + 30 * 60000); // Add 30 minutes
   }
-  
+
   return slots;
 };
 
@@ -52,8 +52,8 @@ const isDoctorAvailable = (date, workingDays) => {
 const isToday = (date) => {
   const today = new Date();
   return date.getDate() === today.getDate() &&
-         date.getMonth() === today.getMonth() &&
-         date.getFullYear() === today.getFullYear();
+    date.getMonth() === today.getMonth() &&
+    date.getFullYear() === today.getFullYear();
 };
 
 // Helper to parse time string like "9:30 AM" to Date object
@@ -61,33 +61,33 @@ const parseTimeString = (timeStr) => {
   const today = new Date();
   const [time, modifier] = timeStr.split(' ');
   let [hours, minutes] = time.split(':');
-  
+
   if (hours === '12') {
     hours = '00';
   }
-  
+
   if (modifier === 'PM') {
     hours = parseInt(hours, 10) + 12;
   }
-  
+
   return new Date(today.getFullYear(), today.getMonth(), today.getDate(), hours, minutes);
 };
 
 // Handle queue status change
 const handleQueueStatusChange = (queueNumber, newStatus, selectedDate, queuesByDate, setQueuesByDate) => {
   const formattedDate = formatDate(selectedDate);
-  
+
   setQueuesByDate(prevQueues => {
     const updatedQueue = [...(prevQueues[formattedDate] || [])];
     const queueItemIndex = updatedQueue.findIndex(item => item.number === queueNumber);
-    
+
     if (queueItemIndex !== -1) {
       updatedQueue[queueItemIndex] = {
         ...updatedQueue[queueItemIndex],
         status: newStatus
       };
     }
-    
+
     return {
       ...prevQueues,
       [formattedDate]: updatedQueue
@@ -95,11 +95,13 @@ const handleQueueStatusChange = (queueNumber, newStatus, selectedDate, queuesByD
   });
 };
 
+
+
 // Fetch appointments for a specific date from API
 const fetchAppointmentsForDate = async (date) => {
   try {
     const token = localStorage.getItem('token');
-    
+
     if (!token) {
       console.error('No authentication token found');
       return null;
@@ -117,11 +119,41 @@ const fetchAppointmentsForDate = async (date) => {
     }
 
     const data = await response.json();
-    console.log('Appointments data from API:', data);
-    
+
     return data.success ? data.appointments : [];
   } catch (error) {
     console.error('Error fetching appointments:', error);
+    return null;
+  }
+};
+
+// Fetch queue data for a specific date
+const fetchQueueForDate = async (date) => {
+  try {
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      console.error('No authentication token found');
+      return null;
+    }
+
+    const formattedDate = formatDate(date);
+    const response = await fetch(`http://localhost:5000/api/doctor/queue/${formattedDate}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch queue: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('Queue data from API:', data);
+
+    return data.success ? data.queue : []; // Changed from data.appointments to data.queue
+  } catch (error) {
+    console.error('Error fetching queue:', error);
     return null;
   }
 };
@@ -144,7 +176,7 @@ const Appointments = () => {
   const [appointments, setAppointments] = useState({});
   const [queuesByDate, setQueuesByDate] = useState({});
   const [todayAppointments, setTodayAppointments] = useState([]);
-  
+
   // State for booking modal
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState(null);
@@ -155,12 +187,34 @@ const Appointments = () => {
     reason: ''
   });
 
+  // Load queue data for a specific date
+  const loadQueueForDate = async (date) => {
+    try {
+      const formattedDate = formatDate(date);
+      const fetchedQueue = await fetchQueueForDate(date);
+
+      if (fetchedQueue) {
+        // Update the queuesByDate state directly with the fetched queue data
+        setQueuesByDate(prevState => ({
+          ...prevState,
+          [formattedDate]: fetchedQueue
+        }));
+
+        console.log('Queue data loaded for date:', formattedDate, fetchedQueue);
+      }
+    } catch (error) {
+      console.error('Error loading queue data:', error);
+    }
+  };
+
+  console.log("appointment for the day",queuesByDate)
+
   // Fetch doctor data when component mounts
   useEffect(() => {
     const fetchDoctorData = async () => {
       try {
         const token = localStorage.getItem('token');
-        
+
         if (!token) {
           console.error('No authentication token found');
           return;
@@ -177,8 +231,7 @@ const Appointments = () => {
         }
 
         const data = await response.json();
-        console.log('Doctor data from API:', data);
-        
+
         // Transform the doctor data to match expected structure
         if (data.doctor) {
           const transformedDoctorData = {
@@ -186,15 +239,16 @@ const Appointments = () => {
             _id: data.doctor.id // Map id to _id
           };
           setDoctorData(transformedDoctorData);
-          
+
           // Set booking preference from API data
           if (data.doctor.bookingPreference) {
             setBookingPreference(data.doctor.bookingPreference);
           }
-          
-          // After setting doctor data, fetch today's appointments
+
+          // After setting doctor data, fetch today's appointments and queue
           const today = new Date();
           loadAppointmentsForDate(today);
+          loadQueueForDate(today);
         }
       } catch (error) {
         console.error('Error fetching doctor data:', error);
@@ -204,15 +258,6 @@ const Appointments = () => {
     };
 
     fetchDoctorData();
-    
-    // Initialize queue data
-    const today = formatDate(new Date());
-    setQueuesByDate({
-      [today]: [
-        { number: 1, name: "Jane Smith", status: "In Progress", contact: "8765432109", reason: "Consultation" },
-        { number: 2, name: "Mike Johnson", status: "Waiting", contact: "7654321098", reason: "New patient" }
-      ]
-    });
   }, []);
 
   // Function to load appointments for a specific date
@@ -220,17 +265,17 @@ const Appointments = () => {
     try {
       const formattedDate = formatDate(date);
       const fetchedAppointments = await fetchAppointmentsForDate(date);
-      
+
       if (fetchedAppointments) {
         // Process the appointments data
         const processedAppointments = processAppointmentsData(fetchedAppointments, date, doctorData);
-        
+
         // Update appointments state
         setAppointments(prevAppointments => ({
           ...prevAppointments,
           [formattedDate]: processedAppointments
         }));
-        
+
         // If loading today's appointments, update todayAppointments state
         if (isToday(date)) {
           const todayAppts = fetchedAppointments.filter(appt => !appt.available && appt.patient)
@@ -243,7 +288,7 @@ const Appointments = () => {
               available: false,
               status: appt.status || 'Scheduled'
             }));
-          
+
           setTodayAppointments(todayAppts);
         }
       }
@@ -258,16 +303,16 @@ const Appointments = () => {
     if (!doctorData || !isDoctorAvailable(date, doctorData.workingDays)) {
       return [];
     }
-    
+
     // Generate all possible time slots based on doctor's working hours
     const allSlots = getAvailableSlots(date, doctorData.workingDays);
-    
+
     // Mark slots as booked based on API data
     return allSlots.map(slot => {
-      const matchingAppointment = apiAppointments.find(appt => 
+      const matchingAppointment = apiAppointments.find(appt =>
         appt.time === slot.time && !appt.available
       );
-      
+
       if (matchingAppointment) {
         return {
           ...slot,
@@ -275,15 +320,16 @@ const Appointments = () => {
           available: false
         };
       }
-      
+
       return slot;
     });
   };
 
-  // Effect to reload appointments when selected date changes
+  // Effect to reload appointments and queue data when selected date changes
   useEffect(() => {
     if (doctorData) {
       loadAppointmentsForDate(selectedDate);
+      loadQueueForDate(selectedDate);
     }
   }, [selectedDate, doctorData]);
 
@@ -293,10 +339,31 @@ const Appointments = () => {
   };
 
   // Get queue for the selected date
-  const getQueueForSelectedDate = () => {
-    const formattedDate = formatDate(selectedDate);
-    return queuesByDate[formattedDate] || [];
-  };
+ // ... existing code ...
+
+// Get queue for the selected date
+// Get queue for the selected date
+const getQueueForSelectedDate = () => {
+  const formattedDate = formatDate(selectedDate);
+  const queueItems = queuesByDate[formattedDate] || [];
+  
+  if (queueItems.length === 0) {
+    return <div className="no-queue-message">No patients in queue for this date</div>;
+  }
+
+  return queueItems.map((item) => (
+    <div key={item.id} className="queue-item">
+      <span className="queue-number">#{item.queueNumber}</span>
+      <div className="patient-info">
+        <div className="patient-name">{item.name}</div>
+        <div className="patient-email">{item.email || '-'}</div>
+      </div>
+    </div>
+  ));
+};
+
+// ... existing code ...
+
 
   // Handle date change from calendar
   const handleDateChange = (date) => {
@@ -310,9 +377,9 @@ const Appointments = () => {
       alert("Cannot add patients to queue when doctor is not available on the selected date");
       return;
     }
-    
+
     // Set default date to selected date
-    setNewPatient(prev => ({...prev, date: selectedDate}));
+    setNewPatient(prev => ({ ...prev, date: selectedDate }));
     setShowAddPatientForm(true);
   };
 
@@ -328,25 +395,25 @@ const Appointments = () => {
   // Handle form submission for adding patient to queue
   const handlePatientSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       const token = localStorage.getItem('token');
-      
+
       if (!token) {
         alert('You must be logged in to add patients to queue');
         return;
       }
-      
+
       // Get selected date
       const queueDate = newPatient.date;
       const formattedDate = formatDate(queueDate);
-      
+
       // Check doctor availability
       if (!doctorData || !isDoctorAvailable(queueDate, doctorData.workingDays)) {
         alert("Cannot add patients to queue when doctor is not available on the selected date");
         return;
       }
-      
+
       // Prepare queue data
       const queueData = {
         doctorId: doctorData._id,
@@ -357,7 +424,7 @@ const Appointments = () => {
         reason: newPatient.reason,
         type: 'queue'
       };
-      
+
       // Send queue request to API
       const response = await fetch('http://localhost:5000/api/doctor/queue', {
         method: 'POST',
@@ -367,38 +434,22 @@ const Appointments = () => {
         },
         body: JSON.stringify(queueData)
       });
-      
+
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to add patient to queue');
       }
-      
+
       const data = await response.json();
-      
-      // Get current queue for date or initialize new one
-      const currentQueue = queuesByDate[formattedDate] || [];
-      
-      // Create queue item
-      const newQueueItem = {
-        number: currentQueue.length + 1,
-        name: newPatient.name,
-        contact: newPatient.contact,
-        email: newPatient.email,
-        reason: newPatient.reason,
-        status: "Waiting",
-        timestamp: new Date().getTime()
-      };
-  
-      // Update queues
-      setQueuesByDate(prevQueues => ({
-        ...prevQueues,
-        [formattedDate]: [...(prevQueues[formattedDate] || []), newQueueItem]
-      }));
-      
+
+      // After successful addition, reload the queue data
+      await loadQueueForDate(selectedDate);
+
       // Reset form and close modal
       setNewPatient({ name: '', contact: '', email: '', reason: '', date: new Date() });
       setShowAddPatientForm(false);
-      
+
       alert('Patient added to queue successfully!');
     } catch (error) {
       console.error('Error adding patient to queue:', error);
@@ -412,7 +463,7 @@ const Appointments = () => {
     if (!doctorData || !isDoctorAvailable(date, doctorData.workingDays)) {
       return [];
     }
-    
+
     const formattedDate = formatDate(date);
     return appointments[formattedDate] || [];
   };
@@ -429,37 +480,37 @@ const Appointments = () => {
   // Handle booking form submission
   const handleBookingSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       const token = localStorage.getItem('token');
-      
+
       if (!token) {
         alert('You must be logged in to book an appointment');
         return;
       }
-      
+
       // Check if all required fields are present
       if (!doctorData || !doctorData.id) {
         console.error('Doctor data is missing');
         alert('Doctor information is missing. Please try again.');
         return;
       }
-      
+
       if (!selectedDate) {
         alert('Please select a date for the appointment');
         return;
       }
-      
+
       if (!selectedSlot || !selectedSlot.time) {
         alert('Please select a time slot for the appointment');
         return;
       }
-      
+
       if (!bookingDetails.reason || !bookingDetails.patientName || !bookingDetails.contact || !bookingDetails.email) {
         alert('Please fill in all required fields (Name, Contact, Email, and Reason)');
         return;
       }
-      
+
       // Prepare booking data - match the expected field names in the backend model
       const bookingData = {
         doctorId: doctorData.id,
@@ -471,9 +522,8 @@ const Appointments = () => {
         reason: bookingDetails.reason,
         type: 'slot'
       };
-      
-      console.log('Sending booking data:', bookingData);
-      
+
+
       // Send booking request to API
       const response = await fetch('http://localhost:5000/api/doctor/appointments', {
         method: 'POST',
@@ -483,18 +533,17 @@ const Appointments = () => {
         },
         body: JSON.stringify(bookingData)
       });
-      
-      console.log("response",response)
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to book appointment');
       }
-      
+
       const data = await response.json();
-      
+
       // Reload appointments for the selected date to get updated data
       await loadAppointmentsForDate(selectedDate);
-      
+
       // Close the booking modal and reset form
       setShowBookingModal(false);
       setBookingDetails({
@@ -503,7 +552,7 @@ const Appointments = () => {
         email: '',
         reason: '',
       });
-      
+
       alert('Appointment booked successfully!');
     } catch (error) {
       console.error('Error booking appointment:', error);
@@ -517,8 +566,8 @@ const Appointments = () => {
       <div className="booking-mode-info">
         <h3>Current Booking Mode: {bookingPreference === 'queue' ? 'Queue-based' : 'Slot-based'}</h3>
         <p className="booking-mode-description">
-          {bookingPreference === 'queue' 
-            ? 'Patients are added to a queue without specific time slots.' 
+          {bookingPreference === 'queue'
+            ? 'Patients are added to a queue without specific time slots.'
             : 'Patients can book specific time slots directly.'}
         </p>
       </div>
@@ -533,12 +582,12 @@ const Appointments = () => {
                 minDate={new Date()}
                 className="custom-calendar"
                 locale="en-US"
-                formatShortWeekday={(locale, date) => 
+                formatShortWeekday={(locale, date) =>
                   date.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 3)
                 }
-                tileDisabled={({date}) => {
+                tileDisabled={({ date }) => {
                   if (!doctorData || !doctorData.workingDays) return true;
-                  
+
                   const dayName = dayNames[date.getDay()];
                   return !doctorData.workingDays[dayName] || !doctorData.workingDays[dayName].active;
                 }}
@@ -546,7 +595,7 @@ const Appointments = () => {
             </div>
             <div className="slots-section">
               <div className="selected-date">
-                <h4>Appointments for {selectedDate.toLocaleDateString('en-US', { 
+                <h4>Appointments for {selectedDate.toLocaleDateString('en-US', {
                   weekday: 'long',
                   year: 'numeric',
                   month: 'long',
@@ -556,13 +605,13 @@ const Appointments = () => {
                   <p className="not-working-day">Doctor is not available on this day</p>
                 )}
               </div>
-              
+
               {/* Only show time slots if doctor is available */}
               {doctorData && isDoctorAvailable(selectedDate, doctorData.workingDays) && (
                 <div className="time-slots">
                   {getAppointmentsForDate(selectedDate).map((slot, index) => (
-                    <div 
-                      key={index} 
+                    <div
+                      key={index}
                       className={`time-slot ${slot.available ? '' : 'occupied'}`}
                       onClick={() => handleSlotClick(slot)}
                       style={{ cursor: slot.available ? 'pointer' : 'not-allowed' }}
@@ -577,13 +626,13 @@ const Appointments = () => {
               )}
 
               <div className="appointments-list-section">
-                <h4>Appointments for {selectedDate.toLocaleDateString('en-US', { 
+                <h4>Appointments for {selectedDate.toLocaleDateString('en-US', {
                   weekday: 'long',
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric'
                 })}</h4>
-                
+
                 {/* Conditional display based on doctor availability and date */}
                 {(!doctorData || !isDoctorAvailable(selectedDate, doctorData.workingDays)) ? (
                   <p className="no-appointments">Doctor is not available on this day</p>
@@ -666,29 +715,29 @@ const Appointments = () => {
                 minDate={new Date()}
                 className="custom-calendar"
                 locale="en-US"
-                formatShortWeekday={(locale, date) => 
+                formatShortWeekday={(locale, date) =>
                   date.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 3)
                 }
-                tileDisabled={({date}) => {
+                tileDisabled={({ date }) => {
                   if (!doctorData || !doctorData.workingDays) return true;
-                  
+
                   const dayName = dayNames[date.getDay()];
                   return !doctorData.workingDays[dayName] || !doctorData.workingDays[dayName].active;
                 }}
-                tileClassName={({date}) => {
+                tileClassName={({ date }) => {
                   const formattedDate = formatDate(date);
                   return queuesByDate[formattedDate] && queuesByDate[formattedDate].length > 0 ? 'has-queue' : '';
                 }}
               />
-              
+
               <div className="queue-info">
-                <h3>Queue for {selectedDate.toLocaleDateString('en-US', { 
+                <h3>Queue for {selectedDate.toLocaleDateString('en-US', {
                   weekday: 'long',
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric'
                 })}</h3>
-                
+
                 {doctorData && isDoctorAvailable(selectedDate, doctorData.workingDays) ? (
                   <p>Patients added to the queue will be seen in order</p>
                 ) : (
@@ -698,56 +747,14 @@ const Appointments = () => {
             </div>
 
             <div className="queue-section">
-              <div className="selected-date">
-                <h4>Queue for {selectedDate.toLocaleDateString('en-US', { 
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}</h4>
-              </div>
-              
-              <div className="current-queue">
-                {getQueueForSelectedDate().length > 0 ? (
-                  getQueueForSelectedDate().map((item, index) => (
-                    <div key={index} className={`queue-item ${item.status.toLowerCase().replace(/\s+/g, '-')}`}>
-                      <div className="queue-number">#{item.number}</div>
-                      <div className="queue-details">
-                        <div className="queue-patient">{item.name}</div>
-                        <div className="queue-contact">{item.contact}</div>
-                        <div className="queue-reason">{item.reason}</div>
-                      </div>
-                      <div className="queue-actions">
-                        <div className="queue-status">{item.status}</div>
-                        <div className="status-controls">
-                          <button 
-                            className="status-button in-progress"
-                            onClick={() => handleQueueStatusChange(item.number, "In Progress", selectedDate, queuesByDate, setQueuesByDate)}
-                            disabled={item.status === "In Progress" || item.status === "Completed"}
-                          >
-                            Start
-                          </button>
-                          <button 
-                            className="status-button completed"
-                            onClick={() => handleQueueStatusChange(item.number, "Completed", selectedDate, queuesByDate, setQueuesByDate)}
-                            disabled={item.status === "Completed" || item.status === "Waiting"}
-                          >
-                            Complete
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="empty-queue">No patients in queue for this date</p>
-                )}
-              </div>
-              
-              <button 
-                className="add-to-queue-btn" 
-                onClick={handleAddToQueue}
-                disabled={!doctorData || !isDoctorAvailable(selectedDate, doctorData.workingDays)}
-              >
+              <h4>Queue for {selectedDate.toLocaleDateString('en-US', {
+                weekday: 'long',
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric'
+              })}</h4>
+              {getQueueForSelectedDate()}
+              <button className="add-patient-button" onClick={handleAddToQueue}>
                 Add Patient to Queue
               </button>
             </div>
@@ -760,13 +767,13 @@ const Appointments = () => {
         <div className="modal-overlay">
           <div className="modal-content">
             <h2>Add Patient to Queue</h2>
-            <p>Date: {newPatient.date.toLocaleDateString('en-US', { 
+            <p>Date: {newPatient.date.toLocaleDateString('en-US', {
               weekday: 'long',
               year: 'numeric',
               month: 'long',
               day: 'numeric'
             })}</p>
-            
+
             <form onSubmit={handlePatientSubmit}>
               <div className="form-group">
                 <label htmlFor="patientName">Patient Name</label>
@@ -774,47 +781,49 @@ const Appointments = () => {
                   type="text"
                   id="patientName"
                   value={newPatient.name}
-                  onChange={(e) => setNewPatient({...newPatient, name: e.target.value})}
+                  onChange={(e) => setNewPatient({ ...newPatient, name: e.target.value })}
                   required
                 />
               </div>
-              
+
               <div className="form-group">
                 <label htmlFor="contact">Contact Number</label>
                 <input
                   type="text"
                   id="contact"
                   value={newPatient.contact}
-                  onChange={(e) => setNewPatient({...newPatient, contact: e.target.value})}
+                  onChange={(e) => setNewPatient({ ...newPatient, contact: e.target.value })}
                   required
                 />
               </div>
-              
+
               <div className="form-group">
                 <label htmlFor="email">Email</label>
                 <input
                   type="email"
                   id="email"
                   value={newPatient.email}
-                  onChange={(e) => setNewPatient({...newPatient, email: e.target.value})}
+                  onChange={(e) => setNewPatient({ ...newPatient, email: e.target.value })}
                   required
                 />
               </div>
-              
+
               <div className="form-group">
                 <label htmlFor="reason">Reason for Visit</label>
                 <textarea
                   id="reason"
                   value={newPatient.reason}
-                  onChange={(e) => setNewPatient({...newPatient, reason: e.target.value})}
+                  onChange={(e) => setNewPatient({ ...newPatient, reason: e.target.value })}
                   required
                 ></textarea>
               </div>
-              
+
+
+              {/* here start */}
               <div className="modal-actions">
                 <button type="submit" className="add-button">Add to Queue</button>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="cancel-button"
                   onClick={() => {
                     setShowAddPatientForm(false);
@@ -836,7 +845,7 @@ const Appointments = () => {
           <div className="modal-content">
             <h2>Book Appointment</h2>
             <p>Time: {selectedSlot.time} - {formatDate(selectedDate)}</p>
-            
+
             <form onSubmit={handleBookingSubmit}>
               <div className="form-group">
                 <label htmlFor="patientName">Patient Name</label>
@@ -844,47 +853,47 @@ const Appointments = () => {
                   type="text"
                   id="patientName"
                   value={bookingDetails.patientName}
-                  onChange={(e) => setBookingDetails({...bookingDetails, patientName: e.target.value})}
+                  onChange={(e) => setBookingDetails({ ...bookingDetails, patientName: e.target.value })}
                   required
                 />
               </div>
-              
+
               <div className="form-group">
                 <label htmlFor="contact">Contact Number</label>
                 <input
                   type="text"
                   id="contact"
                   value={bookingDetails.contact}
-                  onChange={(e) => setBookingDetails({...bookingDetails, contact: e.target.value})}
+                  onChange={(e) => setBookingDetails({ ...bookingDetails, contact: e.target.value })}
                   required
                 />
               </div>
-              
+
               <div className="form-group">
                 <label htmlFor="email">Email</label>
                 <input
                   type="email"
                   id="email"
                   value={bookingDetails.email}
-                  onChange={(e) => setBookingDetails({...bookingDetails, email: e.target.value})}
+                  onChange={(e) => setBookingDetails({ ...bookingDetails, email: e.target.value })}
                   required
                 />
               </div>
-              
+
               <div className="form-group">
                 <label htmlFor="reason">Reason for Visit</label>
                 <textarea
                   id="reason"
                   value={bookingDetails.reason}
-                  onChange={(e) => setBookingDetails({...bookingDetails, reason: e.target.value})}
+                  onChange={(e) => setBookingDetails({ ...bookingDetails, reason: e.target.value })}
                   required
                 ></textarea>
               </div>
-              
+
               <div className="modal-actions">
                 <button type="submit" className="book-button">Book Appointment</button>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="cancel-button"
                   onClick={() => {
                     setShowBookingModal(false);
