@@ -43,6 +43,69 @@ const userSchema = new mongoose.Schema({
     }
   ],
   
+  // Medical Reports
+  medicalReports: [
+    {
+      title: { type: String },
+      type: { type: String },
+      date: { type: Date, default: Date.now },
+      description: { type: String },
+      results: { type: String },
+      recommendations: { type: String },
+      fileUrl: { type: String },
+      createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      createdAt: { type: Date, default: Date.now }
+    }
+  ],
+
+  prescriptions: [
+    {
+      medications: [
+        {
+          name: { type: String },
+          dosage: { type: String },
+          frequency: { type: String },
+          duration: { type: String },
+          notes: { type: String }
+        }
+      ],
+      instructions: { type: String },
+      followUpDate: { type: String },
+      doctorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      doctorName: { type: String },
+      createdAt: { type: Date, default: Date.now }
+    }
+  ],
+  
+  // Reminders
+  reminders: [
+    {
+      title: { type: String, required: true },
+      description: { type: String },
+      date: { type: Date, required: true },
+      time: { type: String },
+      type: { 
+        type: String, 
+        enum: ['medication', 'appointment', 'test', 'other'],
+        default: 'other'
+      },
+      status: { 
+        type: String, 
+        enum: ['pending', 'completed', 'missed'],
+        default: 'pending'
+      },
+      recurring: { type: Boolean, default: false },
+      recurringPattern: { 
+        type: String,
+        enum: ['daily', 'weekly', 'monthly', 'custom'],
+        default: 'daily'
+      },
+      notificationTime: { type: Number, default: 30 }, // minutes before reminder
+      createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      createdAt: { type: Date, default: Date.now }
+    }
+  ],
+  
   createdAt: { type: Date, default: Date.now }
 });
 

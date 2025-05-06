@@ -45,6 +45,150 @@ const generateTimeSlots = (workingDay) => {
   return slots;
 };
 
+// ... existing code ...
+
+// Get patient appointments by email
+// ... existing code ...
+
+// Get patient appointments by email
+exports.getPatientAppointmentsByEmail = async (req, res) => {
+  try {
+    const { email } = req.params;
+    
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email parameter is required'
+      });
+    }
+    
+    console.log('Searching for appointments with email:', email);
+    
+    // Find all appointments with this email - search in both fields
+    const appointments = await Appointment.find({ 
+      $or: [
+        { patientEmail: email },  // Search in patientEmail field
+        { email: email }          // Also search in email field if it exists
+      ]
+    }).sort({ createdAt: -1 }); // Sort by creation date, newest first
+
+    console.log(`Found ${appointments.length} appointments for email ${email}`);
+    
+    // Check if any appointments were found
+    if (!appointments || appointments.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No appointments found for this email'
+      });
+    }
+    
+    // Get the most recent appointment (first in the sorted list)
+    const mostRecentAppointment = appointments[0];
+    
+    // Calculate follow-up count
+    const followUpCount = appointments.length - 1; // Subtract 1 for the initial visit
+    
+    return res.status(200).json({
+      success: true,
+      message: 'Patient appointments retrieved successfully',
+      patientHistory: {
+        totalVisits: appointments.length,
+        followUpCount: followUpCount > 0 ? followUpCount : 0,
+        isFollowUp: appointments.length > 1,
+        lastVisit: mostRecentAppointment,
+        allAppointments: appointments
+      }
+    });
+  } catch (error) {
+    console.error('Error retrieving patient appointments by email:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve patient appointments',
+      error: error.message
+    });
+  }
+};
+
+exports.checkPatientExists = async (req, res) => {
+  try {
+    const { email } = req.params;
+    
+    // Check if a user with this email exists and has role 'patient'
+    const user = await User.findOne({ email, role: 'patient' });
+    
+    return res.json({
+      success: true,
+      isRegistered: !!user // Convert to boolean
+    });
+  } catch (err) {
+    console.error('Error checking patient registration:', err);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// Get unique patients who have made appointments with a specific doctor
+exports.getUniquePatientsByDoctor = async (req, res) => {
+  try {
+    const doctorId = req.user.id; // Get the doctor ID from the authenticated user
+    
+    // Find all appointments for this doctor
+    const appointments = await Appointment.find({ doctorId })
+      .sort({ createdAt: -1 }); // Sort by creation date, newest first
+    
+    // Create a map to store unique patients by email
+    const uniquePatientsMap = new Map();
+    
+    // Process each appointment to extract unique patients
+    appointments.forEach(appointment => {
+      const patientEmail = appointment.patientEmail;
+      
+      // Only add this patient if we haven't seen this email before
+      if (!uniquePatientsMap.has(patientEmail)) {
+        uniquePatientsMap.set(patientEmail, {
+          name: appointment.patientName,
+          email: patientEmail,
+          contactNumber: appointment.contactNumber,
+          lastAppointment: appointment.date,
+          appointmentCount: 1,
+          lastReason: appointment.reason
+        });
+      } else {
+        // If we've seen this patient before, increment their appointment count
+        const patient = uniquePatientsMap.get(patientEmail);
+        patient.appointmentCount += 1;
+        
+        // Update last appointment date if this one is more recent
+        if (new Date(appointment.date) > new Date(patient.lastAppointment)) {
+          patient.lastAppointment = appointment.date;
+          patient.lastReason = appointment.reason;
+        }
+      }
+    });
+    
+    // Convert the map to an array of unique patients
+    const uniquePatients = Array.from(uniquePatientsMap.values());
+    
+    return res.status(200).json({
+      success: true,
+      message: 'Unique patients retrieved successfully',
+      count: uniquePatients.length,
+      patients: uniquePatients
+    });
+  } catch (error) {
+    console.error('Error retrieving unique patients:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve unique patients',
+      error: error.message
+    });
+  }
+};
+
+// ... existing code ...
+
 // Get doctor's appointments for a specific date
 exports.getDoctorAppointments = async (req, res) => {
   try {

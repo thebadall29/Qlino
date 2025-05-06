@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const app = express();
+const path = require('path'); 
 const patientRoutes = require('./routes/patientRoutes');
 // const userRoutes = require('./routes/userRoutes');
 const doctorRoutes = require('./routes/doctorRoutes');
@@ -25,6 +26,8 @@ app.use('/api/doctor', doctorRoutes);
 app.use('/api/symptoms', symptomRoutes);
 app.use('/api', appointmentRoutes);
 
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

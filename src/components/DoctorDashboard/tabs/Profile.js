@@ -80,6 +80,11 @@ const Profile = () => {
         // Set working days
         setWorkingDays(data.doctor?.workingDays || {});
         
+        // Hide register button if user is already registered
+        if (data.doctor && data.doctor.email) {
+          setIsEditing(false);
+        }
+        
       } catch (error) {
         console.error('Error fetching doctor data:', error);
         setError(error.message);

@@ -375,7 +375,68 @@
     }
   }
   
-  /* Responsive Styles */
+// ... existing code ...
+.print-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  
+  &:hover {
+    background-color: #45a049;
+  }
+}
+
+.file-upload-container {
+  display: flex;
+  align-items: center;
+  margin-top: 5px;
+  
+  .file-input {
+    width: 0.1px;
+    height: 0.1px;
+    opacity: 0;
+    overflow: hidden;
+    position: absolute;
+    z-index: -1;
+  }
+  
+  .file-upload-button {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background-color: #f0f0f0;
+    color: #333;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+    
+    &:hover {
+      background-color: #e0e0e0;
+    }
+  }
+  
+  .file-name {
+    margin-left: 10px;
+    font-size: 14px;
+    color: #666;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+  }
+}
+// ... existing code ...  /* Responsive Styles */
   @media (max-width: 1024px) {
     .profile-container {
       grid-template-columns: 1fr;
@@ -2974,3 +3035,253 @@
     }
   }
 }
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  
+  .modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 80%;
+    max-height: 80%;
+    overflow-y: auto;
+    position: relative;
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      
+      .close-button {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+      }
+    }
+  }
+}
+
+.reports-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  
+  .reports-list {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    
+    h4 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: #333;
+    }
+    
+    .reports-table {
+      width: 100%;
+      overflow-x: auto;
+      
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        
+        th, td {
+          padding: 10px;
+          text-align: left;
+          border-bottom: 1px solid #eee;
+        }
+        
+        th {
+          background-color: #f8f9fa;
+          font-weight: 600;
+        }
+        
+        .action-buttons {
+          display: flex;
+          gap: 8px;
+          
+          .view-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            background-color: #4285f4;
+            color: white;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            
+            &:hover {
+              background-color: #3367d6;
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  .add-report-form {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    
+    h4 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: #333;
+    }
+    
+    .form-row {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 15px;
+      
+      @media (max-width: 768px) {
+        flex-direction: column;
+      }
+      
+      .form-group {
+        flex: 1;
+      }
+    }
+    
+    .form-group {
+      margin-bottom: 15px;
+      
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+      }
+      
+      input[type="text"],
+      input[type="date"],
+      select,
+      textarea {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 0.9rem;
+      }
+      
+      input[type="file"] {
+        padding: 8px 0;
+      }
+      
+      small {
+        display: block;
+        margin-top: 5px;
+        color: #666;
+        font-size: 0.8rem;
+      }
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      
+      button {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        
+        &.save-button {
+          background-color: #4285f4;
+          color: white;
+          
+          &:hover {
+            background-color: #3367d6;
+          }
+        }
+      }
+    }
+  }
+}
+
+.file-upload-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  
+  .file-upload-input {
+    width: 0.1px;
+    height: 0.1px;
+    opacity: 0;
+    overflow: hidden;
+    position: absolute;
+    z-index: -1;
+  }
+  
+  .file-upload-button {
+    display: inline-block;
+    padding: 8px 16px;
+    background-color: #4285f4;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    margin-right: 10px;
+    
+    &:hover {
+      background-color: #3367d6;
+    }
+  }
+  
+  .file-name {
+    color: #666;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 250px;
+  }
+}
+
+.register-section {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 5px;
+  
+  .register-note {
+    color: #dc3545;
+    margin-bottom: 10px;
+  }
+  
+  .registered-note {
+    color: #28a745;
+    font-weight: 500;
+  }
+  
+  .register-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    
+    &:hover {
+      background-color: #0069d9;
+    }
+  }
+}
+

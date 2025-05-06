@@ -10,7 +10,9 @@ router.post('/doctor/appointments', auth, authorize(['doctor']), appointmentCont
 router.post('/doctor/queue', auth, authorize(['doctor']), appointmentController.addToQueue);
 router.get('/doctor/queue/:date', auth, authorize(['doctor']), appointmentController.getQueue);
 router.patch('/doctor/appointments/:id', auth, authorize(['doctor']), appointmentController.updateAppointmentStatus);
-
+router.get('/patient/appointment/:email', auth, authorize(['doctor']), appointmentController.getPatientAppointmentsByEmail);
+router.get('/doctor/unique-patients', auth, authorize(['doctor']), appointmentController.getUniquePatientsByDoctor);
+router.get('/doctor/unique-patients', auth, authorize(['doctor']), appointmentController.checkPatientExists);
 // Patient routes
 router.get('/patient/appointments', auth, authorize(['patient']), appointmentController.getPatientAppointments);
 router.post('/appointments', appointmentController.bookAppointmentForUnregisteredPatient);
