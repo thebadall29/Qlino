@@ -237,7 +237,7 @@ const PatientManagement = () => {
         ...patient,
         isRegistered: registrationCheck.isRegistered
       };
-      
+
       console.log("Patient with registration status:", patientWithRegistrationStatus);
 
       // Set the selected patient and show the modal
@@ -745,7 +745,13 @@ const PatientManagement = () => {
       alert(`Error saving prescription: ${err.response?.data?.message || err.message}`);
     }
   };
-  const handlePrintPrescription = () => {
+
+  const handlePrintPrescription = (prescriptionData) => {
+    console.log(' prescriptions data:', prescriptionData);
+    if (!prescriptionData || !prescriptionData.medications || prescriptionData.medications.length === 0) {
+      alert('Invalid prescription data');
+      return;
+    }
     const printWindow = window.open('', '_blank');
 
     printWindow.document.write(`
@@ -791,7 +797,7 @@ const PatientManagement = () => {
                 </tr>
               </thead>
               <tbody>
-                ${prescription.medications.map(med => `
+                ${prescriptionData.medications.map(med => `
                   <tr>
                     <td>${med.name}</td>
                     <td>${med.dosage}</td>
@@ -805,11 +811,11 @@ const PatientManagement = () => {
           </div>
           <div class="instructions">
             <h3>Instructions</h3>
-            <p>${prescription.instructions}</p>
+            <p>${prescriptionData.instructions}</p>
           </div>
           <div class="follow-up">
             <h3>Follow-up</h3>
-            <p>Please return for follow-up on: ${prescription.followUpDate}</p>
+            <p>Please return for follow-up on: ${prescriptionData.followUpDate}</p>
           </div>
           <div class="signature">
             <p>Doctor's Signature: ____________________</p>
@@ -917,7 +923,7 @@ const PatientManagement = () => {
           }
         });
 
-      
+
 
         if (patientsResponse.data.success) {
           setPatients(patientsResponse.data.patients);
@@ -931,6 +937,10 @@ const PatientManagement = () => {
     }
   };
 
+
+  const sortedPrescriptions = [...allPrescriptions].sort((a, b) => {
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  });
 
   return (
     <div className="section-container">
@@ -1002,6 +1012,7 @@ const PatientManagement = () => {
             borderRadius: '8px',
             boxShadow: '0 5px 15px rgba(0, 0, 0, 0.3)',
             width: '90%',
+            height: '90%',
             maxWidth: '800px',
             maxHeight: '90vh',
             overflow: 'auto',
@@ -1015,7 +1026,7 @@ const PatientManagement = () => {
               borderBottom: '1px solid #eee'
             }}>
               <h3 style={{ margin: 0 }}>Patient Profile: {selectedPatient.name}</h3>
-              
+
               <button
                 onClick={() => setShowProfileModal(false)}
                 style={{
@@ -1027,7 +1038,7 @@ const PatientManagement = () => {
               >
                 ×
               </button>
-              
+
             </div>
 
             <div className="modal-tabs" style={{
@@ -1108,7 +1119,7 @@ const PatientManagement = () => {
             </div>
 
             <div className="modal-body" style={{ padding: '20px' }}>
-              
+
               {activeTab === 'profile' && (
                 <div className="profile-tab" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   <div style={{
@@ -1201,7 +1212,7 @@ const PatientManagement = () => {
                       </button>
                     </div>
                   )}
-                  
+
                   {/* Show registered status if patient is registered */}
                   {selectedPatient && selectedPatient.isRegistered === true && (
                     <div style={{
@@ -1244,7 +1255,7 @@ const PatientManagement = () => {
                         <span>{selectedPatient.lastReason || 'Not provided'}</span>
                       </div>
                     </div>
-                    
+
                   </div>
                 </div>
               )}
@@ -1295,159 +1306,6 @@ const PatientManagement = () => {
 
               {activeTab === 'prescription' && (
                 <div style={{ padding: '20px' }}>
-                  {/* Display all prescriptions */}
-                  <div style={{ marginBottom: '30px' }}>
-                    <h4 style={{ marginTop: '0', marginBottom: '15px', color: '#333' }}>Previous Prescriptions</h4>
-                    {allPrescriptions.length > 0 ? (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                        {allPrescriptions.map((prescriptionItem, index) => (
-                          <div key={prescriptionItem._id || index} style={{
-                            backgroundColor: 'white',
-                            border: '1px solid #e5e7eb',
-                            borderRadius: '8px',
-                            padding: '15px',
-                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-                          }}>
-                            <div style={{
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                              marginBottom: '15px'
-                            }}>
-                              <div>
-                                <span style={{ fontWeight: '500', color: '#1f2937', marginRight: '10px' }}>
-                                  {new Date(prescriptionItem.createdAt).toLocaleDateString()}
-                                </span>
-                                <span style={{ color: '#6b7280', fontSize: '0.9rem' }}>
-                                  Dr. {prescriptionItem.doctorName || 'Unknown'}
-                                </span>
-                              </div>
-                              <div style={{ display: 'flex', gap: '8px' }}>
-                                <button
-                                  style={{
-                                    padding: '6px 12px',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    fontSize: '0.9rem',
-                                    backgroundColor: '#eff6ff',
-                                    color: '#3b82f6'
-                                  }}
-                                  onClick={() => {
-                                    setPrescription(prescriptionItem);
-                                    document.getElementById('new-prescription-form').scrollIntoView({ behavior: 'smooth' });
-                                  }}
-                                >
-                                  Edit
-                                </button>
-                                <button
-                                  style={{
-                                    padding: '6px 12px',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    fontSize: '0.9rem',
-                                    backgroundColor: '#fee2e2',
-                                    color: '#ef4444'
-                                  }}
-                                  onClick={async () => {
-                                    if (window.confirm('Are you sure you want to delete this prescription?')) {
-                                      try {
-                                        const token = localStorage.getItem('token');
-                                        const response = await axios.delete(
-                                          `http://localhost:5000/api/patient/doctor/patient/${selectedPatient.email}/prescriptions/${prescriptionItem._id}`,
-                                          {
-                                            headers: {
-                                              Authorization: `Bearer ${token}`
-                                            }
-                                          }
-                                        );
-
-                                        if (response.data.success) {
-                                          alert('Prescription deleted successfully');
-                                          // Remove from local state
-                                          setAllPrescriptions(allPrescriptions.filter(p => p._id !== prescriptionItem._id));
-                                        } else {
-                                          alert('Failed to delete prescription: ' + response.data.message);
-                                        }
-                                      } catch (err) {
-                                        console.error('Error deleting prescription:', err);
-                                        alert(`Error deleting prescription: ${err.response?.data?.message || err.message}`);
-                                      }
-                                    }
-                                  }}
-                                >
-                                  Delete
-                                </button>
-                              </div>
-                            </div>
-                            <div style={{ marginBottom: '15px' }}>
-                              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                                <thead>
-                                  <tr>
-                                    <th style={{
-                                      padding: '8px 12px',
-                                      textAlign: 'left',
-                                      borderBottom: '1px solid #e5e7eb',
-                                      backgroundColor: '#f9fafb',
-                                      fontWeight: '500',
-                                      color: '#4b5563'
-                                    }}>Medication</th>
-                                    <th style={{
-                                      padding: '8px 12px',
-                                      textAlign: 'left',
-                                      borderBottom: '1px solid #e5e7eb',
-                                      backgroundColor: '#f9fafb',
-                                      fontWeight: '500',
-                                      color: '#4b5563'
-                                    }}>Dosage</th>
-                                    <th style={{
-                                      padding: '8px 12px',
-                                      textAlign: 'left',
-                                      borderBottom: '1px solid #e5e7eb',
-                                      backgroundColor: '#f9fafb',
-                                      fontWeight: '500',
-                                      color: '#4b5563'
-                                    }}>Frequency</th>
-                                    <th style={{
-                                      padding: '8px 12px',
-                                      textAlign: 'left',
-                                      borderBottom: '1px solid #e5e7eb',
-                                      backgroundColor: '#f9fafb',
-                                      fontWeight: '500',
-                                      color: '#4b5563'
-                                    }}>Duration</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {prescriptionItem.medications.map((med, medIndex) => (
-                                    <tr key={medIndex}>
-                                      <td style={{ padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>{med.name}</td>
-                                      <td style={{ padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>{med.dosage}</td>
-                                      <td style={{ padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>{med.frequency}</td>
-                                      <td style={{ padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>{med.duration}</td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
-                            {prescriptionItem.instructions && (
-                              <div style={{ marginTop: '10px', color: '#4b5563', fontSize: '0.95rem' }}>
-                                <strong style={{ color: '#1f2937' }}>Instructions:</strong> {prescriptionItem.instructions}
-                              </div>
-                            )}
-                            {prescriptionItem.followUpDate && (
-                              <div style={{ marginTop: '10px', color: '#4b5563', fontSize: '0.95rem' }}>
-                                <strong style={{ color: '#1f2937' }}>Follow-up:</strong> {prescriptionItem.followUpDate}
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p>No prescriptions available for this patient.</p>
-                    )}
-                  </div>
 
                   {/* New/Edit Prescription Form */}
                   <div id="new-prescription-form" style={{
@@ -1645,6 +1503,179 @@ const PatientManagement = () => {
                       </button>
                     </div>
                   </div>
+                  {/* Display all prescriptions */}
+                  <div style={{ marginBottom: '30px' }}>
+                    <h4 style={{ marginTop: '0', marginBottom: '15px', color: '#333' }}>Previous Prescriptions</h4>
+                    {allPrescriptions.length > 0 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                        {sortedPrescriptions.map((prescriptionItem, index) => (
+                          <div key={prescriptionItem._id || index} style={{
+                            backgroundColor: 'white',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '8px',
+                            padding: '15px',
+                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                          }}>
+                            <div style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              marginBottom: '15px'
+                            }}>
+                              <div>
+                                <span style={{ fontWeight: '500', color: '#1f2937', marginRight: '10px' }}>
+                                  {new Date(prescriptionItem.createdAt).toLocaleDateString()}
+                                </span>
+                                <span style={{ color: '#6b7280', fontSize: '0.9rem' }}>
+                                  Dr. {prescriptionItem.doctorName || 'Unknown'}
+                                </span>
+                              </div>
+                              <div style={{ display: 'flex', gap: '8px' }}>
+                                <button
+                                  style={{
+                                    padding: '6px 12px',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontSize: '0.9rem',
+                                    backgroundColor: '#eff6ff',
+                                    color: '#3b82f6'
+                                  }}
+                                  onClick={() => {
+                                    setPrescription(prescriptionItem);
+                                    document.getElementById('new-prescription-form').scrollIntoView({ behavior: 'smooth' });
+                                  }}
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  style={{
+                                    padding: '6px 12px',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontSize: '0.9rem',
+                                    backgroundColor: '#fee2e2',
+                                    color: '#ef4444'
+                                  }}
+                                  onClick={async () => {
+                                    if (window.confirm('Are you sure you want to delete this prescription?')) {
+                                      try {
+                                        const token = localStorage.getItem('token');
+                                        const response = await axios.delete(
+                                          `http://localhost:5000/api/patient/doctor/patient/${selectedPatient.email}/prescriptions/${prescriptionItem._id}`,
+                                          {
+                                            headers: {
+                                              Authorization: `Bearer ${token}`
+                                            }
+                                          }
+                                        );
+
+                                        if (response.data.success) {
+                                          alert('Prescription deleted successfully');
+                                          // Remove from local state
+                                          setAllPrescriptions(allPrescriptions.filter(p => p._id !== prescriptionItem._id));
+                                        } else {
+                                          alert('Failed to delete prescription: ' + response.data.message);
+                                        }
+                                      } catch (err) {
+                                        console.error('Error deleting prescription:', err);
+                                        alert(`Error deleting prescription: ${err.response?.data?.message || err.message}`);
+                                      }
+                                    }
+                                  }}
+                                >
+                                  Delete
+                                </button>
+
+                                <button
+                                  className="print"
+                                  style={{
+                                    backgroundColor: '#cce5ff',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    padding: '6px 12px',
+                                    cursor: 'pointer',
+                                    color: '#004085',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '4px'
+                                  }}
+                                  onClick={() => handlePrintPrescription(prescriptionItem)}
+                                >
+                                  <FaPrint /> Print
+                                </button>
+                              </div>
+                            </div>
+                            <div style={{ marginBottom: '15px' }}>
+                              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                <thead>
+                                  <tr>
+                                    <th style={{
+                                      padding: '8px 12px',
+                                      textAlign: 'left',
+                                      borderBottom: '1px solid #e5e7eb',
+                                      backgroundColor: '#f9fafb',
+                                      fontWeight: '500',
+                                      color: '#4b5563'
+                                    }}>Medication</th>
+                                    <th style={{
+                                      padding: '8px 12px',
+                                      textAlign: 'left',
+                                      borderBottom: '1px solid #e5e7eb',
+                                      backgroundColor: '#f9fafb',
+                                      fontWeight: '500',
+                                      color: '#4b5563'
+                                    }}>Dosage</th>
+                                    <th style={{
+                                      padding: '8px 12px',
+                                      textAlign: 'left',
+                                      borderBottom: '1px solid #e5e7eb',
+                                      backgroundColor: '#f9fafb',
+                                      fontWeight: '500',
+                                      color: '#4b5563'
+                                    }}>Frequency</th>
+                                    <th style={{
+                                      padding: '8px 12px',
+                                      textAlign: 'left',
+                                      borderBottom: '1px solid #e5e7eb',
+                                      backgroundColor: '#f9fafb',
+                                      fontWeight: '500',
+                                      color: '#4b5563'
+                                    }}>Duration</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {prescriptionItem.medications.map((med, medIndex) => (
+                                    <tr key={medIndex}>
+                                      <td style={{ padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>{med.name}</td>
+                                      <td style={{ padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>{med.dosage}</td>
+                                      <td style={{ padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>{med.frequency}</td>
+                                      <td style={{ padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>{med.duration}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                            {prescriptionItem.instructions && (
+                              <div style={{ marginTop: '10px', color: '#4b5563', fontSize: '0.95rem' }}>
+                                <strong style={{ color: '#1f2937' }}>Instructions:</strong> {prescriptionItem.instructions}
+                              </div>
+                            )}
+                            {prescriptionItem.followUpDate && (
+                              <div style={{ marginTop: '10px', color: '#4b5563', fontSize: '0.95rem' }}>
+                                <strong style={{ color: '#1f2937' }}>Follow-up:</strong> {prescriptionItem.followUpDate}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p>No prescriptions available for this patient.</p>
+                    )}
+                  </div>
+
+
                 </div>
               )}
               {activeTab === 'reports' && (
