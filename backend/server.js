@@ -9,6 +9,7 @@ const patientRoutes = require('./routes/patientRoutes');
 const doctorRoutes = require('./routes/doctorRoutes');
 const symptomRoutes = require('./routes/symptomRoutes');
 const appointmentRoutes = require('./routes/appointmentRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 const PORT = process.env.PORT || 5000;
 const authRoutes = require('./routes/authRoutes');
 
@@ -25,7 +26,7 @@ app.use('/api/patient', patientRoutes);
 app.use('/api/doctor', doctorRoutes);
 app.use('/api/symptoms', symptomRoutes);
 app.use('/api', appointmentRoutes);
-
+app.use('/api/notifications', notificationRoutes);
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Start server

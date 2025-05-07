@@ -21,6 +21,53 @@ const formatDate = (date) => {
   }
 };
 
+exports.updateQueueStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    console.log("status",status)
+    
+    // Validate status
+    const validStatuses = ['Waiting', 'Ready', 'In Process', 'Completed', 'scheduled','Hold'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid status value' 
+      });
+    }
+    
+    // Find the queue item in your database
+    const queueItem = await Appointment.findById(id);
+
+    console.log("queueItem",queueItem)
+    
+    if (!queueItem) {
+      return res.status(404).json({
+        success: false,
+        message: 'Queue item not found'
+      });
+    }
+    
+    // Update the status
+    queueItem.status = status;
+
+    await queueItem.save();
+    
+    return res.json({
+      success: true,
+      message: 'Queue status updated successfully',
+      queue: queueItem
+    });
+  } catch (error) {
+    console.error('Error updating queue status:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
 // Helper function to generate time slots based on doctor's working hours
 const generateTimeSlots = (workingDay) => {
   if (!workingDay || !workingDay.active) return [];
@@ -45,12 +92,6 @@ const generateTimeSlots = (workingDay) => {
   return slots;
 };
 
-// ... existing code ...
-
-// Get patient appointments by email
-// ... existing code ...
-
-// Get patient appointments by email
 exports.getPatientAppointmentsByEmail = async (req, res) => {
   try {
     const { email } = req.params;
