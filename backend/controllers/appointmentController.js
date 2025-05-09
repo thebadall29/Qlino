@@ -26,7 +26,6 @@ exports.updateQueueStatus = async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    console.log("status",status)
     
     // Validate status
     const validStatuses = ['Waiting', 'Ready', 'In Process', 'Completed', 'scheduled','Hold'];
@@ -40,7 +39,6 @@ exports.updateQueueStatus = async (req, res) => {
     // Find the queue item in your database
     const queueItem = await Appointment.findById(id);
 
-    console.log("queueItem",queueItem)
     
     if (!queueItem) {
       return res.status(404).json({
@@ -103,7 +101,6 @@ exports.getPatientAppointmentsByEmail = async (req, res) => {
       });
     }
     
-    console.log('Searching for appointments with email:', email);
     
     // Find all appointments with this email - search in both fields
     const appointments = await Appointment.find({ 
@@ -113,7 +110,6 @@ exports.getPatientAppointmentsByEmail = async (req, res) => {
       ]
     }).sort({ createdAt: -1 }); // Sort by creation date, newest first
 
-    console.log(`Found ${appointments.length} appointments for email ${email}`);
     
     // Check if any appointments were found
     if (!appointments || appointments.length === 0) {
@@ -234,14 +230,11 @@ exports.getUniquePatientsByDoctor = async (req, res) => {
 exports.getDoctorAppointments = async (req, res) => {
   try {
     const { date } = req.params;
-    const doctorId = req.user.id;  // Changed from req.doctor._id to req.user.id
-    console.log("doctorid from appointment", doctorId);
-    console.log("Requested date:", date);
+    const doctorId = req.user.id;  
     
     // Ensure we're using the correct date format for database queries
     const requestedDate = new Date(date);
     const formattedDate = formatDate(requestedDate);
-    console.log("Formatted date for query:", formattedDate);
     
     // Find appointments for this doctor on this date
     const appointments = await Appointment.find({
@@ -252,7 +245,6 @@ exports.getDoctorAppointments = async (req, res) => {
       }
     }).populate('patientId', 'firstName lastName fullName mobile');
     
-    console.log(`Found ${appointments.length} appointments for ${formattedDate}`);
     
     // Format appointments for response
     const formattedAppointments = appointments.map(appointment => {
@@ -421,7 +413,6 @@ exports.bookAppointmentByDoctor = async (req, res) => {
   try {
     const { doctorId, date, time, patientName, reason,patientEmail,contactNumber } = req.body;
     
-    console.log("data",req.body)
     // Validate required fields
     if (!doctorId || !date || !time || !patientName|| !reason || !patientEmail || !contactNumber ) {
       return res.status(400).json({

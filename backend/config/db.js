@@ -2,9 +2,8 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
   try {
-    console.log('Attempting to connect to MongoDB...');
     const connectionString = process.env.MONGODB_URI || 'mongodb://localhost:27017/qlino';
-    console.log('Using connection string:', connectionString);
+ 
     
     const conn = await mongoose.connect(connectionString, {
       useNewUrlParser: true,
@@ -12,11 +11,6 @@ const connectDB = async () => {
     });
     
     console.log(`MongoDB connected successfully`);
-    console.log('Connection Details:');
-    console.log('- Host:', conn.connection.host);
-    console.log('- Port:', conn.connection.port);
-    console.log('- Database:', conn.connection.name);
-    console.log('- Connection State:', conn.connection.readyState);
     
     // Add connection event listeners
     mongoose.connection.on('error', err => {

@@ -28,6 +28,7 @@ app.use('/api/symptoms', symptomRoutes);
 app.use('/api', appointmentRoutes);
 app.use('/api/notifications', notificationRoutes);
 
+
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Start server
 app.listen(PORT, () => {

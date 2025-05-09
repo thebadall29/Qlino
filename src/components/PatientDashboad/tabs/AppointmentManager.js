@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../PatientDashboard.scss';
-
+import SearchBox from '../../SearchBox/SearchBox';
 const AppointmentManager = () => {
   // State for doctors list and search functionality
   const [allDoctors, setAllDoctors] = useState([]);
@@ -384,83 +384,10 @@ const AppointmentManager = () => {
       <h2>Find and Book Appointments</h2>
       
       {/* Unified Doctor Search Section */}
-      <div className="search-section">
-        <h3>Find a Doctor</h3>
-        <form onSubmit={handleUnifiedSearch} className="unified-search-form">
-          <div className="unified-search-container">
-            <input
-              type="text"
-              value={unifiedSearch}
-              onChange={handleUnifiedSearchChange}
-              placeholder="Search by doctor name, specialization, location..."
-              className="unified-search-input"
-            />
-            <button type="submit" className="search-button">
-              <i className="fa fa-search"></i> Search
-            </button>
-          </div>
-          
-          <div className="advanced-search-toggle">
-            <button 
-              type="button" 
-              onClick={toggleAdvancedSearch}
-              className="toggle-button"
-            >
-              {showAdvancedSearch ? 'Hide Advanced Search' : 'Show Advanced Search'}
-            </button>
-          </div>
-        </form>
-        
-        {/* Advanced Search (Original Search Form) */}
-        {showAdvancedSearch && (
-          <form onSubmit={handleSearch} className="search-form">
-            <div className="search-row">
-              <div className="form-group">
-                <label htmlFor="name">Doctor Name</label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={searchParams.name}
-                  onChange={handleSearchChange}
-                  placeholder="Search by name"
-                />
-              </div>
-              
-              <div className="form-group">
-                <label htmlFor="location">Location</label>
-                <input
-                  type="text"
-                  id="location"
-                  name="location"
-                  value={searchParams.location}
-                  onChange={handleSearchChange}
-                  placeholder="City or area"
-                />
-              </div>
-              
-              <div className="form-group">
-                <label htmlFor="specialization">Specialization</label>
-                <input
-                  type="text"
-                  id="specialization"
-                  name="specialization"
-                  value={searchParams.specialization}
-                  onChange={handleSearchChange}
-                  placeholder="e.g. Cardiology"
-                />
-              </div>
-            </div>
-            
-            <div className="search-buttons">
-              <button type="submit" className="search-button">Search</button>
-              <button type="button" className="reset-button" onClick={handleResetSearch}>Reset</button>
-            </div>
-          </form>
-        )}
-      </div>
+<SearchBox/>
       
       {/* Doctors List Section */}
+      
       <div className="doctors-section">
         <h3>Available Doctors</h3>
         {loading ? (

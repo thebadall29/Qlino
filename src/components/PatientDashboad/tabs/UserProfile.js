@@ -92,6 +92,8 @@ const UserProfile = () => {
         }
         
         const data = await response.json();
+
+        console.log('API response data:', data);
         
         if (!isMounted) return;
         

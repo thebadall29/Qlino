@@ -62,19 +62,15 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log('Login attempt for email:', email);
     
     // Find user by email
     const user = await User.findOne({ email });
     if (!user) {
-      console.log('User not found for email:', email);
       return res.status(401).json({ message: 'Invalid credentials' });
     }
-    console.log('User found:', user.username);
     
     // Verify password
     const isMatch = await bcrypt.compare(password, user.password);
-    console.log('Password match result:', isMatch);
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
@@ -86,7 +82,6 @@ exports.login = async (req, res) => {
       process.env.JWT_SECRET || 'your_jwt_secret_key',
       { expiresIn: '1d' }
     );
-    console.log('JWT token generated successfully');
     
     // Return user data and token
     res.json({
@@ -182,19 +177,15 @@ exports.registerDoctor = async (req, res) => {
 exports.doctorLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log('Doctor login attempt for email:', email);
     
     // Find doctor by email using Doctor model
     const doctor = await Doctor.findOne({ email });
     if (!doctor) {
-      console.log('Doctor not found for email:', email);
       return res.status(401).json({ message: 'Invalid credentials' });
     }
-    console.log('Doctor found:', doctor.firstName);
     
     // Verify password
     const isMatch = await bcrypt.compare(password, doctor.password);
-    console.log('Password match result:', isMatch);
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
@@ -205,7 +196,6 @@ exports.doctorLogin = async (req, res) => {
       process.env.JWT_SECRET || 'your_jwt_secret_key',
       { expiresIn: '1d' }
     );
-    console.log('JWT token generated successfully');
     
     // Return doctor data and token
     res.json({
