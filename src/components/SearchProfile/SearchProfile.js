@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import './SearchProfile.scss';
+import DoctorProfileModel from '../DoctorProfileModel/DoctorProfileModel';
 
 const SearchProfile = ({ doctor, resultCount, index }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
   // Add this for debugging
   useEffect(() => {
     console.log("SearchProfile received doctor:", doctor);
@@ -73,6 +76,23 @@ const SearchProfile = ({ doctor, resultCount, index }) => {
 
   const avatarColor = generateAvatarColor();
   const title = generateTitle();
+
+  // Open/close modal handlers
+  const openModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
+  // Enrich the doctor data with avatar color for the modal
+  const enrichedDoctorData = {
+    ...doctorData,
+    avatarColor: avatarColor
+  };
+
+  console.log("Enriched doctor data for modal:", enrichedDoctorData);
 
   return (
     <div className="doctor-profile">
@@ -157,14 +177,21 @@ const SearchProfile = ({ doctor, resultCount, index }) => {
                 <button className="book-appointment-btn">
                   <i className="far fa-calendar-check"></i> Book Appointment
                 </button>
-                <button className="contact-btn">
-                  <i className="fas fa-phone-alt"></i> Contact
+                <button className="contact-btn" onClick={openModal}>
+                  <i className="fas fa-user-alt"></i> View Profile
                 </button>
               </div>
             </div>
           </div>
         </div>
       </div>
+      
+      {/* Doctor Profile Modal */}
+      <DoctorProfileModel 
+        isOpen={isModalOpen} 
+        onClose={closeModal} 
+        doctor={enrichedDoctorData} 
+      />
     </div>
   );
 };

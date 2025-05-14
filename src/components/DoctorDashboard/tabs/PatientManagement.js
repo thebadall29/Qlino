@@ -2434,7 +2434,7 @@ const PatientManagement = () => {
             </div>
           </div>
         </div>
-      )}
+     )}
 
       {/* Add Patient Modal */}
       {showAddForm && (
@@ -2678,7 +2678,7 @@ const PatientManagement = () => {
             </div>
           </div>
         </div>
-      )}
+      )} 
     </div>
   );
 };

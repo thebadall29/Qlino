@@ -4,7 +4,7 @@ import SearchBox from '../../SearchBox/SearchBox';
 const AppointmentManager = () => {
   // State for doctors list and search functionality
   const [allDoctors, setAllDoctors] = useState([]);
-  const [filteredDoctors, setFilteredDoctors] = useState([]);
+const [filteredDoctors, setFilteredDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchParams, setSearchParams] = useState({
     name: '',

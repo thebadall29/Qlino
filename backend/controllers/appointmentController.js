@@ -774,7 +774,7 @@ exports.getQueue = async (req, res) => {
     const doctorId = req.user.id;
     const formattedDate = formatDate(date);
 
-    // Get all appointments for the date, sorted by creation time
+    // Get all appointments for the date
     const appointments = await Appointment.find({
       doctorId,
       date: {
@@ -782,12 +782,21 @@ exports.getQueue = async (req, res) => {
         $lt: new Date(`${formattedDate}T23:59:59.999Z`)
       }
     })
-    .sort({ createdAt: 1 }) // Sort by creation date (oldest first)
     .populate('patientId', 'firstName lastName fullName mobile');
+    
+    // Sort appointments - first by wasOnHold flag (false first), then by queueNumber
+    appointments.sort((a, b) => {
+      // If one was on hold and the other wasn't, the one that wasn't on hold comes first
+      if ((a.wasOnHold && !b.wasOnHold) || (!a.wasOnHold && b.wasOnHold)) {
+        return a.wasOnHold ? 1 : -1;
+      }
+      // If both have the same hold status, sort by queueNumber
+      return a.queueNumber - b.queueNumber;
+    });
 
     // Map appointments to queue format
     const queueItems = appointments.map((appt, index) => ({
-      queueNumber: index + 1,
+      queueNumber: appt.queueNumber || index + 1,
       id: appt._id,
       name: appt.patientName || appt.patientId?.fullName,
       contact: appt.contactNumber || appt.patientId?.mobile,
@@ -796,7 +805,8 @@ exports.getQueue = async (req, res) => {
       status: appt.status,
       type: appt.type,
       createdAt: appt.createdAt,
-      time: appt.time
+      time: appt.time,
+      wasOnHold: appt.wasOnHold || false
     }));
 
     res.status(200).json({
@@ -899,6 +909,413 @@ exports.getPatientAppointments = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch appointments',
+      error: error.message
+    });
+  }
+};
+
+
+// public acces 
+
+// PUBLIC CONTROLLER FUNCTIONS FOR APPOINTMENT ROUTES
+
+// Get doctor's appointments for a specific date (public access)
+exports.getPublicDoctorAppointments = async (req, res) => {
+  try {
+    const { date } = req.params;
+    const { doctorId } = req.query;
+    
+    // Validate doctorId
+    if (!doctorId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Doctor ID is required for public access'
+      });
+    }
+    
+    // Ensure we're using the correct date format for database queries
+    const requestedDate = new Date(date);
+    const formattedDate = formatDate(requestedDate);
+    
+    // Find appointments for this doctor on this date
+    const appointments = await Appointment.find({
+      doctorId,
+      date: {
+        $gte: new Date(`${formattedDate}T00:00:00.000Z`),
+        $lt: new Date(`${formattedDate}T23:59:59.999Z`)
+      }
+    }).populate('patientId', 'firstName lastName fullName mobile');
+    
+    // Format appointments for response
+    const formattedAppointments = appointments.map(appointment => {
+      // Check if appointment has patientId populated or uses direct patient info
+      let patient, contact;
+      
+      if (appointment.patientId) {
+        // Case 1: Appointment has a patientId reference
+        patient = appointment.patientId.fullName || 
+                 `${appointment.patientId.firstName || ''} ${appointment.patientId.lastName || ''}`.trim();
+        contact = appointment.patientId.mobile;
+      } else {
+        // Case 2: Appointment has direct patient information
+        patient = appointment.patientName;
+        contact = appointment.contact || appointment.contactNumber;
+      }
+      
+      return {
+        id: appointment._id,
+        time: appointment.time,
+        patient: patient,
+        contact: contact,
+        reason: appointment.reason,
+        status: appointment.status,
+        type: appointment.type,
+        queueNumber: appointment.queueNumber
+      };
+    });
+    
+    // Get doctor data to check working days
+    const doctor = await Doctor.findById(doctorId);
+    if (!doctor) {
+      return res.status(404).json({
+        success: false,
+        message: 'Doctor not found'
+      });
+    }
+    
+    // Check if doctor works on this day
+    const dayOfWeek = requestedDate.getDay();
+    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const dayName = dayNames[dayOfWeek];
+    
+    // Generate all possible time slots for this day if doctor is available
+    let allSlots = [];
+    if (doctor.workingDays[dayName] && doctor.workingDays[dayName].active) {
+      const workingDay = doctor.workingDays[dayName];
+      const timeSlots = generateTimeSlots(workingDay);
+      
+      // Create a map of booked times for quick lookup
+      const bookedTimes = new Set(formattedAppointments.map(app => app.time));
+      
+      // Create a complete list of slots (both available and booked)
+      allSlots = timeSlots.map(slot => {
+        const time = slot.time;
+        const existingAppointment = formattedAppointments.find(app => app.time === time);
+        
+        if (existingAppointment) {
+          return existingAppointment; // Return the booked appointment
+        } else {
+          return {
+            time: time,
+            available: true
+          };
+        }
+      });
+    }
+    
+    res.status(200).json({
+      success: true,
+      appointments: allSlots.length > 0 ? allSlots : formattedAppointments
+    });
+  } catch (error) {
+    console.error('Error fetching appointments:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch appointments',
+      error: error.message
+    });
+  }
+};
+
+// Get queue for a specific date (public access)
+exports.getPublicQueue = async (req, res) => {
+  try {
+    const { date } = req.params;
+    const { doctorId } = req.query;
+    
+    // Validate doctorId
+    if (!doctorId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Doctor ID is required for public access'
+      });
+    }
+    
+    // Format the date
+    const formattedDate = formatDate(date);
+    
+    // Find queue entries for this doctor on this date
+    const queue = await Appointment.find({
+      doctorId,
+      type: 'queue',
+      date: {
+        $gte: new Date(`${formattedDate}T00:00:00.000Z`),
+        $lt: new Date(`${formattedDate}T23:59:59.999Z`)
+      }
+    }).sort({ queueNumber: 1 });
+    
+    return res.json({
+      success: true,
+      queue
+    });
+  } catch (error) {
+    console.error('Error getting queue:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// Add to queue (public access)
+exports.addToPublicQueue = async (req, res) => {
+  try {
+    const { doctorId, patientName, contact, email, reason } = req.body;
+    
+    // Validate required fields
+    if (!doctorId || !patientName || !contact) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields'
+      });
+    }
+    
+    // Get doctor data
+    const doctor = await Doctor.findById(doctorId);
+    if (!doctor) {
+      return res.status(404).json({
+        success: false,
+        message: 'Doctor not found'
+      });
+    }
+    
+    // Get today's date
+    const today = new Date();
+    const formattedDate = formatDate(today);
+    
+    // Get next queue number
+    const queueCount = await Appointment.countDocuments({
+      doctorId,
+      date: {
+        $gte: new Date(`${formattedDate}T00:00:00.000Z`),
+        $lt: new Date(`${formattedDate}T23:59:59.999Z`)
+      },
+      type: 'queue'
+    });
+    
+    // Create new queue entry
+    const newQueueEntry = new Appointment({
+      doctorId,
+      patientName,
+      patientEmail: email,
+      contactNumber: contact,
+      reason,
+      date: formattedDate,
+      status: 'scheduled',
+      type: 'queue',
+      queueNumber: queueCount + 1
+    });
+    
+    await newQueueEntry.save();
+    
+    return res.status(201).json({
+      success: true,
+      message: 'Added to queue successfully',
+      queueEntry: {
+        id: newQueueEntry._id,
+        queueNumber: newQueueEntry.queueNumber,
+        status: newQueueEntry.status
+      }
+    });
+  } catch (error) {
+    console.error('Error adding to queue:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+// Book appointment (public access)
+exports.bookPublicAppointment = async (req, res) => {
+  try {
+    const { doctorId, date, time, patientName, patientEmail, contactNumber, reason } = req.body;
+    
+    // Validate required fields
+    if (!doctorId || !date || !time || !patientName || !patientEmail || !contactNumber || !reason) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields'
+      });
+    }
+    
+    // Get doctor data
+    const doctor = await Doctor.findById(doctorId);
+    if (!doctor) {
+      return res.status(404).json({
+        success: false,
+        message: 'Doctor not found'
+      });
+    }
+    
+    // Check if doctor works on this day
+    const appointmentDate = new Date(date);
+    const dayOfWeek = appointmentDate.getDay();
+    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const dayName = dayNames[dayOfWeek];
+    
+    if (!doctor.workingDays[dayName] || !doctor.workingDays[dayName].active) {
+      return res.status(400).json({
+        success: false,
+        message: 'Doctor is not available on this day'
+      });
+    }
+    
+    // Check if slot is available (for slot-based booking)
+    if (doctor.bookingPreference === 'slot') {
+      // Format date to YYYY-MM-DD
+      const formattedDate = formatDate(date);
+      
+      // Check if there's already an appointment at this time
+      const existingAppointment = await Appointment.findOne({
+        doctorId,
+        date: {
+          $gte: new Date(`${formattedDate}T00:00:00.000Z`),
+          $lt: new Date(`${formattedDate}T23:59:59.999Z`)
+        },
+        time,
+        status: { $ne: 'cancelled' }
+      });
+      
+      if (existingAppointment) {
+        return res.status(400).json({
+          success: false,
+          message: 'This time slot is already booked'
+        });
+      }
+    }
+    
+    // For queue-based booking, get the next queue number
+    let queueNumber;
+    if (doctor.bookingPreference === 'queue') {
+      const formattedDate = formatDate(date);
+      
+      // Find the highest queue number for this doctor and date
+      const highestQueue = await Appointment.findOne({
+        doctorId,
+        date: {
+          $gte: new Date(`${formattedDate}T00:00:00.000Z`),
+          $lt: new Date(`${formattedDate}T23:59:59.999Z`)
+        },
+        type: 'queue'
+      }).sort({ queueNumber: -1 });
+      
+      queueNumber = highestQueue ? highestQueue.queueNumber + 1 : 1;
+    }
+    
+    // Create the appointment
+    const appointment = new Appointment({
+      doctorId,
+      patientName,
+      patientEmail,
+      contactNumber,
+      reason,
+      date: appointmentDate,
+      time,
+      status: 'scheduled',
+      type: doctor.bookingPreference,
+      queueNumber: queueNumber
+    });
+    
+    await appointment.save();
+    
+    // If slot-based, update the schedule to mark the slot as booked
+    if (doctor.bookingPreference === 'slot') {
+      const formattedDate = formatDate(date);
+      await Schedule.updateOne(
+        { 
+          doctorId,
+          date: new Date(formattedDate),
+          'slots.time': time
+        },
+        {
+          $set: { 'slots.$.isBooked': true }
+        }
+      );
+    }
+    
+    res.status(201).json({
+      success: true,
+      message: 'Appointment booked successfully',
+      appointment: {
+        id: appointment._id,
+        date: appointment.date,
+        time: appointment.time,
+        doctor: `Dr. ${doctor.firstName} ${doctor.lastName}`,
+        type: appointment.type,
+        queueNumber: appointment.queueNumber
+      }
+    });
+  } catch (error) {
+    console.error('Error booking appointment:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to book appointment',
+      error: error.message
+    });
+  }
+};
+// Update the readdToQueue function in appointmentController.js
+exports.readdToQueue = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const doctorId = req.user.id;
+    
+    // Find the queue item by ID
+    const queueItem = await Appointment.findById(id);
+    
+    if (!queueItem) {
+      return res.status(404).json({
+        success: false,
+        message: 'Queue item not found'
+      });
+    }
+
+    // Get today's date in YYYY-MM-DD format
+    const today = new Date();
+    const formattedDate = today.toISOString().split('T')[0];
+    
+    // Find the highest queue number for this doctor and date
+    const highestQueue = await Appointment.findOne({
+      doctorId,
+      date: {
+        $gte: new Date(`${formattedDate}T00:00:00.000Z`),
+        $lt: new Date(`${formattedDate}T23:59:59.999Z`)
+      },
+      status: { $ne: 'Hold' }  // Exclude 'Hold' status items
+    }).sort({ queueNumber: -1 });
+    
+    // Set new queue number to be the highest current queue number + 1
+    const newQueueNumber = highestQueue ? highestQueue.queueNumber + 1 : 1;
+    
+    // Update the queue item with new queue number and status
+    queueItem.status = 'Waiting';
+    queueItem.queueNumber = newQueueNumber;
+    queueItem.wasOnHold = true; // Add a flag to mark that this item was on hold
+    
+    // Save the updated queue item
+    await queueItem.save();
+    
+    return res.status(200).json({
+      success: true,
+      message: 'Queue item added back to queue successfully',
+      data: queueItem
+    });
+  } catch (error) {
+    console.error('Error updating queue item:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to update queue item',
       error: error.message
     });
   }

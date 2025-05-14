@@ -140,6 +140,7 @@ const SearchSection = () => {
     try {
       setIsSearching(true);
       const response = await axios.get(`http://localhost:5000/api/doctor/${id}`);
+      console.log('Doctor fetched successfully:', response.data); // Log the fetched doctor data
       return response.data;
     } catch (error) {
       console.error('Error fetching doctor by ID:', error);

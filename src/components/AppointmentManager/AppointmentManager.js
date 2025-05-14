@@ -1,171 +1,16 @@
+
 import React, { useState, useEffect } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import "../DoctorDashboard.scss";
-
-// Day names constant for mapping day numbers to names
-const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-
-// Helper function to format date to YYYY-MM-DD
-const formatDate = (date) => {
-  // Create a new date object to avoid timezone issues
-  const d = new Date(date);
-  // Use UTC methods to ensure consistent date handling
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-};
-
-// Get available time slots for a specific date based on doctor's schedule
-const getAvailableSlots = (date, workingDays) => {
-  const dayName = dayNames[date.getDay()];
-  const daySchedule = workingDays[dayName];
-
-  // Return empty array if doctor is not available on this day
-  if (!daySchedule || !daySchedule.active) {
-    return [];
-  }
-
-  const slots = [];
-  const startTime = new Date(`2000/01/01 ${daySchedule.startTime}`);
-  const endTime = new Date(`2000/01/01 ${daySchedule.endTime}`);
-
-  let currentTime = startTime;
-  while (currentTime < endTime) {
-    slots.push({
-      time: currentTime.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-      }),
-      available: true
-    });
-    currentTime = new Date(currentTime.getTime() + 30 * 60000); // Add 30 minutes
-  }
-
-  return slots;
-};
-
-// Helper function to check if doctor is available on a given date
-const isDoctorAvailable = (date, workingDays) => {
-  if (!workingDays) return false;
-  const dayName = dayNames[date.getDay()];
-  return workingDays[dayName] && workingDays[dayName].active;
-};
-
-// Helper to check if a date is today
-const isToday = (date) => {
-  const today = new Date();
-  return date.getDate() === today.getDate() &&
-    date.getMonth() === today.getMonth() &&
-    date.getFullYear() === today.getFullYear();
-};
-
-// Helper to parse time string like "9:30 AM" to Date object
-const parseTimeString = (timeStr) => {
-  const today = new Date();
-  const [time, modifier] = timeStr.split(' ');
-  let [hours, minutes] = time.split(':');
-
-  if (hours === '12') {
-    hours = '00';
-  }
-
-  if (modifier === 'PM') {
-    hours = parseInt(hours, 10) + 12;
-  }
-
-  return new Date(today.getFullYear(), today.getMonth(), today.getDate(), hours, minutes);
-};
-
-// Handle queue status change
-const handleQueueStatusChange = (queueNumber, newStatus, selectedDate, queuesByDate, setQueuesByDate) => {
-  const formattedDate = formatDate(selectedDate);
-
-  setQueuesByDate(prevQueues => {
-    const updatedQueue = [...(prevQueues[formattedDate] || [])];
-    const queueItemIndex = updatedQueue.findIndex(item => item.number === queueNumber);
-
-    if (queueItemIndex !== -1) {
-      updatedQueue[queueItemIndex] = {
-        ...updatedQueue[queueItemIndex],
-        status: newStatus
-      };
-    }
-
-    return {
-      ...prevQueues,
-      [formattedDate]: updatedQueue
-    };
-  });
-};
+import './AppointmentManager.scss';
 
 
-
-// Fetch appointments for a specific date from API
-const fetchAppointmentsForDate = async (date) => {
-  try {
-    const token = localStorage.getItem('token');
-
-    if (!token) {
-      console.error('No authentication token found');
-      return null;
-    }
-
-    const formattedDate = formatDate(date);
-    const response = await fetch(`http://localhost:5000/api/doctor/appointments/${formattedDate}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch appointments: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    return data.success ? data.appointments : [];
-  } catch (error) {
-    console.error('Error fetching appointments:', error);
-    return null;
-  }
-};
-
-// Fetch queue data for a specific date
-const fetchQueueForDate = async (date) => {
-  try {
-    const token = localStorage.getItem('token');
-
-    if (!token) {
-      console.error('No authentication token found');
-      return null;
-    }
-
-    const formattedDate = formatDate(date);
-    const response = await fetch(`http://localhost:5000/api/doctor/queue/${formattedDate}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch queue: ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log('Queue data from API:', data);
-
-    return data.success ? data.queue : []; // Changed from data.appointments to data.queue
-  } catch (error) {
-    console.error('Error fetching queue:', error);
-    return null;
-  }
-};
-
-const Appointments = () => {
+const AppointmentManager = () => {
   const [doctorData, setDoctorData] = useState(null);
   const [bookingPreference, setBookingPreference] = useState('slot'); // Default to slot
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showAddPatientForm, setShowAddPatientForm] = useState(false);
+  const [queueStatusFilter, setQueueStatusFilter] = useState('all');
   const [newPatient, setNewPatient] = useState({
     name: '',
     contact: '',
@@ -190,48 +35,160 @@ const Appointments = () => {
     reason: ''
   });
 
-  // Load queue data for a specific date
+
+
+  // Day names constant for mapping day numbers to names
+  const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+
+  // Helper function to format date to YYYY-MM-DD
+  const formatDate = (date) => {
+    // Create a new date object to avoid timezone issues
+    const d = new Date(date);
+    // Use UTC methods to ensure consistent date handling
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  };
+
+  // Get available time slots for a specific date based on doctor's schedule
+  const getAvailableSlots = (date, workingDays) => {
+    const dayName = dayNames[date.getDay()];
+    const daySchedule = workingDays[dayName];
+
+    // Return empty array if doctor is not available on this day
+    if (!daySchedule || !daySchedule.active) {
+      return [];
+    }
+
+    const slots = [];
+    const startTime = new Date(`2000/01/01 ${daySchedule.startTime}`);
+    const endTime = new Date(`2000/01/01 ${daySchedule.endTime}`);
+
+    let currentTime = startTime;
+    while (currentTime < endTime) {
+      slots.push({
+        time: currentTime.toLocaleTimeString('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true
+        }),
+        available: true
+      });
+      currentTime = new Date(currentTime.getTime() + 30 * 60000); // Add 30 minutes
+    }
+
+    return slots;
+  };
+
+  // Helper function to check if doctor is available on a given date
+  const isDoctorAvailable = (date, workingDays) => {
+    if (!workingDays) return false;
+    const dayName = dayNames[date.getDay()];
+    return workingDays[dayName] && workingDays[dayName].active;
+  };
+
+  // Helper to check if a date is today
+  const isToday = (date) => {
+    const today = new Date();
+    return date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear();
+  };
+
+  // Fetch appointments for a specific date from API
+  const fetchAppointmentsForDate = async (date) => {
+    try {
+      // Get doctorId from doctorData state or localStorage
+      const doctorId = doctorData?._id || (localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')).id : null);
+
+      if (!doctorId) {
+        console.error('No doctor ID found');
+        return null;
+      }
+
+      const formattedDate = formatDate(date);
+      console.log(`Fetching appointments for date: ${formattedDate}`);
+
+      // Add includeCreatedAt=true to get creation timestamps
+      const response = await fetch(`http://localhost:5000/api/doctor/public/appointments/${formattedDate}?doctorId=${doctorId}&includeCreatedAt=true`);
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch appointments: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('API response for appointments:', data);
+
+      return data.success ? data.appointments : [];
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
+      return null;
+    }
+  };
+
+  // Fetch queue data for a specific date
+  const fetchQueueForDate = async (date) => {
+    try {
+      // Get doctorId from doctorData state or localStorage
+      const doctorId = doctorData?._id || (localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')).id : null);
+
+      if (!doctorId) {
+        console.error('No doctor ID found');
+        return null;
+      }
+
+      const formattedDate = formatDate(date);
+      // Add includeCreatedAt=true to get creation timestamps
+      const response = await fetch(`http://localhost:5000/api/doctor/public/queue/${formattedDate}?doctorId=${doctorId}&includeCreatedAt=true`);
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch queue: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('Queue data from API:', data);
+      
+      // We're no longer sorting here - instead we'll preserve the order from API
+      // which should maintain queue positions, including re-added patients
+      return data.success ? data.queue : [];
+    } catch (error) {
+      console.error('Error fetching queue:', error);
+      return null;
+    }
+  };
   // Load queue data for a specific date
   const loadQueueForDate = async (date) => {
     try {
       const formattedDate = formatDate(date);
       const fetchedQueue = await fetchQueueForDate(date);
-  
+
       if (fetchedQueue) {
-        // Filter to only include queue-type items
-        const onlyQueueItems = fetchedQueue.filter(item => item.type === 'queue');
-        
-        // Update the queuesByDate state with only queue items
+        // Update the queuesByDate state directly with the fetched queue data
         setQueuesByDate(prevState => ({
           ...prevState,
-          [formattedDate]: onlyQueueItems
+          [formattedDate]: fetchedQueue
         }));
-  
-        console.log('Queue data loaded for date:', formattedDate, onlyQueueItems);
+
+        console.log('Queue data loaded for date:', formattedDate, fetchedQueue);
       }
     } catch (error) {
       console.error('Error loading queue data:', error);
     }
   };
 
-  console.log("appointment for the day",queuesByDate)
-
   // Fetch doctor data when component mounts
   useEffect(() => {
     const fetchDoctorData = async () => {
       try {
-        const token = localStorage.getItem('token');
+        // Get doctorId from localStorage if available
+        const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
+        const doctorId = user?.id;
 
-        if (!token) {
-          console.error('No authentication token found');
+        if (!doctorId) {
+          console.error('No doctor ID found in localStorage');
+          setLoading(false);
           return;
         }
 
-        const response = await fetch('http://localhost:5000/api/doctor/doctor-dashboard', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
+        const response = await fetch(`http://localhost:5000/api/doctor/public/doctor-dashboard?doctorId=${doctorId}`);
 
         if (!response.ok) {
           throw new Error(`Failed to fetch doctor data: ${response.status}`);
@@ -314,9 +271,24 @@ const Appointments = () => {
     // Generate all possible time slots based on doctor's working hours
     const allSlots = getAvailableSlots(date, doctorData.workingDays);
 
+    // Make sure we're only using appointments for the selected date
+    const formattedDate = formatDate(date);
+    const dateAppointments = apiAppointments.filter(appt => {
+      // If the appointment has a date property, check it matches our formatted date
+      if (appt.date) {
+        const apptDate = typeof appt.date === 'string'
+          ? appt.date.split('T')[0]
+          : formatDate(new Date(appt.date));
+        return apptDate === formattedDate;
+      }
+      return true; // If no date property, include it (though this shouldn't happen)
+    });
+
+    console.log(`Processing ${dateAppointments.length} appointments for ${formattedDate}`);
+
     // Mark slots as booked based on API data
     return allSlots.map(slot => {
-      const matchingAppointment = apiAppointments.find(appt =>
+      const matchingAppointment = dateAppointments.find(appt =>
         appt.time === slot.time && !appt.available
       );
 
@@ -345,36 +317,174 @@ const Appointments = () => {
     return formatDate(new Date());
   };
 
-  // Get queue for the selected date
+  // Add these status change handling functions to AppointmentManager
+
+  // Function to handle status changes for queue patients
+  const handleStatusChange = async (id, newStatus) => {
+    try {
+      const token = localStorage.getItem('token');
+
+      if (!token) {
+        alert('You must be logged in to update patient status');
+        return;
+      }
+
+      // Update status in the backend
+      const response = await fetch(`http://localhost:5000/api/doctor/queue/${id}/status`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update status');
+      }
+
+      // Update local state based on status change
+      const formattedDate = formatDate(selectedDate);
+      setQueuesByDate(prevState => {
+        const currentQueue = [...(prevState[formattedDate] || [])];
+
+        // Find the queue item to update
+        const updatedQueue = currentQueue.map(item => {
+          if (item._id === id) {
+            return { ...item, status: newStatus };
+          }
+          return item;
+        });
+
+        return {
+          ...prevState,
+          [formattedDate]: updatedQueue
+        };
+      });
+
+      console.log(`Status updated successfully for patient ${id} to ${newStatus}`);
+    } catch (error) {
+      console.error('Error updating status:', error);
+      alert(`Failed to update status: ${error.message}`);
+    }
+  };
+
+  // Function to add a patient back to the queue
+  const addBackToQueue = async (booking) => {
+    try {
+      const token = localStorage.getItem('token');
+
+      if (!token) {
+        alert('You must be logged in to update queue');
+        return;
+      }
+
+      // Call the API to re-add to queue
+      const response = await fetch(`http://localhost:5000/api/doctor/queue/${booking._id}/requeue`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({})  // Empty body as server will determine new queue position
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to add back to queue');
+      }
+
+      // After successful re-queuing, reload the queue data
+      await loadQueueForDate(selectedDate);
+
+      console.log(`Patient ${booking.patientName} added back to queue successfully`);
+    } catch (error) {
+      console.error('Error adding back to queue:', error);
+      alert(`Failed to add back to queue: ${error.message}`);
+    }
+  };
+
   // Get queue for the selected date
   const getQueueForSelectedDate = () => {
     const formattedDate = formatDate(selectedDate);
     const queueItems = queuesByDate[formattedDate] || [];
-    
-    // Filter to only include items with type 'queue' (exclude slot appointments)
-    const onlyQueueItems = queueItems.filter(item => item.type === 'queue');
-    
-    if (onlyQueueItems.length === 0) {
-      return <div className="no-queue-message">No patients in queue for this date</div>;
+
+    // We're relying on the API to provide the queue in the correct order
+    // Instead of sorting by createdAt, we'll use the order as returned by the API
+    // This will maintain the queue position, including re-added patients
+
+    // Filter queue items based on selected filter
+    const filteredQueueItems = queueItems.filter(item => {
+      const status = item.status || 'Waiting';
+
+      if (queueStatusFilter === 'all') return true;
+      if (queueStatusFilter === 'active') return status !== 'Completed' && status !== 'Hold';
+      if (queueStatusFilter === 'hold') return status === 'Hold';
+      if (queueStatusFilter === 'completed') return status === 'Completed';
+
+      return true;
+    });
+
+    // Helper function to format entry time
+    const formatEntryTime = (timestamp) => {
+      if (!timestamp) return "Unknown";
+
+      const date = new Date(timestamp);
+      return date.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    };
+
+    if (filteredQueueItems.length === 0) {
+      return <div className="no-queue-message">No patients in queue for this selection</div>;
     }
-  
-    return onlyQueueItems.map((item) => (
-      <div key={item.id} className="queue-item">
-        <span className="queue-number">#{item.queueNumber}</span>
-        <div className="patient-info">
-          <div className="patient-name">{item.name}</div>
-          <div className="patient-email">{item.email || '-'}</div>
-        </div>
+
+    return (
+      <div className="bookings-list">
+        {filteredQueueItems.map((item, index) => {
+          // Ensure status is never undefined
+          const status = item.status || "Waiting";
+
+          return (
+            <div
+              key={item._id || index}
+              className={`booking-item ${status.toLowerCase()}`}
+            >
+              <div className="booking-info">
+                <div className="booking-header">
+                  <span className="queue-number">#{index + 1}</span>
+                  <span className="patient-name">{item.patientName}</span>
+                </div>
+                <div className="booking-details">
+                  <span className="booking-time">{formatEntryTime(item.createdAt)}</span>
+                  <span className={`status-badge ${status.toLowerCase()}`}>
+                    {status}
+                  </span>
+                  {item.wasOnHold && (
+                    <span className="was-on-hold-badge">
+                      Re-added
+                    </span>
+                  )}
+                </div>
+              </div>
+              {/* Status change buttons removed for public access */}
+            </div>
+          );
+        })}
       </div>
-    ));
+    );
   };
-
-  // ... existing code ...
-
 
   // Handle date change from calendar
   const handleDateChange = (date) => {
     setSelectedDate(date);
+    // Use the same date for API calls without any adjustment
+    const formattedDate = formatDate(date);
+    fetchAppointmentsForDate(date);
+    loadQueueForDate(date);
   };
 
   // Handle adding patient to queue
@@ -404,6 +514,14 @@ const Appointments = () => {
     e.preventDefault();
 
     try {
+      // Get doctorId from doctorData state or localStorage
+      const doctorId = doctorData?._id || (localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')).id : null);
+
+      if (!doctorId) {
+        alert('Doctor information is missing. Please try again.');
+        return;
+      }
+
       const token = localStorage.getItem('token');
 
       if (!token) {
@@ -423,25 +541,23 @@ const Appointments = () => {
 
       // Prepare queue data
       const queueData = {
-        doctorId: doctorData._id,
-        date: formattedDate,
+        doctorId,
+        date: formattedDate, // Send just the date without time component
         patientName: newPatient.name,
         contact: newPatient.contact,
         email: newPatient.email,
         reason: newPatient.reason,
-        type: 'queue'
+        type: 'queue',
       };
 
       // Send queue request to API
-      const response = await fetch('http://localhost:5000/api/doctor/queue', {
+      const response = await fetch('http://localhost:5000/api/doctor/public/queue', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(queueData)
       });
-
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -475,7 +591,7 @@ const Appointments = () => {
     return appointments[formattedDate] || [];
   };
 
-  // Handle time slot click for slot-based booking
+  // Handle time slot click for booking
   const handleSlotClick = (slot) => {
     // Only allow slot selection if doctor is available on selected date
     if (slot.available && doctorData && isDoctorAvailable(selectedDate, doctorData.workingDays)) {
@@ -489,6 +605,14 @@ const Appointments = () => {
     e.preventDefault();
 
     try {
+      // Get doctorId from doctorData state or localStorage
+      const doctorId = doctorData?._id || (localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')).id : null);
+
+      if (!doctorId) {
+        alert('Doctor information is missing. Please try again.');
+        return;
+      }
+
       const token = localStorage.getItem('token');
 
       if (!token) {
@@ -520,7 +644,7 @@ const Appointments = () => {
 
       // Prepare booking data - match the expected field names in the backend model
       const bookingData = {
-        doctorId: doctorData.id,
+        doctorId,
         date: formatDate(selectedDate),
         time: selectedSlot.time,
         patientName: bookingDetails.patientName,
@@ -530,13 +654,11 @@ const Appointments = () => {
         type: 'slot'
       };
 
-
       // Send booking request to API
-      const response = await fetch('http://localhost:5000/api/doctor/appointments', {
+      const response = await fetch('http://localhost:5000/api/doctor/public/appointments', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(bookingData)
       });
@@ -567,8 +689,15 @@ const Appointments = () => {
     }
   };
 
+  if (loading) {
+    return <div className="loading">Loading...</div>;
+  }
+
+
   return (
-    <div className="section-container">
+    <div className="appointment-manager">
+      <h2>Appointment Management</h2>
+
       {/* Information display that shows current booking mode */}
       <div className="booking-mode-info">
         <h3>Current Booking Mode: {bookingPreference === 'queue' ? 'Queue-based' : 'Slot-based'}</h3>
@@ -600,6 +729,7 @@ const Appointments = () => {
                 }}
               />
             </div>
+
             <div className="slots-section">
               <div className="selected-date">
                 <h4>Appointments for {selectedDate.toLocaleDateString('en-US', {
@@ -760,10 +890,44 @@ const Appointments = () => {
                 day: 'numeric',
                 year: 'numeric'
               })}</h4>
+
+              {/* Add a filter to switch between different status types */}
+              <div className="queue-filter">
+                <button
+                  className={`filter-button ${queueStatusFilter === 'all' ? 'active' : ''}`}
+                  onClick={() => setQueueStatusFilter('all')}
+                >
+                  All
+                </button>
+                <button
+                  className={`filter-button ${queueStatusFilter === 'active' ? 'active' : ''}`}
+                  onClick={() => setQueueStatusFilter('active')}
+                >
+                  Active
+                </button>
+                <button
+                  className={`filter-button ${queueStatusFilter === 'hold' ? 'active' : ''}`}
+                  onClick={() => setQueueStatusFilter('hold')}
+                >
+                  On Hold
+                </button>
+                <button
+                  className={`filter-button ${queueStatusFilter === 'completed' ? 'active' : ''}`}
+                  onClick={() => setQueueStatusFilter('completed')}
+                >
+                  Completed
+                </button>
+              </div>
+
+              {/* Display the filtered queue items */}
               {getQueueForSelectedDate()}
-              <button className="add-patient-button" onClick={handleAddToQueue}>
-                Add Patient to Queue
-              </button>
+
+              {/* Only show add patient button if doctor is available on selected date */}
+              {doctorData && isDoctorAvailable(selectedDate, doctorData.workingDays) && (
+                <button className="add-patient-button" onClick={handleAddToQueue}>
+                  Add Patient to Queue
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -825,8 +989,6 @@ const Appointments = () => {
                 ></textarea>
               </div>
 
-
-              {/* here start */}
               <div className="modal-actions">
                 <button type="submit" className="add-button">Add to Queue</button>
                 <button
@@ -844,7 +1006,6 @@ const Appointments = () => {
           </div>
         </div>
       )}
-
 
       {/* Booking Modal */}
       {showBookingModal && (
@@ -918,4 +1079,4 @@ const Appointments = () => {
   );
 };
 
-export default Appointments;
+export default AppointmentManager;

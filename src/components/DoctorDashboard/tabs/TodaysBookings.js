@@ -6,69 +6,78 @@ import { FaPrint } from 'react-icons/fa';
 const TodaysBookings = () => {
   const [activeBookings, setActiveBookings] = useState([]);
   const [completedBookings, setCompletedBookings] = useState([]);
-  const [holdBookings, setHoldBookings] = useState([]); // New state for hold bookings
+  const [holdBookings, setHoldBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Function to fetch today's bookings from API
-    const fetchTodaysBookings = async () => {
-      try {
-        setLoading(true);
-        const token = localStorage.getItem('token');
-        
-        if (!token) {
-          throw new Error('Authentication required');
-        }
-
-        // Get today's date in YYYY-MM-DD format
-        const today = new Date();
-        const formattedDate = today.toISOString().split('T')[0];
-        
-        // Fetch queue data from API
-        const response = await axios.get(
-          `http://localhost:5000/api/doctor/queue/${formattedDate}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          }
-        );
-
-        if (response.data.success) {
-          // Map API data to match the structure expected by the component
-          const bookings = response.data.queue.map((item, index) => ({
-            id: item.id,
-            name: item.name,
-            email: item.email,
-            reason: item.reason,
-            status: item.status || "Waiting", // Default to "Waiting" if status is not provided
-            queue: item.queueNumber || index + 1,
-            time: formatTime(item.createdAt) || "N/A",
-            contact: item.contact || item.phone || "N/A"
-          }));
-
-          // Separate active, completed, and hold bookings
-          const completed = bookings.filter(b => b.status === "Completed");
-          const hold = bookings.filter(b => b.status === "Hold");
-          const active = bookings.filter(b => b.status !== "Completed" && b.status !== "Hold");
-          
-          setActiveBookings(active);
-          setCompletedBookings(completed);
-          setHoldBookings(hold);
-        } else {
-          throw new Error(response.data.message || 'Failed to fetch bookings');
-        }
-      } catch (err) {
-        console.error('Error fetching bookings:', err);
-        setError(err.message || 'Failed to fetch bookings');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchTodaysBookings();
   }, []);
+
+  // Function to fetch today's bookings from API
+  const fetchTodaysBookings = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      // Get today's date in YYYY-MM-DD format
+      const today = new Date();
+      const formattedDate = today.toISOString().split('T')[0];
+      
+      // Fetch queue data from API
+      const response = await axios.get(
+        `http://localhost:5000/api/doctor/queue/${formattedDate}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      if (response.data.success) {
+        // Map API data to match the structure expected by the component
+        const bookings = response.data.queue.map((item) => ({
+          id: item.id,
+          name: item.name,
+          email: item.email,
+          reason: item.reason,
+          status: item.status || "Waiting", // Default to "Waiting" if status is not provided
+          queue: item.queueNumber, // Use the actual queue number from backend
+          time: formatTime(item.createdAt) || "N/A",
+          contact: item.contact || item.phone || "N/A",
+          wasOnHold: item.wasOnHold || false
+        }));
+
+        // Separate active, completed, and hold bookings
+        const completed = bookings.filter(b => b.status === "Completed");
+        const hold = bookings.filter(b => b.status === "Hold");
+        const active = bookings.filter(b => b.status !== "Completed" && b.status !== "Hold");
+        
+        // Sort active bookings by wasOnHold flag (regular patients first) and then by queue number
+        active.sort((a, b) => {
+          if (a.wasOnHold !== b.wasOnHold) {
+            return a.wasOnHold ? 1 : -1; // Non-hold patients come first
+          }
+          return a.queue - b.queue; // Then sort by queue number
+        });
+        
+        setActiveBookings(active);
+        setCompletedBookings(completed);
+        setHoldBookings(hold);
+      } else {
+        throw new Error(response.data.message || 'Failed to fetch bookings');
+      }
+    } catch (err) {
+      console.error('Error fetching bookings:', err);
+      setError(err.message || 'Failed to fetch bookings');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Helper function to format time from ISO string
   const formatTime = (isoString) => {
@@ -121,25 +130,34 @@ const TodaysBookings = () => {
   };
 
   // Function to add a patient back to the queue
-  const addBackToQueue = (booking) => {
-    // Remove from hold list
-    setHoldBookings(prev => prev.filter(b => b.id !== booking.id));
-    
-    // Add to active bookings at the end of the queue
-    const lastQueueNumber = activeBookings.length > 0 
-      ? Math.max(...activeBookings.map(b => b.queue))
-      : 0;
-    
-    const updatedBooking = {
-      ...booking,
-      status: "Waiting",
-      queue: lastQueueNumber + 1
-    };
-    
-    setActiveBookings(prev => [...prev, updatedBooking]);
-    
-    // Update booking status in the backend
-    updateBookingStatus(booking.id, "Waiting");
+  const addBackToQueue = async (booking) => {
+    try {
+      // Remove from hold list
+      setHoldBookings(prev => prev.filter(b => b.id !== booking.id));
+      
+      const token = localStorage.getItem('token');
+      
+      // Call the readdToQueue API endpoint
+      const response = await axios.patch(
+        `http://localhost:5000/api/doctor/queue/${booking.id}/requeue`,
+        {},  // Empty body, as we'll determine the new queue number on the server
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      if (response.data.success) {
+        // Refresh the bookings to reflect the updated queue
+        fetchTodaysBookings();
+      } else {
+        console.error('Error adding back to queue:', response.data.message);
+      }
+    } catch (err) {
+      console.error('Error adding back to queue:', err);
+    }
   };
 
   const updateBookingStatus = async (id, status) => {
@@ -163,9 +181,9 @@ const TodaysBookings = () => {
       }
     } catch (err) {
       console.error('Error updating booking status:', err);
-      // You might want to show an error message to the user
     }
   };
+
   const sendNotification = async (id, name) => {
     try {
       const token = localStorage.getItem('token');
@@ -209,7 +227,7 @@ const TodaysBookings = () => {
               const status = booking.status || "Waiting";
               
               return (
-                <div key={booking.id} className="booking-item">
+                <div key={booking.id} className={`booking-item ${booking.wasOnHold ? 'was-on-hold' : ''}`}>
                   <div className="booking-info">
                     <div className="booking-header">
                       <span className="queue-number">#{booking.queue}</span>
@@ -220,6 +238,11 @@ const TodaysBookings = () => {
                       <span className={`status-badge ${status.toLowerCase()}`}>
                         {status}
                       </span>
+                      {booking.wasOnHold && (
+                        <span className="was-on-hold-badge">
+                          Re-added
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div className="booking-actions">

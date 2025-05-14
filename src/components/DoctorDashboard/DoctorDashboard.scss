@@ -3285,3 +3285,213 @@
   }
 }
 
+
+/* Add this to your SCSS file */
+
+.todays-bookings-container {
+  max-width: 100%;
+  margin: 0 auto;
+  
+  .section {
+    margin-bottom: 2rem;
+    
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: #333;
+    }
+    
+    &.hold-section {
+      .section-title {
+        color: #e74c3c;
+      }
+    }
+    
+    &.completed-section {
+      .section-title {
+        color: #27ae60;
+      }
+    }
+  }
+  
+  .no-bookings {
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    text-align: center;
+    color: #6c757d;
+  }
+  
+  .bookings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .booking-item {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+    &.was-on-hold {
+      border-left: 4px solid #f39c12;
+      background-color: #fffbf0;
+    }
+    
+    &.completed {
+      opacity: 0.8;
+    }
+    
+    .booking-info {
+      flex: 1;
+      
+      .booking-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        
+        .queue-number {
+          background-color: #3498db;
+          color: #fff;
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 600;
+          margin-right: 0.75rem;
+          font-size: 0.9rem;
+        }
+        
+        .patient-name {
+          font-weight: 600;
+          font-size: 1rem;
+          color: #333;
+        }
+      }
+      
+      .booking-details {
+        display: flex;
+        align-items: center;
+        
+        .booking-time {
+          color: #6c757d;
+          font-size: 0.9rem;
+          margin-right: 0.75rem;
+        }
+        
+        .status-badge {
+          font-size: 0.8rem;
+          padding: 0.25rem 0.5rem;
+          border-radius: 4px;
+          font-weight: 500;
+          
+          &.waiting {
+            background-color: #f8f9fa;
+            color: #6c757d;
+          }
+          
+          &.ready {
+            background-color: #d4edda;
+            color: #28a745;
+          }
+          
+          &.in-process {
+            background-color: #cce5ff;
+            color: #0d6efd;
+          }
+          
+          &.completed {
+            background-color: #d1e7dd;
+            color: #198754;
+          }
+          
+          &.hold {
+            background-color: #f8d7da;
+            color: #dc3545;
+          }
+        }
+        
+        .was-on-hold-badge {
+          font-size: 0.8rem;
+          padding: 0.25rem 0.5rem;
+          border-radius: 4px;
+          font-weight: 500;
+          background-color: #fff3cd;
+          color: #856404;
+          margin-left: 0.5rem;
+        }
+      }
+    }
+    
+    .booking-actions {
+      display: flex;
+      gap: 0.5rem;
+      
+      button {
+        padding: 0.5rem 0.75rem;
+        border: none;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        
+        &.notify-button {
+          background-color: #e9ecef;
+          color: #495057;
+          
+          &:hover {
+            background-color: #dee2e6;
+          }
+        }
+        
+        &.status-button {
+          &.completed {
+            background-color: #198754;
+            color: #fff;
+            
+            &:hover {
+              background-color: #157347;
+            }
+          }
+          
+          &.hold {
+            background-color: #dc3545;
+            color: #fff;
+            
+            &:hover {
+              background-color: #bb2d3b;
+            }
+          }
+          
+          &.in-process {
+            background-color: #0d6efd;
+            color: #fff;
+            
+            &:hover {
+              background-color: #0b5ed7;
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  .loading, .error {
+    padding: 2rem;
+    text-align: center;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    color: #6c757d;
+  }
+  
+  .error {
+    color: #dc3545;
+  }
+}

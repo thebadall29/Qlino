@@ -1,3 +1,4 @@
+// Update Appointment model schema to include wasOnHold field
 const mongoose = require('mongoose');
 
 const AppointmentSchema = new mongoose.Schema({
@@ -8,69 +9,52 @@ const AppointmentSchema = new mongoose.Schema({
   },
   patientId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    // Optional for unregistered patients
+    ref: 'User'
   },
   patientName: {
     type: String,
-    required: true,
-    trim: true
+    required: true
   },
   patientEmail: {
     type: String,
-    required: true,
-    trim: true,
-    lowercase: true,
-    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email address']
+    required: true
   },
   contactNumber: {
-    type: String,
-    // required: true,
-    trim: true,
-    match: [/^[0-9]{10}$/, 'Please enter a valid 10-digit contact number']
+    type: String
   },
-  date: {
-    type: Date,
-    required: true,
-    validate: {
-      validator: function(v) {
-        return v >= new Date(new Date().setHours(0, 0, 0, 0));
-      },
-      message: 'Appointment date cannot be in the past'
-    }
-  },
-  time: {
-    type: String,
-    // required: true,
-    match: [/^(0?[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$/, 'Please enter time in format: HH:MM AM/PM']
+  contact: {
+    type: String
   },
   reason: {
     type: String,
-    required: true,
-    trim: true
+    required: true
+  },
+  date: {
+    type: Date,
+    required: true
+  },
+  time: {
+    type: String
   },
   status: {
     type: String,
-    enum: ['scheduled', 'in-progress', 'Completed', 'cancelled','Hold','Waiting'],
+    enum: ['scheduled', 'confirmed', 'cancelled', 'completed', 'Waiting', 'Ready', 'In Process', 'Completed', 'Hold'],
     default: 'scheduled'
-  },
-  queueNumber: {
-    type: Number,
-    // Optional for slot-based appointments
   },
   type: {
     type: String,
     enum: ['slot', 'queue'],
     default: 'slot'
   },
-  createdAt: {
-    type: Date,
-    default: Date.now
+  queueNumber: {
+    type: Number
+  },
+  wasOnHold: {
+    type: Boolean,
+    default: false
   }
+}, {
+  timestamps: true
 });
-
-// Add index for common queries
-AppointmentSchema.index({ doctorId: 1, date: 1 });
-AppointmentSchema.index({ patientEmail: 1 });
 
 module.exports = mongoose.model('Appointment', AppointmentSchema);

@@ -17,5 +17,15 @@ router.get('/doctor/unique-patients', auth, authorize(['doctor']), appointmentCo
 // Patient routes
 router.get('/patient/appointments', auth, authorize(['patient']), appointmentController.getPatientAppointments);
 router.post('/appointments', appointmentController.bookAppointmentForUnregisteredPatient);
+router.patch('/doctor/queue/:id/requeue', auth, authorize(['doctor']), appointmentController.readdToQueue);
 
+
+// public appointment routes 
+// Public appointment routes
+router.get('/doctor/public/appointments/:date', appointmentController.getPublicDoctorAppointments);
+router.get('/doctor/public/queue/:date', appointmentController.getPublicQueue);
+router.post('/doctor/public/queue', appointmentController.addToPublicQueue);
+router.post('/doctor/public/appointments', appointmentController.bookPublicAppointment);
+
+// stutus routes 
 module.exports = router;
