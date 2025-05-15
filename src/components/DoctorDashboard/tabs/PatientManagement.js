@@ -346,7 +346,6 @@ const PatientManagement = () => {
     }
   };
 
-  // ... existing code ...
   const handleReportChange = (field, value) => {
     setNewReport({
       ...newReport,
@@ -853,7 +852,6 @@ const PatientManagement = () => {
         verified: true // Set verified to true so they can log in immediately
       };
 
-      console.log("patientData", patientData);
 
       const token = localStorage.getItem('token');
       // Use the correct endpoint for patient registration
@@ -941,6 +939,8 @@ const PatientManagement = () => {
   const sortedPrescriptions = [...allPrescriptions].sort((a, b) => {
     return new Date(b.createdAt) - new Date(a.createdAt);
   });
+
+  console.log("seleted patinet",selectedPatient);
 
   return (
     <div className="section-container">
