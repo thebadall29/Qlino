@@ -13,6 +13,7 @@ const TodaysBookings = () => {
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [patients, setPatients] = useState([]);
+  const [doctorPreference, setDoctorPreference] = useState(null);
 
   // State for tabs
   const [activeTab, setActiveTab] = useState('profile');
@@ -75,69 +76,163 @@ const TodaysBookings = () => {
     notificationTime: 30
   });
   useEffect(() => {
-    fetchTodaysBookings();
+    fetchDoctorPreference();
   }, []);
 
-  // Function to fetch today's bookings from API
-  const fetchTodaysBookings = async () => {
+  const fetchDoctorPreference = async () => {
     try {
-      setLoading(true);
       const token = localStorage.getItem('token');
-
       if (!token) {
         throw new Error('Authentication required');
       }
-
-      // Get today's date in YYYY-MM-DD format
-      const today = new Date();
-      const formattedDate = today.toISOString().split('T')[0];
-
-      // Fetch queue data from API
+      
       const response = await axios.get(
-        `http://localhost:5000/api/doctor/queue/${formattedDate}`,
+        'http://localhost:5000/api/doctor/preference',
         {
           headers: {
             Authorization: `Bearer ${token}`
           }
         }
       );
-
+      
       if (response.data.success) {
-        // Map API data to match the structure expected by the component
-        const bookings = response.data.queue.map((item) => ({
-          id: item.id,
-          name: item.name,
-          email: item.email,
-          reason: item.reason,
-          status: item.status || "Waiting", // Default to "Waiting" if status is not provided
-          queue: item.queueNumber, // Use the actual queue number from backend
-          time: formatTime(item.createdAt) || "N/A",
-          contact: item.contact || item.phone || "N/A",
-          wasOnHold: item.wasOnHold || false
-        }));
+        // Set the doctor's preference
+        console.log("response.data.preference", response.data.preference);
+        const preference = response.data.preference;
+        setDoctorPreference(preference);
+        
+        // Fetch bookings with the preference we just received
+        fetchTodaysBookings(preference);
+      }
+    } catch (err) {
+      console.error('Error fetching doctor preferences:', err);
+      // Default to queue if there's an error
+      setDoctorPreference('queue');
+      
+      // Fetch bookings with the default preference
+      fetchTodaysBookings('queue');
+    }
+  };
 
-        // Separate active, completed, and hold bookings
-        const completed = bookings.filter(b => b.status === "Completed");
-        const hold = bookings.filter(b => b.status === "Hold");
-        const active = bookings.filter(b => b.status !== "Completed" && b.status !== "Hold");
+  
+  // Function to fetch today's bookings from API
+  const fetchTodaysBookings = async (preferenceOverride = null) => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+      
+      // Use the override if provided, otherwise use the state
+      const currentPreference = preferenceOverride || doctorPreference;
+      console.log("Using preference:", currentPreference);
 
-        // Sort active bookings by wasOnHold flag (regular patients first) and then by queue number
-        active.sort((a, b) => {
-          if (a.wasOnHold !== b.wasOnHold) {
-            return a.wasOnHold ? 1 : -1; // Non-hold patients come first
+      // Get today's date in YYYY-MM-DD format
+      const today = new Date();
+      const formattedDate = today.toISOString().split('T')[0];
+
+      // Fetch data based on doctor's preference
+      let response;
+      if (currentPreference === 'queue') {
+        // Fetch queue data from API
+        response = await axios.get(
+          `http://localhost:5000/api/doctor/queue/${formattedDate}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
           }
-          return a.queue - b.queue; // Then sort by queue number
-        });
+        );
+        
+        console.log("Queue response data", response.data);
+        
+        if (response.data.success) {
+          // Map API data to match the structure expected by the component
+          const bookings = response.data.queue.map((item) => ({
+            id: item.id,
+            name: item.name,
+            email: item.email,
+            reason: item.reason,
+            status: item.status || "Waiting", // Default to "Waiting" if status is not provided
+            queue: item.queueNumber, // Use the actual queue number from backend
+            time: formatTime(item.createdAt) || "N/A",
+            contact: item.contact || item.phone || "N/A",
+            wasOnHold: item.wasOnHold || false,
+            type: 'queue'
+          }));
 
-        setActiveBookings(active);
-        setCompletedBookings(completed);
-        setHoldBookings(hold);
+          // Separate active, completed, and hold bookings
+          const completed = bookings.filter(b => b.status === "Completed");
+          const hold = bookings.filter(b => b.status === "Hold");
+          const active = bookings.filter(b => b.status !== "Completed" && b.status !== "Hold");
+
+          // Sort active bookings by wasOnHold flag (regular patients first) and then by queue number
+          active.sort((a, b) => {
+            if (a.wasOnHold !== b.wasOnHold) {
+              return a.wasOnHold ? 1 : -1; // Non-hold patients come first
+            }
+            return a.queue - b.queue; // Then sort by queue number
+          });
+
+          setActiveBookings(active);
+          setCompletedBookings(completed);
+          setHoldBookings(hold);
+          
+          // Return early to prevent the slot-based code from executing
+          return;
+        }
       } else {
-        throw new Error(response.data.message || 'Failed to fetch bookings');
+        // Fetch slot-based appointments
+        response = await axios.get(
+          `http://localhost:5000/api/doctor/slot/${formattedDate}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+        
+        console.log("Slot response data", response.data);
+        
+        if (response.data.success) {
+          // Map API data to match the structure expected by the component
+          const bookings = response.data.appointments.map((item) => ({
+            id: item.id,
+            name: item.name,
+            email: item.email,
+            reason: item.reason,
+            status: item.status || "scheduled",
+            time: item.time || "N/A",
+            contact: item.contact || "N/A",
+            date: item.date,
+            type: 'slot'
+          }));
+
+          // Separate active, completed, and hold bookings
+          const completed = bookings.filter(b => b.status === "Completed");
+          const hold = bookings.filter(b => b.status === "Hold");
+          const active = bookings.filter(b => b.status !== "Completed" && b.status !== "Hold");
+
+          // Sort active bookings by time
+          active.sort((a, b) => {
+            return a.time.localeCompare(b.time);
+          });
+
+          setActiveBookings(active);
+          setCompletedBookings(completed);
+          setHoldBookings(hold);
+          return;
+        }
       }
     } catch (err) {
       console.error('Error fetching bookings:', err);
       setError(err.message || 'Failed to fetch bookings');
+      // Clear bookings on error
+      setActiveBookings([]);
+      setCompletedBookings([]);
+      setHoldBookings([]);
     } finally {
       setLoading(false);
     }
@@ -954,12 +1049,14 @@ const TodaysBookings = () => {
     return new Date(b.createdAt) - new Date(a.createdAt);
   });
 
+  console.log("booking",activeBookings)
+
   return (
     <div className="section-container todays-bookings-container">
       <div className="section">
-        <h3 className="section-title">Today's Bookings</h3>
-        {activeBookings.length === 0 ? (
-          <div className="no-bookings">No active bookings for today</div>
+        <h3 className="section-title">Today's {doctorPreference === 'slot' ? 'Scheduled' : 'Queue'} Bookings</h3>
+        {activeBookings.length === 0 && completedBookings.length === 0 && holdBookings.length === 0 ? (
+          <div className="no-bookings">No {doctorPreference === 'slot' ? 'scheduled' : 'queue'} bookings for today.</div>
         ) : (
           <div className="bookings-list">
             {activeBookings.map(booking => {
@@ -970,8 +1067,17 @@ const TodaysBookings = () => {
                 <div key={booking.id} className={`booking-item ${booking.wasOnHold ? 'was-on-hold' : ''}`}>
                   <div className="booking-info">
                     <div className="booking-header">
-                      <span className="queue-number">#{booking.queue}</span>
-                      <span className="patient-name">{booking.name}</span>
+                      <div className="patient-info">
+                      <div className="booking-details">
+                          {booking.type === 'queue' ? (
+                            <span className="queue-number">{booking.queue}</span>
+                          ) : (
+                            <span className="appointment-time">{booking.time}</span>
+                          )}
+                        </div>
+                        <div className="patient-name">{booking.name}</div>
+                        
+                      </div>
                     </div>
                     <div className="booking-details">
                       <span className="booking-time">{booking.time}</span>

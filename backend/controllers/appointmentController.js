@@ -327,12 +327,71 @@ exports.getDoctorAppointments = async (req, res) => {
   }
 };
 
+// Get slot-based appointments for a specific date
+exports.getSlotDataByDoctor = async (req, res) => { 
+  try { 
+    const { date } = req.params; 
+    
+    if (!req.user || !req.user.id) { 
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Doctor ID not found in request' 
+      }); 
+    } 
+    
+    const doctorId = req.user.id; 
+    const formattedDate = formatDate(date); 
+
+    // Get all appointments for the date with type 'slot'
+    const appointments = await Appointment.find({ 
+      doctorId, 
+      date: { 
+        $gte: new Date(`${formattedDate}T00:00:00.000Z`), 
+        $lt: new Date(`${formattedDate}T23:59:59.999Z`) 
+      },
+      type: 'slot' // Only get slot appointments
+    }) 
+    .populate('patientId', 'firstName lastName fullName mobile'); 
+    
+    // Sort appointments by time
+    appointments.sort((a, b) => {
+      return a.time.localeCompare(b.time);
+    }); 
+
+    // Map appointments to a consistent format
+    const slotAppointments = appointments.map((appt) => ({ 
+      id: appt._id, 
+      name: appt.patientName || appt.patientId?.fullName, 
+      contact: appt.contactNumber || appt.patientId?.mobile, 
+      email: appt.patientEmail, 
+      reason: appt.reason, 
+      status: appt.status, 
+      type: appt.type, 
+      createdAt: appt.createdAt, 
+      time: appt.time,
+      date: appt.date
+    })); 
+
+    res.status(200).json({ 
+      success: true, 
+      appointments: slotAppointments 
+    }); 
+  } catch (error) { 
+    console.error('Error fetching slot appointments:', error); 
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to fetch slot appointments', 
+      error: error.message 
+    }); 
+  } 
+};
+
 // Get available slots for a specific date
 exports.getAvailableSlots = async (req, res) => {
   try {
+
     const { date } = req.params;
-    const doctorId = req.doctor._id;
-    
+    const doctorId = req.user.id;
     // Get doctor data to check working days
     const doctor = await Doctor.findById(doctorId);
     if (!doctor) {
@@ -760,68 +819,104 @@ exports.addToQueue = async (req, res) => {
 
 // Get queue for a specific date
 // Get queue for a specific date
-exports.getQueue = async (req, res) => {
-  try {
-    const { date } = req.params;
+exports.getQueue = async (req, res) => { 
+  try { 
+    const { date } = req.params; 
     
-    if (!req.user || !req.user.id) {
-      return res.status(400).json({
+    if (!req.user || !req.user.id) { 
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Doctor ID not found in request' 
+      }); 
+    } 
+    
+    const doctorId = req.user.id; 
+    const formattedDate = formatDate(date); 
+
+    // Get all appointments for the date with type 'queue'
+    const appointments = await Appointment.find({ 
+      doctorId, 
+      date: { 
+        $gte: new Date(`${formattedDate}T00:00:00.000Z`), 
+        $lt: new Date(`${formattedDate}T23:59:59.999Z`) 
+      },
+      type: 'queue' // Add this filter to only get queue appointments
+    }) 
+    .populate('patientId', 'firstName lastName fullName mobile'); 
+    
+    // Sort appointments - first by wasOnHold flag (false first), then by queueNumber 
+    appointments.sort((a, b) => { 
+      // If one was on hold and the other wasn't, the one that wasn't on hold comes first 
+      if ((a.wasOnHold && !b.wasOnHold) || (!a.wasOnHold && b.wasOnHold)) { 
+        return a.wasOnHold ? 1 : -1; 
+      } 
+      // If both have the same hold status, sort by queueNumber 
+      return a.queueNumber - b.queueNumber; 
+    }); 
+
+    // Map appointments to queue format 
+    const queueItems = appointments.map((appt, index) => ({ 
+      queueNumber: appt.queueNumber || index + 1, 
+      id: appt._id, 
+      name: appt.patientName || appt.patientId?.fullName, 
+      contact: appt.contactNumber || appt.patientId?.mobile, 
+      email: appt.patientEmail, 
+      reason: appt.reason, 
+      status: appt.status, 
+      type: appt.type, 
+      createdAt: appt.createdAt, 
+      time: appt.time, 
+      wasOnHold: appt.wasOnHold || false 
+    })); 
+
+    res.status(200).json({ 
+      success: true, 
+      queue: queueItems 
+    }); 
+  } catch (error) { 
+    console.error('Error fetching queue:', error); 
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to fetch queue', 
+      error: error.message 
+    }); 
+  } 
+}; 
+
+// ... existing code ...
+
+// Get doctor's booking preference
+exports.getDoctorPreference = async (req, res) => {
+  try {
+    // Get the doctor ID from the authenticated user
+    const doctorId = req.user.id;
+    
+    // Find the doctor in the database
+    const doctor = await Doctor.findById(doctorId);
+    
+    if (!doctor) {
+      return res.status(404).json({
         success: false,
-        message: 'Doctor ID not found in request'
+        message: 'Doctor not found'
       });
     }
     
-    const doctorId = req.user.id;
-    const formattedDate = formatDate(date);
-
-    // Get all appointments for the date
-    const appointments = await Appointment.find({
-      doctorId,
-      date: {
-        $gte: new Date(`${formattedDate}T00:00:00.000Z`),
-        $lt: new Date(`${formattedDate}T23:59:59.999Z`)
-      }
-    })
-    .populate('patientId', 'firstName lastName fullName mobile');
-    
-    // Sort appointments - first by wasOnHold flag (false first), then by queueNumber
-    appointments.sort((a, b) => {
-      // If one was on hold and the other wasn't, the one that wasn't on hold comes first
-      if ((a.wasOnHold && !b.wasOnHold) || (!a.wasOnHold && b.wasOnHold)) {
-        return a.wasOnHold ? 1 : -1;
-      }
-      // If both have the same hold status, sort by queueNumber
-      return a.queueNumber - b.queueNumber;
-    });
-
-    // Map appointments to queue format
-    const queueItems = appointments.map((appt, index) => ({
-      queueNumber: appt.queueNumber || index + 1,
-      id: appt._id,
-      name: appt.patientName || appt.patientId?.fullName,
-      contact: appt.contactNumber || appt.patientId?.mobile,
-      email: appt.patientEmail,
-      reason: appt.reason,
-      status: appt.status,
-      type: appt.type,
-      createdAt: appt.createdAt,
-      time: appt.time,
-      wasOnHold: appt.wasOnHold || false
-    }));
-
-    res.status(200).json({
+    // Return the doctor's booking preference
+    // If bookingPreference doesn't exist, default to 'slot'
+    return res.status(200).json({
       success: true,
-      queue: queueItems
+      preference: doctor.bookingPreference || 'slot'
     });
   } catch (error) {
-    console.error('Error fetching queue:', error);
-    res.status(500).json({
+    console.error('Error fetching doctor preference:', error);
+    return res.status(500).json({
       success: false,
-      message: 'Failed to fetch queue',
+      message: 'Server error',
       error: error.message
     });
   }
 };
+
 
 // Update appointment status
 exports.updateAppointmentStatus = async (req, res) => {
