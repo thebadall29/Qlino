@@ -139,13 +139,13 @@ const PatientDashboardCompo = () => {
               </button>
             </li>
             <li>
-              <button 
+              {/* <button 
                 className={activeTab === 'resources' ? 'active' : ''} 
                 onClick={() => setActiveTab('resources')}
               >
                 <span className="icon">📚</span>
                 Educational Resources
-              </button>
+              </button> */}
             </li>
             <li className="logout-item">
               <button 
@@ -165,7 +165,7 @@ const PatientDashboardCompo = () => {
           {activeTab === 'appointments' && <AppointmentManager />}
           {activeTab === 'medications' && <MedicationPlan />}
           {activeTab === 'chat' && <Chat/>}
-          {activeTab === 'resources' && <EducationalResources />}
+          {/* {activeTab === 'resources' && <EducationalResources />} */}
         </main>
       </div>
     </div>

@@ -19,7 +19,6 @@ const Chat = () => {
         setLoading(true);
         setError(null);
 
-        // Get user data from localStorage
         const userString = localStorage.getItem('user');
         if (!userString) {
           throw new Error('User data not found in local storage');
@@ -55,8 +54,63 @@ const Chat = () => {
     };
 
     fetchPatients();
+  }, []);
 
-    // Clean up socket connection on unmount
+  // Initialize socket connection once when component mounts
+  useEffect(() => {
+    const userString = localStorage.getItem('user');
+    const token = localStorage.getItem('token');
+    
+    if (!userString || !token) return;
+
+    const userData = JSON.parse(userString);
+
+    // Connect to socket.io server
+    socketRef.current = io('http://localhost:5000', {
+      auth: {
+        token: token
+      }
+    });
+
+    // Listen for connection confirmation
+    socketRef.current.on('connect', () => {
+      console.log('Connected to socket server');
+    });
+
+    // Listen for incoming messages
+    socketRef.current.on('new-message', (data) => {
+      console.log('Received new message:', data);
+      
+      // Format the incoming message to match your expected format
+      const formattedMessage = {
+        _id: data.message._id || Date.now().toString(),
+        content: data.message.content,
+        sender: data.message.senderModel === 'Patient' ? 'patient' : 'doctor',
+        name: data.message.senderModel === 'Patient' ? data.sender?.name || 'Patient' : 'You',
+        time: new Date(data.message.timestamp).toLocaleTimeString('en-US', { 
+          hour: 'numeric', 
+          minute: '2-digit', 
+          hour12: true 
+        }),
+        timestamp: data.message.timestamp,
+        senderModel: data.message.senderModel
+      };
+      
+      setMessages(prevMessages => [...prevMessages, formattedMessage]);
+    });
+
+    // Listen for message sent confirmation
+    socketRef.current.on('message-sent', (data) => {
+      console.log('Message sent confirmation:', data);
+    });
+
+    // Listen for connection errors
+    socketRef.current.on('connect_error', (err) => {
+      console.error('Socket connection error:', err);
+      setError('Failed to connect to chat server. Please try again later.');
+    });
+
+    // Cleanup on unmount
     return () => {
       if (socketRef.current) {
         socketRef.current.disconnect();
@@ -69,22 +123,16 @@ const Chat = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Connect to socket and fetch chat history when a patient is selected
+  // Fetch chat history when a patient is selected
   useEffect(() => {
     if (!selectedPatient) return;
 
-    const userString = localStorage.getItem('user');
-    if (!userString) return;
-
-    const userData = JSON.parse(userString);
-    const token = localStorage.getItem('token');
-
-    // Fetch chat history
     const fetchChatHistory = async () => {
       try {
         setLoading(true);
         setError(null);
 
+        const token = localStorage.getItem('token');
         console.log('Fetching chat history for patient:', selectedPatient);
 
         const response = await fetch(`http://localhost:5000/api/doctor/chat/history/${selectedPatient._id}`, {
@@ -94,7 +142,6 @@ const Chat = () => {
           }
         });
 
-
         if (!response.ok) {
           const errorText = await response.text();
           console.error('Error response:', errorText);
@@ -102,7 +149,6 @@ const Chat = () => {
         }
 
         const data = await response.json();
-
         console.log('Received chat history:', data);
 
         if (data.success) {
@@ -111,7 +157,7 @@ const Chat = () => {
             _id: msg._id,
             content: msg.content,
             sender: msg.senderModel === 'Patient' ? 'patient' : 'doctor',
-            name: msg.senderModel === 'Patient' ? selectedPatient.firstName + ' ' + selectedPatient.lastName : 'You',
+            name: msg.senderModel === 'Patient' ? selectedPatient.name : 'You',
             time: new Date(msg.timestamp).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
             timestamp: msg.timestamp,
             senderModel: msg.senderModel
@@ -131,35 +177,17 @@ const Chat = () => {
 
     fetchChatHistory();
 
-    // Connect to socket.io server
-    socketRef.current = io('http://localhost:5000', {
-      auth: {
-        token: token
-      },
-      query: {
-        userId: userData.id,
-        role: 'doctor',
-        receiverId: selectedPatient._id
-      }
-    });
-
-    // Listen for incoming messages
-    socketRef.current.on('message', (message) => {
-      setMessages(prevMessages => [...prevMessages, message]);
-    });
-
-    // Listen for connection errors
-    socketRef.current.on('connect_error', (err) => {
-      console.error('Socket connection error:', err);
-      setError('Failed to connect to chat server. Please try again later.');
-    });
-
-    return () => {
-      // Disconnect socket when component unmounts or patient changes
-      socketRef.current.disconnect();
-    };
+    // Join the chat room for this patient
+    if (socketRef.current && socketRef.current.connected) {
+      const userData = JSON.parse(localStorage.getItem('user'));
+      const chatId = `${userData.id}_${selectedPatient._id}`;
+      
+      socketRef.current.emit('join-chat', {
+        chatId: chatId,
+        otherUserId: selectedPatient._id
+      });
+    }
   }, [selectedPatient]);
-
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -172,46 +200,38 @@ const Chat = () => {
 
     // Create message object
     const messageData = {
-      chatId: `${userData.id}_${selectedPatient._id}`, // Add this line to explicitly set chatId
-      senderId: userData.id,
-      senderName: `Dr. ${userData.firstName} ${userData.lastName}`.trim(),
+      chatId: `${userData.id}_${selectedPatient._id}`,
       receiverId: selectedPatient._id,
       content: newMessage,
+      timestamp: new Date().toISOString()
+    };
+    
+    // Emit message to server
+    socketRef.current.emit('send-message', messageData);
+    
+    // Add message to local state (optimistic update)
+    const formattedMessage = {
+      _id: Date.now().toString(),
+      content: newMessage,
+      sender: 'doctor',
+      name: 'You',
+      time: new Date().toLocaleTimeString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit', 
+        hour12: true 
+      }),
       timestamp: new Date().toISOString(),
       senderModel: 'Doctor'
     };
     
-    // Emit message to server - use the correct event name
-    socketRef.current.emit('send-message', messageData); // Change from 'sendMessage' to 'send-message'
-    
-    // ... existing code ...
-    
-    // Listen for incoming messages - use the correct event name
-    socketRef.current.on('new-message', (data) => { // Change from 'message' to 'new-message'
-      console.log('Received new message:', data);
-      
-      // Format the incoming message to match your expected format
-      const formattedMessage = {
-        _id: data.message._id || Date.now().toString(),
-        content: data.message.content,
-        sender: data.message.senderModel === 'Patient' ? 'patient' : 'doctor',
-        name: data.message.senderModel === 'Patient' ? selectedPatient.firstName + ' ' + selectedPatient.lastName : 'You',
-        time: new Date(data.message.timestamp).toLocaleTimeString('en-US', { 
-          hour: 'numeric', 
-          minute: '2-digit', 
-          hour12: true 
-        }),
-        timestamp: data.message.timestamp,
-        senderModel: data.message.senderModel
-      };
-      
-      setMessages(prevMessages => [...prevMessages, formattedMessage]);
-    });
+    setMessages(prevMessages => [...prevMessages, formattedMessage]);
+    setNewMessage('');
   };
 
   const handleSelectPatient = (patient) => {
     setSelectedPatient(patient);
   };
+
   console.log('Selected Patient:', selectedPatient);
 
   return (

@@ -176,7 +176,7 @@
 
 .user-message {
   align-self: flex-end;
-  background-color: #4a69bd;
+  background-color: #e7edfd;
   color: white;
   border-bottom-right-radius: 5px;
 }
@@ -369,3 +369,95 @@
     padding: 10px;
   }
 }
+
+
+/* Prevent unwanted scrolling */
+.chat-page-container {
+  overflow: hidden;
+}
+
+.chat-interface {
+  overflow: hidden;
+}
+
+.contacts-list {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.contacts {
+  overflow-y: auto;
+  flex-grow: 1;
+  
+  /* Custom scrollbar styling */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background-color: #ced4da;
+    border-radius: 6px;
+  }
+}
+
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chat-messages {
+  flex-grow: 1;
+  overflow-y: auto;
+  
+  /* Custom scrollbar styling */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background-color: #ced4da;
+    border-radius: 6px;
+  }
+}
+
+/* Prevent form submission from scrolling */
+.message-form {
+  position: relative;
+  z-index: 5;
+}
+
+/* Improve contact item styling */
+.contact-item {
+  cursor: pointer;
+  transition: background-color 0.2s;
+  
+  &:hover {
+    background-color: #e9ecef;
+  }
+  
+  &.selected {
+    background-color: #e3f2fd;
+    border-left: 4px solid #4a69bd;
+  }
+}
+
+/* Add animation for messages */
+.message {
+  animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
