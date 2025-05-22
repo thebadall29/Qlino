@@ -451,10 +451,10 @@ const DoctorProfileModel = ({ doctor, isOpen, onClose }) => {
               </div>
             )} */}
 
-{activeTab === 'appointments' && (
-          <AppointmentManager  />
-        )}
-            
+            {activeTab === 'appointments' && (
+              <AppointmentManager doctorId={displayDoctor.id || displayDoctor._id} />
+            )}
+
 
             {/* Reviews Tab */}
             {activeTab === 'reviews' && (

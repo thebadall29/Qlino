@@ -27,6 +27,8 @@ const SearchProfile = ({ doctor, resultCount, index }) => {
     );
   }
 
+ 
+
   // Handle case where doctor might be an array with one item
   const doctorData = Array.isArray(doctor) ? doctor[0] : doctor;
 

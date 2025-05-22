@@ -12,9 +12,11 @@ router.get('/doctor/queue/:date', auth, authorize(['doctor']), appointmentContro
 router.get('/doctor/slot/:date', auth, authorize(['doctor']), appointmentController.getSlotDataByDoctor);
 router.patch('/doctor/queue/:id/status', auth, authorize(['doctor']), appointmentController.updateQueueStatus);
 router.patch('/doctor/appointments/:id', auth, authorize(['doctor']), appointmentController.updateAppointmentStatus);
-router.get('/patient/appointment/:email', auth, authorize(['doctor']), appointmentController.getPatientAppointmentsByEmail);
+router.get('/patient/appointment/:email', auth, authorize(['doctor', 'patient']), appointmentController.getPatientAppointmentsByEmail);
 router.get('/doctor/unique-patients', auth, authorize(['doctor']), appointmentController.getUniquePatientsByDoctor);
-router.get('/doctor/unique-patients', auth, authorize(['doctor']), appointmentController.checkPatientExists);
+router.get('/doctor/unique-patients', auth, authorize(['patient','doctor']), appointmentController.checkPatientExists);
+// In your routes file (e.g., appointmentRoutes.js)
+router.put('/patient/appointment/cancel/:id', auth, authorize(['patient','doctor']), appointmentController.cancelAppointment);
 // Patient routes
 router.get('/patient/appointments', auth, authorize(['patient']), appointmentController.getPatientAppointments);
 router.post('/appointments', appointmentController.bookAppointmentForUnregisteredPatient);

@@ -1,167 +1,158 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import '../MedicationPlan.scss'
 
 const MedicationPlan = () => {
-  const [medications, setMedications] = useState([
-    { id: 1, name: 'Metformin', dosage: '500mg', frequency: 'Twice daily', notes: 'Take with food' },
-    { id: 2, name: 'Lisinopril', dosage: '10mg', frequency: 'Once daily', notes: 'Take in the morning' },
-    { id: 3, name: 'Vitamin D', dosage: '1000 IU', frequency: 'Once daily', notes: 'Take with meal' },
-  ]);
+  const [prescriptions, setPrescriptions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const [formData, setFormData] = useState({
-    name: '',
-    dosage: '',
-    frequency: '',
-    notes: ''
-  });
-
-  const [editMode, setEditMode] = useState(false);
-  const [editId, setEditId] = useState(null);
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    if (editMode) {
-      setMedications(medications.map(med =>
-        med.id === editId ? { ...med, ...formData } : med
-      ));
-      setEditMode(false);
-      setEditId(null);
-    } else {
-      const newMedication = {
-        id: medications.length + 1,
-        ...formData
-      };
-      setMedications([...medications, newMedication]);
+  const checkLocalStorage = () => {
+    console.log('Checking localStorage contents:');
+    
+    // Check specific keys
+    console.log('email:', localStorage.getItem('email'));
+    console.log('userEmail:', localStorage.getItem('userEmail'));
+    console.log('token:', localStorage.getItem('token'));
+    console.log('user:', localStorage.getItem('user'));
+    
+    // List all items in localStorage
+    console.log('All localStorage items:');
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      console.log(`${key}: ${localStorage.getItem(key)}`);
     }
-
-    setFormData({ name: '', dosage: '', frequency: '', notes: '' });
   };
 
-  const handleEdit = (medication) => {
-    setEditMode(true);
-    setEditId(medication.id);
-    setFormData({
-      name: medication.name,
-      dosage: medication.dosage,
-      frequency: medication.frequency,
-      notes: medication.notes
-    });
-  };
+  // Call this in useEffect
+  useEffect(() => {
+    checkLocalStorage();
+    fetchPrescriptions();
+  }, []);
 
-  const handleDelete = (id) => {
-    setMedications(medications.filter(med => med.id !== id));
+  const fetchPrescriptions = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Get email from user object in localStorage
+      let email = '';
+      const userString = localStorage.getItem('user');
+      
+      if (userString) {
+        try {
+          const userData = JSON.parse(userString);
+          email = userData.email || '';
+        } catch (parseError) {
+          console.error('Error parsing user data:', parseError);
+        }
+      }
+      
+      const token = localStorage.getItem('token') || '';
+      
+      if (!email) {
+        throw new Error('User email not found in local storage');
+      }
+      
+      const response = await fetch(`http://localhost:5000/api/patient/doctor/patient/${email}/prescriptions`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch prescriptions: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        // Sort prescriptions by date (newest first)
+        const sortedPrescriptions = [...data.prescriptions].sort((a, b) => {
+          return new Date(b.createdAt) - new Date(a.createdAt);
+        });
+        setPrescriptions(sortedPrescriptions);
+      } else {
+        throw new Error(data.message || 'Failed to fetch prescriptions');
+      }
+    } catch (err) {
+      console.error('Error fetching prescriptions:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="section-container">
       <h2>Medication Plan</h2>
+      
+      {error && (
+        <div className="error-message">
+          <p>{error}</p>
+          <button onClick={fetchPrescriptions}>Retry</button>
+        </div>
+      )}
 
       <div className="section">
-        <h3>{editMode ? 'Edit Medication' : 'Add New Medication'}</h3>
-        <form onSubmit={handleSubmit} className="medication-form">
-          <div className="form-group">
-            <label htmlFor="name">Medication Name</label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="dosage">Dosage</label>
-            <input
-              type="text"
-              id="dosage"
-              name="dosage"
-              value={formData.dosage}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="frequency">Frequency</label>
-            <input
-              type="text"
-              id="frequency"
-              name="frequency"
-              value={formData.frequency}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="notes">Notes</label>
-            <textarea
-              id="notes"
-              name="notes"
-              value={formData.notes}
-              onChange={handleInputChange}
-              rows="2"
-            />
-          </div>
-
-          <div className="form-buttons">
-            <button type="submit" className="submit-button">
-              {editMode ? 'Update Medication' : 'Add Medication'}
-            </button>
-            {editMode && (
-              <button
-                type="button"
-                className="cancel-button"
-                onClick={() => {
-                  setEditMode(false);
-                  setFormData({ name: '', dosage: '', frequency: '', notes: '' });
-                }}
-              >
-                Cancel Edit
-              </button>
-            )}
-          </div>
-        </form>
-      </div>
-
-      <div className="section">
-        <h3>Current Medications</h3>
-        {medications.length === 0 ? (
-          <p className="no-medications">No medications added yet.</p>
+        <h3>Current Prescriptions</h3>
+        {loading && <div className="loading-spinner">Loading...</div>}
+        {!loading && prescriptions.length === 0 ? (
+          <p className="no-medications">No prescriptions found.</p>
         ) : (
-          <div className="medications-table-container">
-            <table className="medications-table">
-              <thead>
-                <tr>
-                  <th>Medication</th>
-                  <th>Dosage</th>
-                  <th>Frequency</th>
-                  <th>Notes</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {medications.map(med => (
-                  <tr key={med.id}>
-                    <td>{med.name}</td>
-                    <td>{med.dosage}</td>
-                    <td>{med.frequency}</td>
-                    <td>{med.notes}</td>
-                    <td className="action-buttons">
-                      <button className="edit-button small" onClick={() => handleEdit(med)}>Edit</button>
-                      <button className="delete-button small" onClick={() => handleDelete(med.id)}>Delete</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="prescriptions-list">
+            {prescriptions.map(prescription => (
+              <div key={prescription._id} className="prescription-card">
+                <div className="prescription-header">
+                  <div className="prescription-info">
+                    <span className="doctor-name">Dr. {prescription.doctorName}</span>
+                    <span className="prescription-date">
+                      {new Date(prescription.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="medications-list">
+                  <h4>Medications</h4>
+                  <table className="medications-table">
+                    <thead>
+                      <tr>
+                        <th>Medication</th>
+                        <th>Dosage</th>
+                        <th>Frequency</th>
+                        <th>Duration</th>
+                        <th>Notes</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {prescription.medications.map((med, index) => (
+                        <tr key={med._id || index}>
+                          <td>{med.name}</td>
+                          <td>{med.dosage}</td>
+                          <td>{med.frequency}</td>
+                          <td>{med.duration}</td>
+                          <td>{med.notes}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                
+                {prescription.instructions && (
+                  <div className="prescription-instructions">
+                    <h4>Instructions</h4>
+                    <p>{prescription.instructions}</p>
+                  </div>
+                )}
+                
+                {prescription.followUpDate && (
+                  <div className="follow-up-date">
+                    <h4>Follow-up Date</h4>
+                    <p>{new Date(prescription.followUpDate).toLocaleDateString()}</p>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         )}
       </div>

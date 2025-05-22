@@ -5,7 +5,7 @@ import 'react-calendar/dist/Calendar.css';
 import './AppointmentManager.scss';
 
 
-const AppointmentManager = () => {
+const AppointmentManager = ({ doctorId: propDoctorId }) => {
   const [doctorData, setDoctorData] = useState(null);
   const [bookingPreference, setBookingPreference] = useState('slot'); // Default to slot
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -96,8 +96,8 @@ const AppointmentManager = () => {
   // Fetch appointments for a specific date from API
   const fetchAppointmentsForDate = async (date) => {
     try {
-      // Get doctorId from doctorData state or localStorage
-      const doctorId = doctorData?._id || (localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')).id : null);
+      // Get doctorId from props first, then from doctorData state or localStorage
+      const doctorId = propDoctorId || doctorData?._id || (localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')).id : null);
 
       if (!doctorId) {
         console.error('No doctor ID found');
@@ -178,12 +178,12 @@ const AppointmentManager = () => {
   useEffect(() => {
     const fetchDoctorData = async () => {
       try {
-        // Get doctorId from localStorage if available
+        // Use the doctorId from props if available, otherwise get from localStorage
         const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
-        const doctorId = user?.id;
+        const doctorId = propDoctorId || user?.id;
 
         if (!doctorId) {
-          console.error('No doctor ID found in localStorage');
+          console.error('No doctor ID found in props or localStorage');
           setLoading(false);
           return;
         }
@@ -522,13 +522,7 @@ const AppointmentManager = () => {
         return;
       }
 
-      const token = localStorage.getItem('token');
-
-      if (!token) {
-        alert('You must be logged in to add patients to queue');
-        return;
-      }
-
+     
       // Get selected date
       const queueDate = newPatient.date;
       const formattedDate = formatDate(queueDate);

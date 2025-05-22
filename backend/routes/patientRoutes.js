@@ -331,7 +331,7 @@ router.post('/doctor/patient/:email/prescriptions', auth, authorize(['doctor']),
 });
 
 // Get all prescriptions for a patient
-router.get('/doctor/patient/:email/prescriptions', auth, authorize(['doctor']), async (req, res) => {
+router.get('/doctor/patient/:email/prescriptions', auth, authorize(['doctor','patient']), async (req, res) => {
   try {
     const { email } = req.params;
     

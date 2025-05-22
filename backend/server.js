@@ -10,6 +10,8 @@ const doctorRoutes = require('./routes/doctorRoutes');
 const symptomRoutes = require('./routes/symptomRoutes');
 const appointmentRoutes = require('./routes/appointmentRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+const doctorChatRoutes = require('./routes/doctorChatRoutes');
+const patientChatRoutes = require('./routes/patientChatRoutes');
 const PORT = process.env.PORT || 5000;
 const authRoutes = require('./routes/authRoutes');
 
@@ -27,10 +29,17 @@ app.use('/api/doctor', doctorRoutes);
 app.use('/api/symptoms', symptomRoutes);
 app.use('/api', appointmentRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/doctor/chat', doctorChatRoutes);
+app.use('/api/patient/chat', patientChatRoutes);
 
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Initialize socket.io
+
 // Start server
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+const chatSocket = require('./chatSocket')(server);

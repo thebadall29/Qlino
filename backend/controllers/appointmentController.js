@@ -101,15 +101,15 @@ exports.getPatientAppointmentsByEmail = async (req, res) => {
       });
     }
     
-    
-    // Find all appointments with this email - search in both fields
+    // Find all appointments with this email and populate doctor information in one query
     const appointments = await Appointment.find({ 
       $or: [
         { patientEmail: email },  // Search in patientEmail field
         { email: email }          // Also search in email field if it exists
       ]
-    }).sort({ createdAt: -1 }); // Sort by creation date, newest first
-
+    })
+    .sort({ createdAt: -1 }) // Sort by creation date, newest first
+    .populate('doctorId', 'firstName lastName specialization');
     
     // Check if any appointments were found
     if (!appointments || appointments.length === 0) {
@@ -119,21 +119,33 @@ exports.getPatientAppointmentsByEmail = async (req, res) => {
       });
     }
     
-    // Get the most recent appointment (first in the sorted list)
-    const mostRecentAppointment = appointments[0];
+    // Process appointments to add formatted doctor name
+    const processedAppointments = appointments.map(appointment => {
+      const appointmentObj = appointment.toObject();
+      
+      if (appointment.doctorId) {
+        appointmentObj.doctorName = `Dr. ${appointment.doctorId.firstName} ${appointment.doctorId.lastName}`;
+        appointmentObj.doctorSpecialization = appointment.doctorId.specialization;
+      } else {
+        appointmentObj.doctorName = 'Unknown Doctor';
+        appointmentObj.doctorSpecialization = '';
+      }
+      
+      return appointmentObj;
+    });
     
-    // Calculate follow-up count
-    const followUpCount = appointments.length - 1; // Subtract 1 for the initial visit
+    // Get the most recent appointment
+    const mostRecentAppointment = processedAppointments[0];
     
     return res.status(200).json({
       success: true,
       message: 'Patient appointments retrieved successfully',
       patientHistory: {
         totalVisits: appointments.length,
-        followUpCount: followUpCount > 0 ? followUpCount : 0,
+        followUpCount: Math.max(0, appointments.length - 1),
         isFollowUp: appointments.length > 1,
         lastVisit: mostRecentAppointment,
-        allAppointments: appointments
+        allAppointments: processedAppointments
       }
     });
   } catch (error) {
@@ -145,6 +157,58 @@ exports.getPatientAppointmentsByEmail = async (req, res) => {
     });
   }
 };
+
+// ... existing code ...
+
+// Cancel an appointment
+exports.cancelAppointment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Find the appointment
+    const appointment = await Appointment.findById(id);
+    
+    if (!appointment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Appointment not found'
+      });
+    }
+    
+    // Check if the appointment is already cancelled or completed
+    if (appointment.status === 'cancelled') {
+      return res.status(400).json({
+        success: false,
+        message: 'Appointment is already cancelled'
+      });
+    }
+    
+    if (appointment.status === 'completed') {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot cancel a completed appointment'
+      });
+    }
+    
+    // Update the appointment status to cancelled
+    appointment.status = 'cancelled';
+    await appointment.save();
+    
+    return res.status(200).json({
+      success: true,
+      message: 'Appointment cancelled successfully',
+      appointment
+    });
+  } catch (error) {
+    console.error('Error cancelling appointment:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};
+
 
 exports.checkPatientExists = async (req, res) => {
   try {
@@ -1148,6 +1212,8 @@ exports.getPublicQueue = async (req, res) => {
         $lt: new Date(`${formattedDate}T23:59:59.999Z`)
       }
     }).sort({ queueNumber: 1 });
+
+    console.log('Queue:', queue);
     
     return res.json({
       success: true,

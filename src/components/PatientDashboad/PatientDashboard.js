@@ -5,8 +5,8 @@ import UserProfile from './tabs/UserProfile';
 import SymptomChecker from './tabs/SymptomChecker';
 import AppointmentManager from './tabs/AppointmentManager';
 import MedicationPlan from './tabs/MedicationPlan';
-import CommunicationSupport from './tabs/CommunicationSupport';
 import EducationalResources from './tabs/EducationalResources';
+import Chat from './tabs/Chat';
 
 const PatientDashboardCompo = () => {
   const [activeTab, setActiveTab] = useState('profile');
@@ -131,11 +131,11 @@ const PatientDashboardCompo = () => {
             </li>
             <li>
               <button 
-                className={activeTab === 'communication' ? 'active' : ''} 
-                onClick={() => setActiveTab('communication')}
+                className={activeTab === 'chat' ? 'active' : ''} 
+                onClick={() => setActiveTab('chat')}
               >
                 <span className="icon">💬</span>
-                Communication Support
+                Chat
               </button>
             </li>
             <li>
@@ -164,7 +164,7 @@ const PatientDashboardCompo = () => {
           {activeTab === 'symptoms' && <SymptomChecker />}
           {activeTab === 'appointments' && <AppointmentManager />}
           {activeTab === 'medications' && <MedicationPlan />}
-          {activeTab === 'communication' && <CommunicationSupport />}
+          {activeTab === 'chat' && <Chat/>}
           {activeTab === 'resources' && <EducationalResources />}
         </main>
       </div>
