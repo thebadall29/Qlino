@@ -208,7 +208,6 @@ const PatientManagement = () => {
         }
       });
 
-      console.log('Check patient registration response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error checking patient registration:', error);
@@ -219,7 +218,6 @@ const PatientManagement = () => {
 
 
   const handleViewProfile = async (patient) => {
-    console.log("Opening profile for patient:", patient);
 
     // Make sure patient object is valid before proceeding
     if (!patient || !patient.email) {
@@ -230,7 +228,6 @@ const PatientManagement = () => {
     try {
       // Check if patient is registered in the system
       const registrationCheck = await checkPatientRegistration(patient.email);
-      console.log("Registration check result:", registrationCheck);
 
       // Create a new patient object with the isRegistered flag
       const patientWithRegistrationStatus = {
@@ -238,7 +235,6 @@ const PatientManagement = () => {
         isRegistered: registrationCheck.isRegistered
       };
 
-      console.log("Patient with registration status:", patientWithRegistrationStatus);
 
       // Set the selected patient and show the modal
       setSelectedPatient(patientWithRegistrationStatus);
@@ -425,7 +421,6 @@ const PatientManagement = () => {
           },
           onUploadProgress: (progressEvent) => {
             const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            console.log(`Upload progress: ${percentCompleted}%`);
             // You could update a progress bar here if you had one
           }
         }
@@ -746,7 +741,6 @@ const PatientManagement = () => {
   };
 
   const handlePrintPrescription = (prescriptionData) => {
-    console.log(' prescriptions data:', prescriptionData);
     if (!prescriptionData || !prescriptionData.medications || prescriptionData.medications.length === 0) {
       alert('Invalid prescription data');
       return;
@@ -866,7 +860,6 @@ const PatientManagement = () => {
         }
       );
 
-      console.log("response data", response);
 
       if (response.data) {
         // Update the selected patient to show they're registered
@@ -897,11 +890,61 @@ const PatientManagement = () => {
       alert(`Error registering patient: ${err.response?.data?.message || err.message}`);
     }
   };
+
+  const handleDeleteAppointment = async (appointmentId) => {
+    try {
+      const token = localStorage.getItem('token');
+  
+      if (!token) {
+        alert('Authentication required. Please log in again.');
+        return;
+      }
+  
+      const response = await axios.delete(
+        `http://localhost:5000/api/patient/appointment/delete/${appointmentId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+  
+      console.log('Delete Appointment Response:', response);
+  
+      if (response.data.success) {
+        // Refresh the patients list after successful deletion
+        const refreshResponse = await axios.get('http://localhost:5000/api/doctor/unique-patients', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+  
+        if (refreshResponse.data.success) {
+          // Update the patients state with fresh data
+          setPatients(refreshResponse.data.patients);
+          
+          // If a patient profile is open, refresh that data too
+          if (selectedPatient) {
+            handleViewProfile(selectedPatient);
+          }
+          
+          alert('Appointment deleted successfully');
+        } else {
+          alert('Appointment deleted but failed to refresh data');
+        }
+      } else {
+        alert('Failed to delete appointment: ' + response.data.message);
+      }
+    } catch (err) {
+      console.error('Error deleting appointment:', err);
+      alert('Failed to delete appointment: ' + (err.response?.data?.message || err.message));
+    }
+  };
   const handleAddPatient = async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        'http://localhost:5000/api/doctor/patients',
+        'http://localhost:5000/api/auth/patients',
         newPatient,
         {
           headers: {
@@ -927,7 +970,6 @@ const PatientManagement = () => {
           setPatients(patientsResponse.data.patients);
         }
 
-        console.log("patientsResponse", patientsResponse);
       }
     } catch (err) {
       console.error('Error adding patient:', err);
@@ -940,7 +982,7 @@ const PatientManagement = () => {
     return new Date(b.createdAt) - new Date(a.createdAt);
   });
 
-  console.log("seleted patinet",selectedPatient);
+console.log("visit",visits)
 
   return (
     <div className="section-container">
@@ -953,9 +995,6 @@ const PatientManagement = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <button className="add-patient" onClick={() => setShowAddForm(true)}>
-          Add Patient
-        </button>
       </div>
 
       {loading ? (
@@ -976,7 +1015,7 @@ const PatientManagement = () => {
                   <div className="patient-details">
                     <h4>{patient.name}</h4>
                     <p>Email: {patient.email}</p>
-                    <p>Contact: {patient.contactNumber || 'Not provided'}</p>
+                    <p>Reason: {patient.lastReason}</p>
                     <p>Last Visit: {formatDate(patient.lastAppointment)}</p>
                     <p>Total Visits: {patient.appointmentCount}</p>
                   </div>
@@ -985,7 +1024,9 @@ const PatientManagement = () => {
                   <button className="view-profile" onClick={() => handleViewProfile(patient)}>
                     View Profile
                   </button>
-                  <button className="schedule">Delete</button>
+                  <button className="delete" onClick={() => handleDeleteAppointment(patient.id)}>
+                    Delete
+                  </button>
                 </div>
               </div>
             ))
@@ -2434,7 +2475,7 @@ const PatientManagement = () => {
             </div>
           </div>
         </div>
-     )}
+      )}
 
       {/* Add Patient Modal */}
       {showAddForm && (
@@ -2678,7 +2719,7 @@ const PatientManagement = () => {
             </div>
           </div>
         </div>
-      )} 
+      )}
     </div>
   );
 };

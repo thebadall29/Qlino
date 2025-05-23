@@ -158,10 +158,59 @@ exports.getPatientAppointmentsByEmail = async (req, res) => {
   }
 };
 
-// ... existing code ...
+// Add the deleteAppointment controller function
+// Add the deleteAppointment controller function
+exports.cancelAppoinment = async (req, res) => {
+  try {
+    const appointmentId = req.params.id;
+    
+    // Find the appointment by ID
+    const appointment = await Appointment.findById(appointmentId);
+    
+    if (!appointment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Appointment not found'
+      });
+    }
+    
+    // Check if the user is authorized to delete this appointment
+    // Only perform these checks if the user role and IDs are available
+    if (req.user && req.user.role === 'doctor' && 
+        appointment.doctorId && appointment.doctorId.toString && 
+        appointment.doctorId.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to delete this appointment'
+      });
+    } else if (req.user && req.user.role === 'patient' && 
+               appointment.patientId && appointment.patientId.toString && 
+               appointment.patientId.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to delete this appointment'
+      });
+    }
+    
+    // Delete the appointment
+    await Appointment.findByIdAndDelete(appointmentId);
+    
+    res.status(200).json({
+      success: true,
+      message: 'Appointment deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting appointment:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};
 
-// Cancel an appointment
-exports.cancelAppointment = async (req, res) => {
+// Delete an appointment completely
+exports.deleteAppointment = async (req, res) => {
   try {
     const { id } = req.params;
     
@@ -175,32 +224,15 @@ exports.cancelAppointment = async (req, res) => {
       });
     }
     
-    // Check if the appointment is already cancelled or completed
-    if (appointment.status === 'cancelled') {
-      return res.status(400).json({
-        success: false,
-        message: 'Appointment is already cancelled'
-      });
-    }
-    
-    if (appointment.status === 'completed') {
-      return res.status(400).json({
-        success: false,
-        message: 'Cannot cancel a completed appointment'
-      });
-    }
-    
-    // Update the appointment status to cancelled
-    appointment.status = 'cancelled';
-    await appointment.save();
+    // Delete the appointment from the database
+    await Appointment.findByIdAndDelete(id);
     
     return res.status(200).json({
       success: true,
-      message: 'Appointment cancelled successfully',
-      appointment
+      message: 'Appointment deleted successfully'
     });
   } catch (error) {
-    console.error('Error cancelling appointment:', error);
+    console.error('Error deleting appointment:', error);
     return res.status(500).json({
       success: false,
       message: 'Server error',
@@ -238,7 +270,6 @@ exports.getUniquePatientsByDoctor = async (req, res) => {
     // Find all appointments for this doctor
     const appointments = await Appointment.find({ doctorId })
       .sort({ createdAt: -1 }); // Sort by creation date, newest first
-    
     // Create a map to store unique patients by email
     const uniquePatientsMap = new Map();
     
@@ -249,9 +280,10 @@ exports.getUniquePatientsByDoctor = async (req, res) => {
       // Only add this patient if we haven't seen this email before
       if (!uniquePatientsMap.has(patientEmail)) {
         uniquePatientsMap.set(patientEmail, {
+          id: appointment._id,
           name: appointment.patientName,
           email: patientEmail,
-          contactNumber: appointment.contactNumber,
+          contactNumber: appointment.contact,
           lastAppointment: appointment.date,
           appointmentCount: 1,
           lastReason: appointment.reason
@@ -271,6 +303,7 @@ exports.getUniquePatientsByDoctor = async (req, res) => {
     
     // Convert the map to an array of unique patients
     const uniquePatients = Array.from(uniquePatientsMap.values());
+
     
     return res.status(200).json({
       success: true,
@@ -947,7 +980,54 @@ exports.getQueue = async (req, res) => {
   } 
 }; 
 
-// ... existing code ...
+
+// Add the deleteAppointment controller function
+exports.deleteAppointment = async (req, res) => {
+  try {
+    const appointmentId = req.params.id;
+    
+    // Find the appointment by ID
+    const appointment = await Appointment.findById(appointmentId);
+    
+    if (!appointment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Appointment not found'
+      });
+    }
+    
+    // Check if the user is authorized to delete this appointment
+    // For doctors, they should be able to delete appointments assigned to them
+    // For patients, they should only be able to delete their own appointments
+    if (req.user.role === 'doctor' && appointment.doctorId.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to delete this appointment'
+      });
+    } else if (req.user.role === 'patient' && appointment.patientId.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to delete this appointment'
+      });
+    }
+    
+    // Delete the appointment
+    await Appointment.findByIdAndDelete(appointmentId);
+    
+    res.status(200).json({
+      success: true,
+      message: 'Appointment deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting appointment:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};
+
 
 // Get doctor's booking preference
 exports.getDoctorPreference = async (req, res) => {
