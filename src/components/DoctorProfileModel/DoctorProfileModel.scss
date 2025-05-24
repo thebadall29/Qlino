@@ -205,7 +205,7 @@
       
       .dpm-detail-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        grid-template-columns: 25% 25% 50%; // Changed to 25%, 25%, 50% distribution
         gap: 15px;
         
         .dpm-detail-item {
@@ -220,6 +220,17 @@
             font-size: 15px;
             color: #333;
             font-weight: 500;
+          }
+        }
+      }
+      
+      // Specific styling for the consultation details section
+      &:nth-of-type(3) { // Targeting the Consultation Details section
+        .dpm-detail-grid {
+          .dpm-detail-item {
+            &:nth-child(3) { // Targeting the Timings item (third child)
+              grid-column: 3; // Place in the third column (50% width)
+            }
           }
         }
       }
@@ -361,158 +372,7 @@
   }
 }
 
-// Reviews tab
-.dpm-reviews-tab {
-  .dpm-reviews-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    
-    h3 {
-      margin: 0;
-      font-size: 20px;
-      color: #333;
-    }
-    
-    .dpm-overall-rating {
-      display: flex;
-      align-items: center;
-      
-      .dpm-rating-stars {
-        color: #f6b93b;
-        margin-right: 10px;
-      }
-      
-      .dpm-rating-value {
-        font-size: 18px;
-        font-weight: 600;
-        color: #333;
-        margin-right: 5px;
-      }
-      
-      .dpm-review-count {
-        font-size: 14px;
-        color: #666;
-      }
-    }
-  }
-  
-  .dpm-add-review {
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 25px;
-    
-    h4 {
-      margin: 0 0 15px 0;
-      font-size: 16px;
-      color: #333;
-    }
-    
-    .dpm-rating-selector {
-      display: flex;
-      align-items: center;
-      margin-bottom: 15px;
-      
-      span {
-        margin-right: 10px;
-        font-size: 14px;
-        color: #555;
-      }
-      
-      .dpm-star-rating {
-        i {
-          color: #f6b93b;
-          font-size: 20px;
-          margin-right: 5px;
-          cursor: pointer;
-        }
-      }
-    }
-    
-    .dpm-review-input {
-      margin-bottom: 15px;
-      
-      textarea {
-        width: 100%;
-        height: 100px;
-        padding: 10px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        resize: vertical;
-        font-family: inherit;
-        font-size: 14px;
-        
-        &:focus {
-          outline: none;
-          border-color: #4a69bd;
-        }
-      }
-    }
-    
-    .dpm-submit-review {
-      padding: 10px 20px;
-      background-color: #4a69bd;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      
-      &:hover {
-        background-color: #3c5aa6;
-      }
-    }
-  }
-  
-  .dpm-reviews-list {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    
-    .dpm-review-card {
-      border: 1px solid #eaeaea;
-      border-radius: 8px;
-      padding: 15px;
-      
-      .dpm-review-header {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 10px;
-        
-        .dpm-reviewer-name {
-          font-weight: 500;
-          color: #333;
-        }
-        
-        .dpm-review-date {
-          font-size: 12px;
-          color: #666;
-        }
-      }
-      
-      .dpm-review-rating {
-        margin-bottom: 10px;
-        
-        i {
-          color: #f6b93b;
-          font-size: 14px;
-          margin-right: 2px;
-        }
-      }
-      
-      .dpm-review-comment {
-        font-size: 14px;
-        color: #555;
-        line-height: 1.5;
-        margin: 0;
-      }
-    }
-  }
-}
+
 
 // Photos tab
 .dpm-photos-tab {
@@ -969,3 +829,140 @@
     }
   }
 }
+
+.dpm-profile-avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  font-weight: bold;
+  color: white;
+  margin-right: 20px;
+}
+
+.dpm-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.dpm-detail-item {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+
+.dpm-label {
+  font-weight: 600;
+  color: #555;
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.dpm-value {
+  font-size: 16px;
+  color: #333;
+}
+
+.dpm-services-list {
+  list-style: none;
+  padding: 0;
+  
+  li {
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    
+    i {
+      color: #4a69bd;
+      margin-right: 10px;
+    }
+  }
+}
+
+.dpm-about-text {
+  line-height: 1.6;
+  color: #444;
+}
+
+.dpm-action-buttons {
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+  
+  button {
+    padding: 12px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: none;
+    transition: all 0.3s ease;
+    
+    i {
+      font-size: 16px;
+    }
+  }
+  
+  .dpm-book-button {
+    background-color: #2563eb;
+    color: white;
+    flex: 1;
+    
+    &:hover {
+      background-color: #1d4ed8;
+    }
+  }
+  
+  .dpm-contact-button {
+    background-color: #f0f0f0;
+    color: #333;
+    
+    &:hover {
+      background-color: #e0e0e0;
+    }
+  }
+}
+
+// ... existing code ...
+.dpm-value {
+  font-size: 15px;
+  color: #333;
+  font-weight: 500;
+  
+  // Enhanced styling for timings display
+  &.dpm-timings-value {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    
+    .dpm-timing-day {
+      display: flex;
+      align-items: center;
+      padding: 6px 10px;
+      background-color: #f8f9fa;
+      border-radius: 6px;
+      border-left: 3px solid #4a69bd;
+      width: calc(50% - 4px); // Two items per row with gap considered
+      box-sizing: border-box;
+      
+      .dpm-day-name {
+        font-weight: 600;
+        color: #4a69bd;
+        margin-right: 8px;
+        min-width: 80px; // Reduced from 100px to fit better in half-width
+      }
+      
+      .dpm-time-range {
+        color: #555;
+      }
+    }
+  }
+}
+// ... existing code ...

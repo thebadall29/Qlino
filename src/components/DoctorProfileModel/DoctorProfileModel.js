@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './DoctorProfileModel.scss';
 import AppointmentManager from '../AppointmentManager/AppointmentManager'
+import DoctorReview from '../DoctorReview/DoctorReview';
 
 const DoctorProfileModel = ({ doctor, isOpen, onClose }) => {
   const [activeTab, setActiveTab] = useState('profile');
@@ -24,6 +25,7 @@ const DoctorProfileModel = ({ doctor, isOpen, onClose }) => {
   useEffect(() => {
     if (isOpen && doctor && doctor.id) {
       fetchDoctorData(doctor.id);
+      
     }
   }, [isOpen, doctor]);
 
@@ -240,6 +242,8 @@ const DoctorProfileModel = ({ doctor, isOpen, onClose }) => {
   // Use merged data from props and API response
   const displayDoctor = doctorData || doctor;
 
+  console.log("displayDoctor", displayDoctor)
+
   return (
     <div className={`dpm-slidedown-profile ${isOpen ? 'dpm-open' : ''}`}>
       <div className="dpm-header">
@@ -287,13 +291,13 @@ const DoctorProfileModel = ({ doctor, isOpen, onClose }) => {
             {activeTab === 'profile' && (
               <div className="dpm-profile-tab">
                 <div className="dpm-profile-header">
-                  <div className="dpm-profile-avatar">
-                    {displayDoctor.name ? displayDoctor.name.charAt(0).toUpperCase() : 'D'}
+                  <div className="dpm-profile-avatar" style={{ backgroundColor: displayDoctor.avatarColor || '#3c6382' }}>
+                    {displayDoctor.firstName ? displayDoctor.firstName.charAt(0).toUpperCase() : 'D'}
                   </div>
                   <div className="dpm-profile-info">
                     <h3>{displayDoctor.name}</h3>
                     <p className="dpm-specialization">{displayDoctor.specialization || 'General Practitioner'}</p>
-                    <p className="dpm-location"><i className="fas fa-map-marker-alt"></i> {displayDoctor.location || 'Location not available'}</p>
+                    <p className="dpm-location"><i className="fas fa-map-marker-alt"></i> {displayDoctor.address}, {displayDoctor.city}, {displayDoctor.state}</p>
                     <p className="dpm-experience"><i className="fas fa-user-md"></i> {displayDoctor.experience || '15'} years experience</p>
                   </div>
                 </div>
@@ -332,14 +336,12 @@ const DoctorProfileModel = ({ doctor, isOpen, onClose }) => {
                   <div className="dpm-detail-section">
                     <h4>Services Offered</h4>
                     <ul className="dpm-services-list">
-                      <li><i className="fas fa-check-circle"></i> General Consultation</li>
-                      {displayDoctor.services && Array.isArray(displayDoctor.services) && displayDoctor.services.map((service, index) => (
-                        <li key={index}><i className="fas fa-check-circle"></i> {
-                          typeof service === 'object' && service !== null
-                            ? (service.name || `Service ${index + 1}`) + (service.fee ? ` - ₹${service.fee}` : '')
-                            : service
-                        }</li>
-                      ))}
+                      {displayDoctor.treatments && Array.isArray(displayDoctor.treatments) ?
+                        displayDoctor.treatments.map((treatment, index) => (
+                          <li key={index}><i className="fas fa-check-circle"></i> {treatment.name}</li>
+                        )) :
+                        <li><i className="fas fa-check-circle"></i> General Consultation</li>
+                      }
                     </ul>
                   </div>
 
@@ -348,19 +350,31 @@ const DoctorProfileModel = ({ doctor, isOpen, onClose }) => {
                     <div className="dpm-detail-grid">
                       <div className="dpm-detail-item">
                         <span className="dpm-label">Consultation Fee:</span>
-                        <span className="dpm-value">₹{displayDoctor.consultationFee || '500'}</span>
+                        <span className="dpm-value">₹{displayDoctor.treatments && displayDoctor.treatments[0] ? displayDoctor.treatments[0].fee : '700'}</span>
                       </div>
                       <div className="dpm-detail-item">
                         <span className="dpm-label">Consultation Time:</span>
                         <span className="dpm-value">{displayDoctor.consultationTime || '15-20 minutes'}</span>
                       </div>
+                    
                       <div className="dpm-detail-item">
-                        <span className="dpm-label">Available Days:</span>
-                        <span className="dpm-value">{displayDoctor.availableDays || 'Mon, Wed, Fri'}</span>
-                      </div>
-                      <div className="dpm-detail-item">
-                        <span className="dpm-label">Timings:</span>
-                        <span className="dpm-value">{displayDoctor.timings || '10:00 AM - 2:00 PM'}</span>
+                        <span className="dpm-label">Days & Timings:</span>
+                        <span className="dpm-value dpm-timings-value">
+                          {displayDoctor.workingDays ?
+                            Object.entries(displayDoctor.workingDays)
+                              .filter(([_, day]) => day && day.active)
+                              .map(([day, dayData]) => (
+                                <div key={day} className="dpm-timing-day">
+                                  <span className="dpm-day-name">{day.charAt(0).toUpperCase() + day.slice(1)}:</span>
+                                  <span className="dpm-time-range">{dayData.startTime} - {dayData.endTime}</span>
+                                </div>
+                              )) :
+                            <div className="dpm-timing-day">
+                              <span className="dpm-day-name">Default:</span>
+                              <span className="dpm-time-range">10:00 AM - 2:00 PM</span>
+                            </div>
+                          }
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -458,81 +472,12 @@ const DoctorProfileModel = ({ doctor, isOpen, onClose }) => {
 
             {/* Reviews Tab */}
             {activeTab === 'reviews' && (
-              <div className="dpm-reviews-tab">
-                <div className="dpm-reviews-header">
-                  <h3>Patient Reviews</h3>
-                  <div className="dpm-overall-rating">
-                    <div className="dpm-rating-stars">
-                      {Array.from({ length: 5 }).map((_, index) => {
-                        const starValue = index + 0.5;
-                        const rating = displayDoctor.averageRating || 4.5;
-                        return (
-                          <i
-                            key={index}
-                            className={`${rating >= index + 1
-                              ? 'fas fa-star'
-                              : rating >= starValue
-                                ? 'fas fa-star-half-alt'
-                                : 'far fa-star'
-                              }`}
-                          ></i>
-                        );
-                      })}
-                    </div>
-                    <span className="dpm-rating-value">{displayDoctor.averageRating || '4.5'}</span>
-                    <span className="dpm-review-count">({reviews.length} reviews)</span>
-                  </div>
-                </div>
-
-                <div className="dpm-add-review">
-                  <h4>Write a Review</h4>
-                  <form onSubmit={handleSubmitReview}>
-                    <div className="dpm-rating-selector">
-                      <span>Your Rating:</span>
-                      <div className="dpm-star-rating">
-                        {[1, 2, 3, 4, 5].map(star => (
-                          <i
-                            key={star}
-                            className={`${userRating >= star ? 'fas' : 'far'} fa-star`}
-                            onClick={() => setUserRating(star)}
-                          ></i>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="dpm-review-input">
-                      <textarea
-                        placeholder="Write your review here..."
-                        value={userReview}
-                        onChange={(e) => setUserReview(e.target.value)}
-                        required
-                      ></textarea>
-                    </div>
-                    <button type="submit" className="dpm-submit-review">Submit Review</button>
-                  </form>
-                </div>
-
-                <div className="dpm-reviews-list">
-                  {reviews.map(review => (
-                    <div key={review.id} className="dpm-review-card">
-                      <div className="dpm-review-header">
-                        <span className="dpm-reviewer-name">{review.patientName}</span>
-                        <span className="dpm-review-date">{review.date}</span>
-                      </div>
-                      <div className="dpm-review-rating">
-                        {[1, 2, 3, 4, 5].map(star => (
-                          <i
-                            key={star}
-                            className={`${review.rating >= star ? 'fas' : 'far'} fa-star`}
-                          ></i>
-                        ))}
-                      </div>
-                      <p className="dpm-review-comment">{review.comment}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
+    <DoctorReview 
+      doctorId={displayDoctor.id || displayDoctor._id} 
+      reviews={reviews} 
+      setReviews={setReviews} 
+    />
+  )}
             {/* Photos Tab */}
             {activeTab === 'photos' && (
               <div className="dpm-photos-tab">

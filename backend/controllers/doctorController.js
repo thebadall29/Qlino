@@ -4,6 +4,7 @@ const Doctor = require('../models/Doctor');
 const Review = require('../models/Review');
 const mongoose = require('mongoose');
 const Appointment = require('../models/Appointment');
+const DoctorPhoto = require('../models/DoctorPhoto');
 // Helper function to format doctor data for frontend
 const formatDoctorResponse = (doctor) => {
   return {
@@ -77,6 +78,7 @@ exports.getAllDoctors = async (req, res) => {
 exports.getDoctorById = async (req, res) => {
   try {
     const doctorId = req.params.id;
+    
     console.log('Getting doctor details for ID:', doctorId);
     
     // Validate ObjectId format
@@ -131,9 +133,12 @@ exports.getDoctorById = async (req, res) => {
       { id: 203, url: 'https://via.placeholder.com/300x200?text=Certificate', caption: 'Medical Certificate' }
     ];
     
-    // Combine all data
+    // Return the complete doctor document along with formatted data
     const doctorResponse = {
-      ...formatDoctorResponse(doctor),
+      // Include the complete doctor document
+      doctor: doctor.toObject(), // Convert to plain object to include all fields
+      // Include the formatted data
+      formattedDoctor: formatDoctorResponse(doctor),
       averageRating: averageRating,
       reviews: formattedReviews,
       appointments: formattedAppointments,
@@ -305,6 +310,9 @@ exports.addDoctorReview = async (req, res) => {
     }
     
     const { patientId, rating, comment } = req.body;
+
+    console.log('Adding review for doctorId:', doctorId);
+    console.log('Review data:', { patientId, rating, comment });
     
     if (!rating || rating < 1 || rating > 5) {
       return res.status(400).json({ message: 'Rating is required and must be between 1 and 5' });
@@ -335,6 +343,86 @@ exports.addDoctorReview = async (req, res) => {
   } catch (error) {
     console.error('Error adding review:', error);
     res.status(500).json({ message: 'Failed to add review', error: error.message });
+  }
+};
+
+// ... existing code ...
+// Add photo
+exports.addPhoto = async (req, res) => {
+  try {
+    const { title, description, imageUrl } = req.body;
+
+    console.log('Adding photo for doctorId:', req.body);
+    const doctorId = req.user.id; // Changed from req.doctor.id to req.user.id
+
+    if (!title || !imageUrl) {
+      return res.status(400).json({ message: 'Title and image URL are required' });
+    }
+
+    const newPhoto = new DoctorPhoto({
+      doctorId,
+      title,
+      description,
+      imageUrl
+    });
+
+    await newPhoto.save();
+    res.status(201).json({ success: true, photo: newPhoto });
+  } catch (error) {
+    console.error('Error adding photo:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// ... existing code ...
+exports.getPhotosByDoctorId = async (req, res) => {
+  try {
+    const doctorId = req.params.doctorId;
+
+    const photos = await DoctorPhoto.find({ doctorId }).sort({ createdAt: -1 });
+    res.json({ success: true, photos });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Get all photos for a doctor
+exports.getPhotos = async (req, res) => {
+  try {
+    console.log('Request user:', req.user); // Log the entire user object
+    const doctorId = req.user.id;
+    
+    const photos = await DoctorPhoto.find({ doctorId }).sort({ createdAt: -1 });
+
+    
+    res.json({ success: true, photos });
+  } catch (error) {
+    console.error('Error fetching photos:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Delete a photo
+exports.deletePhoto = async (req, res) => {
+  try {
+    const photoId = req.params.id;
+    const doctorId = req.user.id; // Changed from req.doctor.id to req.user.id
+
+    const photo = await DoctorPhoto.findById(photoId);
+    if (!photo) {
+      return res.status(404).json({ message: 'Photo not found' });
+    }
+
+    // Ensure the photo belongs to the doctor
+    if (photo.doctorId.toString() !== doctorId) {
+      return res.status(403).json({ message: 'Unauthorized' });
+    }
+
+    await DoctorPhoto.findByIdAndDelete(photoId);
+    res.json({ success: true, message: 'Photo deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting photo:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -519,24 +607,46 @@ exports.searchDoctors = async (req, res) => {
       }
     }
     
-    console.log('Search conditions:', JSON.stringify(searchConditions, null, 2));
     
     // Find doctors that match the search conditions
     const doctors = await Doctor.find(searchConditions)
-      .select('firstName lastName specialization city state qualification experience')
       .limit(10);
+
+    console.log('Doctors found:', doctors);
     
-    // Format the response
-    const formattedDoctors = doctors.map(doc => ({
+    // Format the response with complete data
+    const doctorData = doctors.map(doc => ({
+      // Include basic formatted fields
       id: doc._id,
       name: `${doc.firstName} ${doc.lastName}`,
       specialization: doc.specialization,
       location: doc.city ? `${doc.city}, ${doc.state}` : doc.state || '',
       qualification: doc.qualification,
-      experience: doc.experience
+      experience: doc.experience,
+      
+      // Include all the additional fields
+      firstName: doc.firstName,
+      lastName: doc.lastName,
+      username: doc.username,
+      email: doc.email,
+      mobile: doc.mobile,
+      emergency: doc.emergency,
+      address: doc.address,
+      city: doc.city,
+      state: doc.state,
+      country: doc.country,
+      about: doc.about,
+      verified: doc.verified,
+      workingDays: doc.workingDays,
+      treatments: doc.treatments,
+      bookingPreference: doc.bookingPreference,
+      
+      // Include any other fields you need
+      createdAt: doc.createdAt,
+      updatedAt: doc.updatedAt
     }));
     
-    res.json(formattedDoctors);
+    res.json(doctorData);
   } catch (error) {
     console.error('Error in searchDoctors:', error);
     res.status(500).json({ message: 'Server error', error: error.message });

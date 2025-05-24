@@ -9,7 +9,7 @@ const reviewSchema = new Schema({
   },
   patientId: {
     type: Schema.Types.ObjectId,
-    ref: 'Patient',
+    ref: 'User',  // Changed from 'Patient' to 'User'
     required: false // Allow anonymous reviews
   },
   rating: {

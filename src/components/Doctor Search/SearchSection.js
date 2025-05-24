@@ -123,6 +123,7 @@ const SearchSection = () => {
       
       // Remove duplicates if any
       const uniqueDoctors = Array.from(new Map(doctorsData.map(doc => [doc.id, doc])).values());
+      console.log('Doctors fetched successfully:', uniqueDoctors); // Log the fetched doctors data
       
       setDoctors(uniqueDoctors);
       setIsLoadingDoctors(false);
@@ -140,7 +141,7 @@ const SearchSection = () => {
     try {
       setIsSearching(true);
       const response = await axios.get(`http://localhost:5000/api/doctor/${id}`);
-      console.log('Doctor fetched successfully:', response.data); // Log the fetched doctor data
+      console.log('Doctor fetched successfully:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error fetching doctor by ID:', error);
@@ -216,6 +217,7 @@ const SearchSection = () => {
       // First check if we have a direct doctorId
       if (doctorId) {
         const doctor = await fetchDoctorById(doctorId);
+        console.log('Doctor fetched successfully:', doctor); // Log the fetched doctor data
         if (doctor) {
           setSearchResults([doctor]);
           setSelectedDoctor(doctor);
@@ -231,6 +233,7 @@ const SearchSection = () => {
       // Otherwise search by query parameter
       else if (queryParam && queryParam.length >= 2) {
         const results = await fetchDoctors(queryParam, locationParam);
+
         setSearchResults(results);
         
         // Normalize strings for comparison
@@ -310,6 +313,7 @@ const SearchSection = () => {
     
     try {
       const results = await fetchDoctors(doctorTerm, locationTerm);
+      console.log('Search results in function:', results); 
       setSearchResults(results);
       
       // Check if there's an exact match with the search term (case insensitive)
@@ -398,6 +402,8 @@ const SearchSection = () => {
     setSelectedDoctor(null); // Clear any selected doctor when clicking on tags
   };
 
+  console.log("Selected Doctor:", selectedDoctor);
+  console.log("Search Results:", searchResults);
 
   return (
     <div className="search-page-container">

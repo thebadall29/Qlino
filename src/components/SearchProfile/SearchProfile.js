@@ -27,7 +27,6 @@ const SearchProfile = ({ doctor, resultCount, index }) => {
     );
   }
 
- 
 
   // Handle case where doctor might be an array with one item
   const doctorData = Array.isArray(doctor) ? doctor[0] : doctor;
@@ -76,8 +75,40 @@ const SearchProfile = ({ doctor, resultCount, index }) => {
     return colors[colorIndex];
   };
 
+  // Format working days for display
+  const formatWorkingDays = (workingDays) => {
+    if (!workingDays) return 'Not specified';
+    
+    const daysMap = {
+      monday: 'Mon',
+      tuesday: 'Tue',
+      wednesday: 'Wed',
+      thursday: 'Thu',
+      friday: 'Fri',
+      saturday: 'Sat',
+      sunday: 'Sun'
+    };
+    
+    const availableDays = Object.entries(workingDays)
+      .filter(([_, day]) => day && day.available)
+      .map(([day, _]) => daysMap[day] || day);
+    
+    return availableDays.length > 0 ? availableDays.join(', ') : 'Not specified';
+  };
+
+  // Format treatments for display
+  const formatTreatments = (treatments) => {
+    if (!treatments || !Array.isArray(treatments) || treatments.length === 0) {
+      return ['General Consultation'];
+    }
+    
+    return treatments.map(treatment => treatment.name || 'General Consultation');
+  };
+
   const avatarColor = generateAvatarColor();
   const title = generateTitle();
+  const availableDays = doctorData.workingDays ? formatWorkingDays(doctorData.workingDays) : 'Not specified';
+  const services = formatTreatments(doctorData.treatments);
 
   // Open/close modal handlers
   const openModal = () => {
@@ -94,11 +125,9 @@ const SearchProfile = ({ doctor, resultCount, index }) => {
     avatarColor: avatarColor
   };
 
-  console.log("Enriched doctor data for modal:", enrichedDoctorData);
 
   return (
     <div className="doctor-profile">
-      {/* Section title for the first profile only */}
       {index === 0 && (
         <div className="profile-section-header">
           <h1 className="section-title">Doctor Profiles</h1>
@@ -109,12 +138,12 @@ const SearchProfile = ({ doctor, resultCount, index }) => {
       )}
       
       <div className="profile-title">
-        <h2>{title}</h2>
+        <h2>Dr. {doctorData.name} - {doctorData.specialization}</h2>
       </div>
       
       <div className="doctor-profile-content">
         <div className="doctor-profile-left">
-          <div className="doctor-avatar" style={{ backgroundColor: avatarColor }}>
+          <div className="doctor-avatar" style={{ backgroundColor: generateAvatarColor() }}>
             {doctorData.name ? doctorData.name.charAt(0) : 'D'}
           </div>
           
@@ -129,57 +158,66 @@ const SearchProfile = ({ doctor, resultCount, index }) => {
             <span className="rating-value">4.5</span>
             <span className="review-count">(120 reviews)</span>
           </div>
+          
+          <div className="doctor-contact-info">
+            <h4><i className="fas fa-phone-alt"></i> Contact</h4>
+            <p><strong>Mobile:</strong> {doctorData.mobile}</p>
+            {/* <p><strong>Emergency:</strong> {doctorData.emergency}</p> */}
+            <p><strong>Email:</strong> {doctorData.email}</p>
+          </div>
         </div>
         
         <div className="doctor-profile-right">
           <div className="doctor-header">
             <div className="name-and-badge">
-              <h3 className="doctor-name">{doctorData.name || 'Unknown Doctor'}</h3>
+              <h3 className="doctor-name">{doctorData.name}</h3>
               {doctorData.verified && (
                 <span className="verified-badge">
                   <i className="fas fa-check-circle"></i> Verified
                 </span>
               )}
             </div>
-            <p className="doctor-specialization">{doctorData.specialization || 'General Practitioner'}</p>
+            <p className="doctor-specialization">{doctorData.specialization}</p>
             <p className="doctor-location">
-              <i className="fas fa-map-marker-alt"></i> {doctorData.location || 'Location not available'}
+              <i className="fas fa-map-marker-alt"></i> {doctorData.address}, {doctorData.city}, {doctorData.state}, {doctorData.country}
             </p>
             <div className="doctor-experience">
-              <span><i className="fas fa-user-md"></i> {doctorData.experience || '15'} years experience</span>
+              <span><i className="fas fa-user-md"></i> {doctorData.experience} years experience</span>
             </div>
           </div>
           
           <div className="doctor-details">
             <div className="doctor-section">
-              <h4><i className="fas fa-graduation-cap"></i> Qualification</h4>
-              <p>{doctorData.qualification || 'MBBS'}</p>
-            </div>
-            
-            <div className="doctor-section">
               <h4><i className="fas fa-stethoscope"></i> Services</h4>
               <ul className="services-list">
-                <li>
-                  <span className="service-dot"></span>
-                  General Consultation
-                </li>
-                {doctorData.services && Array.isArray(doctorData.services) && doctorData.services.map((service, index) => (
-                  <li key={index}>
-                    <span className="service-dot"></span>
-                    {service}
-                  </li>
-                ))}
+                {doctorData.treatments && doctorData.treatments.length > 0 ? 
+                  doctorData.treatments.map((treatment, idx) => (
+                    <li key={idx}>
+                      <span className="service-dot"></span>
+                      {treatment.name}
+                    </li>
+                  )) : 
+                  <li><span className="service-dot"></span>General Consultation</li>
+                }
               </ul>
             </div>
             
             <div className="doctor-section">
               <h4><i className="fas fa-rupee-sign"></i> Consultation Fee</h4>
-              <p className="fee">₹{doctorData.consultationFee || '500'}</p>
+              <p className="fee">₹{doctorData.treatments && doctorData.treatments[0] ? doctorData.treatments[0].fee : '700'}</p>
+            </div>
+            
+            <div className="doctor-section about-section">
+              <h4><i className="fas fa-info-circle"></i> About</h4>
+              <p>{doctorData.about || 'No information available'}</p>
+            </div>
+            
+            <div className="action-buttons-container">
               <div className="action-buttons">
                 <button className="book-appointment-btn">
                   <i className="far fa-calendar-check"></i> Book Appointment
                 </button>
-                <button className="contact-btn" onClick={openModal}>
+                <button className="contact-btn" onClick={() => setIsModalOpen(true)}>
                   <i className="fas fa-user-alt"></i> View Profile
                 </button>
               </div>
@@ -188,12 +226,13 @@ const SearchProfile = ({ doctor, resultCount, index }) => {
         </div>
       </div>
       
-      {/* Doctor Profile Modal */}
-      <DoctorProfileModel 
-        isOpen={isModalOpen} 
-        onClose={closeModal} 
-        doctor={enrichedDoctorData} 
-      />
+      {isModalOpen && (
+        <DoctorProfileModel 
+          isOpen={isModalOpen} 
+          onClose={() => setIsModalOpen(false)} 
+          doctor={{...doctorData, avatarColor: generateAvatarColor()}} 
+        />
+      )}
     </div>
   );
 };

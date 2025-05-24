@@ -1,3 +1,6 @@
+// ... existing code ...
+
+// Enhanced doctor profile styling
 .doctor-profile {
   position: relative;
   background-color: #ffffff;
@@ -59,46 +62,87 @@
 }
 
 .doctor-profile-left {
-  flex: 0 0 120px;
+  flex: 0 0 200px;
   display: flex;
   flex-direction: column;
   align-items: center;
   
   .doctor-avatar {
-    width: 100px;
-    height: 100px;
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 36px;
+    font-size: 48px;
     font-weight: bold;
     color: white;
-    margin-bottom: 15px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    border: 4px solid white;
   }
   
   .doctor-rating {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 10px;
+    margin: 15px 0;
+    background-color: #f8f9fa;
+    padding: 10px 15px;
+    border-radius: 8px;
+    width: 100%;
     
     .stars {
       color: #f1c40f;
       margin-bottom: 5px;
-      font-size: 14px;
+      font-size: 16px;
     }
     
     .rating-value {
       font-weight: bold;
-      font-size: 16px;
+      font-size: 18px;
       color: #333;
     }
     
     .review-count {
-      font-size: 12px;
+      font-size: 13px;
       color: #777;
+    }
+  }
+  
+  .doctor-contact-info {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    width: 100%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    
+    h4 {
+      margin-bottom: 12px;
+      color: #333;
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      
+      i {
+        margin-right: 8px;
+        color: #4a69bd;
+      }
+    }
+    
+    p {
+      margin-bottom: 10px;
+      font-size: 14px;
+      display: flex;
+      flex-direction: column;
+      
+      strong {
+        font-weight: 600;
+        margin-bottom: 3px;
+        color: #555;
+      }
     }
   }
 }
@@ -108,18 +152,22 @@
 }
 
 .doctor-header {
-  margin-bottom: 20px;
+  margin-bottom: 25px;
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   
   .name-and-badge {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
   }
   
   .doctor-name {
-    font-size: 22px;
-    font-weight: 600;
+    font-size: 24px;
+    font-weight: 700;
     color: #333;
     margin: 0;
   }
@@ -127,12 +175,13 @@
   .verified-badge {
     background-color: #e3f2fd;
     color: #1976d2;
-    padding: 3px 8px;
+    padding: 4px 10px;
     border-radius: 4px;
     font-size: 12px;
     display: inline-flex;
     align-items: center;
     gap: 4px;
+    font-weight: 500;
     
     i {
       color: #1976d2;
@@ -140,16 +189,16 @@
   }
   
   .doctor-specialization {
-    font-size: 16px;
+    font-size: 18px;
     color: #4a69bd;
-    margin: 5px 0;
+    margin: 8px 0;
     font-weight: 500;
   }
   
   .doctor-location {
     font-size: 14px;
     color: #666;
-    margin: 5px 0;
+    margin: 8px 0;
     
     i {
       color: #e74c3c;
@@ -158,14 +207,15 @@
   }
   
   .doctor-experience {
-    margin-top: 10px;
+    margin-top: 12px;
     
     span {
-      background-color: #f8f9fa;
-      padding: 5px 10px;
+      background-color: #edf2f7;
+      padding: 6px 12px;
       border-radius: 4px;
       font-size: 14px;
       color: #555;
+      font-weight: 500;
       
       i {
         color: #4a69bd;
@@ -177,21 +227,31 @@
 
 .doctor-details {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 20px;
-  
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-  }
+  position: relative;
   
   .doctor-section {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease;
+    
+    &:hover {
+      transform: translateY(-3px);
+    }
+    
     h4 {
       font-size: 16px;
       color: #333;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
       display: flex;
       align-items: center;
       gap: 8px;
+      font-weight: 600;
+      border-bottom: 1px solid #e0e0e0;
+      padding-bottom: 8px;
       
       i {
         color: #4a69bd;
@@ -202,11 +262,12 @@
       font-size: 14px;
       color: #555;
       margin: 0;
+      line-height: 1.5;
     }
     
     .fee {
-      font-size: 18px;
-      font-weight: 600;
+      font-size: 22px;
+      font-weight: 700;
       color: #2ecc71;
       margin-bottom: 15px;
     }
@@ -219,7 +280,7 @@
       li {
         display: flex;
         align-items: center;
-        margin-bottom: 8px;
+        margin-bottom: 10px;
         font-size: 14px;
         color: #555;
         
@@ -229,6 +290,7 @@
           background-color: #4a69bd;
           border-radius: 50%;
           margin-right: 10px;
+          flex-shrink: 0;
         }
       }
     }
@@ -236,16 +298,18 @@
     .action-buttons {
       display: flex;
       gap: 10px;
-      flex-wrap: wrap;
+      position: relative;
+      top: 2rem;
       
       button {
-        padding: 10px 15px;
+        padding: 12px 15px;
         border-radius: 6px;
         font-size: 14px;
-        font-weight: 500;
+        font-weight: 600;
         cursor: pointer;
         display: flex;
         align-items: center;
+        justify-content: center;
         gap: 8px;
         transition: all 0.3s ease;
         border: none;
@@ -262,18 +326,98 @@
         
         &:hover {
           background-color: #3c5aa6;
+          transform: translateY(-2px);
         }
       }
       
       .contact-btn {
         background-color: #f0f0f0;
         color: #333;
+        flex: 0 0 120px;
         
         &:hover {
           background-color: #e0e0e0;
+          transform: translateY(-2px);
         }
       }
     }
+  }
+  
+  // Make the About section span full width
+  .about-section {
+    grid-column: 1 / -1;
+  }
+  
+  .action-buttons-container {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 20px;
+  }
+  
+  .action-buttons {
+    display: flex;
+    gap: 10px;
+    position: relative;
+    top: 3rem;
+    
+    button {
+      padding: 12px 15px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+      border: none;
+      white-space: nowrap;
+      
+      i {
+        font-size: 14px;
+      }
+    }
+    
+    .book-appointment-btn {
+      background-color: #2563eb; // Bright blue color from the image
+      color: white;
+      
+      &:hover {
+        background-color: #1d4ed8;
+        transform: translateY(-2px);
+      }
+    }
+    
+    .contact-btn {
+      background-color: #f0f0f0;
+      color: #333;
+      
+      &:hover {
+        background-color: #e0e0e0;
+        transform: translateY(-2px);
+      }
+    }
+  }
+}
+
+// Add this to ensure the action buttons container spans full width
+.doctor-section:last-child {
+  grid-column: 1 / -1;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  
+  &:hover {
+    transform: none;
+  }
+  
+  .action-buttons {
+    width: 100%;
   }
 }
 
@@ -287,15 +431,23 @@
 @media (max-width: 768px) {
   .doctor-profile-content {
     flex-direction: column;
-    align-items: center;
   }
   
   .doctor-profile-left {
-    margin-bottom: 20px;
-  }
-  
-  .doctor-profile-right {
     width: 100%;
+    margin-bottom: 20px;
+    flex: none;
+    
+    .doctor-avatar {
+      margin: 0 auto 20px;
+    }
+    
+    .doctor-contact-info,
+    .doctor-rating {
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
   }
   
   .doctor-details {
@@ -303,5 +455,28 @@
   }
 }
 
-// details profile section 
-
+@media (max-width: 576px) {
+  .doctor-profile {
+    padding: 15px;
+  }
+  
+  .profile-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .action-buttons-container {
+    position: static;
+    padding-top: 15px;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    width: 100%;
+    
+    button {
+      width: 100%;
+    }
+  }
+}

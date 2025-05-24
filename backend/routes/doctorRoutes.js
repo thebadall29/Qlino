@@ -18,14 +18,10 @@ router.get('/locations', doctorController.getLocations);
 router.get('/', doctorController.getAllDoctors);
 
 // Get doctor by ID
-router.get('/:id/data', doctorController.getDoctorById);
+router.get('/:id', doctorController.getDoctorById);
 
 
-
-
-// Delete doctor
 router.delete('/:id', doctorController.deleteDoctor);
-
 
 // Get doctor's reviews
 router.get('/:id/reviews', doctorController.getDoctorReviews);
@@ -33,8 +29,12 @@ router.get('/:id/reviews', doctorController.getDoctorReviews);
 // Add review to doctor
 router.post('/:id/reviews', doctorController.addDoctorReview);
 
-// public doctor routes 
-// public doctor routes 
 router.get('/public/doctor-dashboard', doctorController.getPublicDashboard);
+
+// Photo management routes
+router.post('/photos', auth,authorize(['doctor']), doctorController.addPhoto);
+router.get('/photos', doctorController.getPhotos);
+router.get('/photos/:doctorId', doctorController.getPhotosByDoctorId);
+router.delete('/photos/:id', auth,authorize(['doctor']), doctorController.deletePhoto);
 
 module.exports = router;

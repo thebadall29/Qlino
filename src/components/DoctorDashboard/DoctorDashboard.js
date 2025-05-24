@@ -6,6 +6,7 @@ import PatientManagement from './tabs/PatientManagement';
 import Appointments from './tabs/Appointments';
 import Chat from './tabs/Chat';
 import TodaysBookings from './tabs/TodaysBookings';
+import Photos from './tabs/Photos'; // Import the new Photos component
 
 const DoctorDashboardCompo = () => {
   const [activeTab, setActiveTab] = useState('profile');
@@ -74,6 +75,8 @@ const DoctorDashboardCompo = () => {
         return <Chat />;
       case 'todaysBookings':
         return <TodaysBookings />;
+      case 'photos':
+        return <Photos />; // Add the Photos component
       default:
         return <Profile />;
     }
@@ -142,6 +145,15 @@ const DoctorDashboardCompo = () => {
               >
                 <span className="icon">📋</span>
                 Today's Bookings
+              </button>
+            </li>
+            <li>
+              <button 
+                className={activeTab === 'photos' ? 'active' : ''} 
+                onClick={() => setActiveTab('photos')}
+              >
+                <span className="icon">📷</span>
+                Photos
               </button>
             </li>
             <li className="logout-item">
