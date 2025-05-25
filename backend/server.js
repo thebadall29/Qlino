@@ -19,7 +19,11 @@ const authRoutes = require('./routes/authRoutes');
 connectDB();
 
 // Middleware
-app.use(cors());
+// Update your CORS configuration
+app.use(cors({
+  origin: 'http://localhost:3000', // Your frontend URL
+  credentials: true
+}));
 app.use(express.json());
 
 app.use(express.json({ limit: '100mb' })); // Adjust limit as needed, e.g., '10mb', '50mb', '100mb'

@@ -84,6 +84,10 @@ const DoctorSchema = new mongoose.Schema({
     type: Array,
     default: []
   },
+  photoUrl: {
+    type: String,
+    default: ''
+  },
   bookingPreference:{
     type: String,
     default: 'slot'
@@ -117,5 +121,6 @@ DoctorSchema.pre('save', async function(next) {
     next(error);
   }
 });
+
 
 module.exports = mongoose.model('Doctor', DoctorSchema);

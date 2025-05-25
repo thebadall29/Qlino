@@ -165,35 +165,44 @@ const PatientManagement = () => {
   });
   const [allPrescriptions, setAllPrescriptions] = useState([]);
 
-  useEffect(() => {
-    // Fetch patients data when component mounts
-    const fetchPatients = async () => {
-      try {
-        setLoading(true);
-        // Get the token from localStorage
-        const token = localStorage.getItem('token');
+ useEffect(() => {
+  const fetchPatients = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        const response = await axios.get('http://localhost:5000/api/doctor/unique-patients', {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-
-        if (response.data.success) {
-          setPatients(response.data.patients);
-        } else {
-          setError('Failed to fetch patients data');
-        }
-      } catch (err) {
-        console.error('Error fetching patients:', err);
-        setError('Error connecting to server. Please try again later.');
-      } finally {
-        setLoading(false);
+      // Get token from localStorage
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
       }
-    };
 
-    fetchPatients();
-  }, []);
+ 
+
+      const response = await axios.get('http://localhost:5000/api/doctor/unique-patient', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+
+      if (response.data.success) {
+        setPatients(response.data.patients);
+      } else {
+        setError(response.data.message || 'Failed to fetch patients');
+      }
+    } catch (err) {
+      console.error('Error fetching patients:', err);
+      setError(err.response?.data?.message || 'Error connecting to server');
+      setPatients([]); // Set empty array on error
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchPatients();
+}, []);
 
   const filteredPatients = patients.filter(patient =>
     patient.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -891,55 +900,58 @@ const PatientManagement = () => {
     }
   };
 
-  const handleDeleteAppointment = async (appointmentId) => {
-    try {
-      const token = localStorage.getItem('token');
-  
-      if (!token) {
-        alert('Authentication required. Please log in again.');
-        return;
+const handleDeleteAppointment = async (appointmentId) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Authentication required. Please log in again.');
+      return;
+    }
+
+    // Add confirmation dialog
+    const confirmed = window.confirm('Are you sure you want to delete this appointment?');
+    if (!confirmed) {
+      return;
+    }
+
+    const response = await axios.delete(
+      `http://localhost:5000/api/appointment/delete/${appointmentId}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       }
-  
-      const response = await axios.delete(
-        `http://localhost:5000/api/patient/appointment/delete/${appointmentId}`,
+    );
+
+    if (response.data.success) {
+      // Remove the deleted appointment from the local state
+      setPatients(prevPatients => 
+        prevPatients.filter(patient => patient.id !== appointmentId)
+      );
+      
+      alert('Appointment deleted successfully');
+
+      // Refresh the patients list
+      const refreshResponse = await axios.get(
+        'http://localhost:5000/api/doctor/unique-patients',
         {
           headers: {
-            Authorization: `Bearer ${token}`
+            'Authorization': `Bearer ${token}`
           }
         }
       );
-  
-      console.log('Delete Appointment Response:', response);
-  
-      if (response.data.success) {
-        // Refresh the patients list after successful deletion
-        const refreshResponse = await axios.get('http://localhost:5000/api/doctor/unique-patients', {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-  
-        if (refreshResponse.data.success) {
-          // Update the patients state with fresh data
-          setPatients(refreshResponse.data.patients);
-          
-          // If a patient profile is open, refresh that data too
-          if (selectedPatient) {
-            handleViewProfile(selectedPatient);
-          }
-          
-          alert('Appointment deleted successfully');
-        } else {
-          alert('Appointment deleted but failed to refresh data');
-        }
-      } else {
-        alert('Failed to delete appointment: ' + response.data.message);
+
+      if (refreshResponse.data.success) {
+        setPatients(refreshResponse.data.patients);
       }
-    } catch (err) {
-      console.error('Error deleting appointment:', err);
-      alert('Failed to delete appointment: ' + (err.response?.data?.message || err.message));
+    } else {
+      throw new Error(response.data.message || 'Failed to delete appointment');
     }
-  };
+  } catch (err) {
+    console.error('Error deleting appointment:', err);
+    alert(`Error deleting appointment: ${err.response?.data?.message || err.message}`);
+  }
+};
   const handleAddPatient = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -982,7 +994,7 @@ const PatientManagement = () => {
     return new Date(b.createdAt) - new Date(a.createdAt);
   });
 
-console.log("visit",visits)
+  console.log("filteredPatients",filteredPatients)
 
   return (
     <div className="section-container">

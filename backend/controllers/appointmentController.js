@@ -3,6 +3,7 @@ const Doctor = require('../models/Doctor');
 const User = require('../models/User');
 const Schedule = require('../models/Schedule');
 const Queue = require('../models/Queue');
+const mongoose = require('mongoose');
 
 // Helper function to format date to YYYY-MM-DD
 const formatDate = (date) => {
@@ -158,8 +159,6 @@ exports.getPatientAppointmentsByEmail = async (req, res) => {
   }
 };
 
-// Add the deleteAppointment controller function
-// Add the deleteAppointment controller function
 exports.cancelAppoinment = async (req, res) => {
   try {
     const appointmentId = req.params.id;
@@ -210,32 +209,47 @@ exports.cancelAppoinment = async (req, res) => {
 };
 
 // Delete an appointment completely
+
 exports.deleteAppointment = async (req, res) => {
   try {
-    const { id } = req.params;
-    
-    // Find the appointment
-    const appointment = await Appointment.findById(id);
-    
+    const { appointmentId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(appointmentId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid appointment ID format'
+      });
+    }
+
+    const appointment = await Appointment.findById(appointmentId);
+
     if (!appointment) {
       return res.status(404).json({
         success: false,
         message: 'Appointment not found'
       });
     }
-    
-    // Delete the appointment from the database
-    await Appointment.findByIdAndDelete(id);
-    
-    return res.status(200).json({
+
+    // Verify that the doctor owns this appointment
+    if (appointment.doctorId.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to delete this appointment'
+      });
+    }
+
+    await Appointment.findByIdAndDelete(appointmentId);
+
+    res.json({
       success: true,
       message: 'Appointment deleted successfully'
     });
+
   } catch (error) {
     console.error('Error deleting appointment:', error);
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
-      message: 'Server error',
+      message: 'Error deleting appointment',
       error: error.message
     });
   }
@@ -263,63 +277,63 @@ exports.checkPatientExists = async (req, res) => {
 };
 
 // Get unique patients who have made appointments with a specific doctor
-exports.getUniquePatientsByDoctor = async (req, res) => {
-  try {
-    const doctorId = req.user.id; // Get the doctor ID from the authenticated user
+// exports.getUniquePatientsByDoctor = async (req, res) => {
+//   try {
+//     const doctorId = req.user.id; // Get the doctor ID from the authenticated user
     
-    // Find all appointments for this doctor
-    const appointments = await Appointment.find({ doctorId })
-      .sort({ createdAt: -1 }); // Sort by creation date, newest first
-    // Create a map to store unique patients by email
-    const uniquePatientsMap = new Map();
+//     // Find all appointments for this doctor
+//     const appointments = await Appointment.find({ doctorId })
+//       .sort({ createdAt: -1 }); // Sort by creation date, newest first
+//     // Create a map to store unique patients by email
+//     const uniquePatientsMap = new Map();
     
-    // Process each appointment to extract unique patients
-    appointments.forEach(appointment => {
-      const patientEmail = appointment.patientEmail;
+//     // Process each appointment to extract unique patients
+//     appointments.forEach(appointment => {
+//       const patientEmail = appointment.patientEmail;
       
-      // Only add this patient if we haven't seen this email before
-      if (!uniquePatientsMap.has(patientEmail)) {
-        uniquePatientsMap.set(patientEmail, {
-          id: appointment._id,
-          name: appointment.patientName,
-          email: patientEmail,
-          contactNumber: appointment.contact,
-          lastAppointment: appointment.date,
-          appointmentCount: 1,
-          lastReason: appointment.reason
-        });
-      } else {
-        // If we've seen this patient before, increment their appointment count
-        const patient = uniquePatientsMap.get(patientEmail);
-        patient.appointmentCount += 1;
+//       // Only add this patient if we haven't seen this email before
+//       if (!uniquePatientsMap.has(patientEmail)) {
+//         uniquePatientsMap.set(patientEmail, {
+//           id: appointment._id,
+//           name: appointment.patientName,
+//           email: patientEmail,
+//           contactNumber: appointment.contact,
+//           lastAppointment: appointment.date,
+//           appointmentCount: 1,
+//           lastReason: appointment.reason
+//         });
+//       } else {
+//         // If we've seen this patient before, increment their appointment count
+//         const patient = uniquePatientsMap.get(patientEmail);
+//         patient.appointmentCount += 1;
         
-        // Update last appointment date if this one is more recent
-        if (new Date(appointment.date) > new Date(patient.lastAppointment)) {
-          patient.lastAppointment = appointment.date;
-          patient.lastReason = appointment.reason;
-        }
-      }
-    });
+//         // Update last appointment date if this one is more recent
+//         if (new Date(appointment.date) > new Date(patient.lastAppointment)) {
+//           patient.lastAppointment = appointment.date;
+//           patient.lastReason = appointment.reason;
+//         }
+//       }
+//     });
     
-    // Convert the map to an array of unique patients
-    const uniquePatients = Array.from(uniquePatientsMap.values());
+//     // Convert the map to an array of unique patients
+//     const uniquePatients = Array.from(uniquePatientsMap.values());
 
     
-    return res.status(200).json({
-      success: true,
-      message: 'Unique patients retrieved successfully',
-      count: uniquePatients.length,
-      patients: uniquePatients
-    });
-  } catch (error) {
-    console.error('Error retrieving unique patients:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to retrieve unique patients',
-      error: error.message
-    });
-  }
-};
+//     return res.status(200).json({
+//       success: true,
+//       message: 'Unique patients retrieved successfully',
+//       count: uniquePatients.length,
+//       patients: uniquePatients
+//     });
+//   } catch (error) {
+//     console.error('Error retrieving unique patients:', error);
+//     return res.status(500).json({
+//       success: false,
+//       message: 'Failed to retrieve unique patients',
+//       error: error.message
+//     });
+//   }
+// };
 
 // ... existing code ...
 
@@ -981,8 +995,7 @@ exports.getQueue = async (req, res) => {
 }; 
 
 
-// Add the deleteAppointment controller function
-exports.deleteAppointment = async (req, res) => {
+exports.deleteAppointments = async (req, res) => {
   try {
     const appointmentId = req.params.id;
     
@@ -1032,11 +1045,10 @@ exports.deleteAppointment = async (req, res) => {
 // Get doctor's booking preference
 exports.getDoctorPreference = async (req, res) => {
   try {
-    // Get the doctor ID from the authenticated user
     const doctorId = req.user.id;
-    
-    // Find the doctor in the database
-    const doctor = await Doctor.findById(doctorId);
+
+    // Find the doctor using the ID from auth token
+    const doctor = await Doctor.findById(doctorId).select('bookingPreference');
     
     if (!doctor) {
       return res.status(404).json({
@@ -1045,17 +1057,16 @@ exports.getDoctorPreference = async (req, res) => {
       });
     }
     
-    // Return the doctor's booking preference
-    // If bookingPreference doesn't exist, default to 'slot'
     return res.status(200).json({
       success: true,
-      preference: doctor.bookingPreference || 'slot'
+      preference: doctor.bookingPreference || 'slot' // Default to 'slot' if not set
     });
+
   } catch (error) {
     console.error('Error fetching doctor preference:', error);
     return res.status(500).json({
       success: false,
-      message: 'Server error',
+      message: 'Error fetching doctor preference',
       error: error.message
     });
   }

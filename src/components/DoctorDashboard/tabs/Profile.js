@@ -11,6 +11,9 @@ const Profile = () => {
   const [workingDays, setWorkingDays] = useState({});
   const [editingTreatment, setEditingTreatment] = useState(null);
   const [newTreatment, setNewTreatment] = useState({ name: '', fee: '' });
+  // Add these new states at the top with other states
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [editableData, setEditableData] = useState({
     firstName: '',
     lastName: '',
@@ -34,28 +37,28 @@ const Profile = () => {
       try {
         // Get token from localStorage
         const token = localStorage.getItem('token');
-        
+
         if (!token) {
           throw new Error('Authentication token not found');
         }
-        
+
         // Fetch doctor data from API
         const response = await fetch('http://localhost:5000/api/doctor/doctor-dashboard', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
         });
-        
+
         if (!response.ok) {
           throw new Error(`Failed to fetch doctor data: ${response.status} ${response.statusText}`);
         }
-        
+
         const data = await response.json();
         console.log('Fetched doctor data:', data);
-        
+
         // Set doctor data
         setDoctorData(data.doctor);
-        
+
         // Initialize editable data
         setEditableData({
           firstName: data.doctor?.firstName || '',
@@ -73,18 +76,18 @@ const Profile = () => {
           about: data.doctor?.about || '',
           bookingPreference: data.doctor?.bookingPreference || ''
         });
-        
+
         // Set treatments
         setTreatments(data.doctor?.treatments || []);
-        
+
         // Set working days
         setWorkingDays(data.doctor?.workingDays || {});
-        
+
         // Hide register button if user is already registered
         if (data.doctor && data.doctor.email) {
           setIsEditing(false);
         }
-        
+
       } catch (error) {
         console.error('Error fetching doctor data:', error);
         setError(error.message);
@@ -92,7 +95,7 @@ const Profile = () => {
         setLoading(false);
       }
     };
-    
+
     fetchDoctorData();
   }, []);
 
@@ -135,20 +138,20 @@ const Profile = () => {
     try {
       // Get token from localStorage
       const token = localStorage.getItem('token');
-      
+
       if (!token) {
         throw new Error('Authentication token not found');
       }
-      
+
       // Prepare data to send
       const updateData = {
         ...editableData,
         workingDays,
         treatments
       };
-      
+
       console.log('Sending profile update:', updateData);
-      
+
       // Send update to API
       const response = await fetch('http://localhost:5000/api/doctor/profile', {
         method: 'PUT',
@@ -158,16 +161,16 @@ const Profile = () => {
         },
         body: JSON.stringify(updateData)
       });
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Error response text:', errorText);
         throw new Error(`Failed to update profile: ${response.status} ${response.statusText}`);
       }
-      
+
       const data = await response.json();
       console.log('Update response:', data);
-      
+
       // Update local state with response data
       if (data.doctor) {
         setDoctorData(data.doctor);
@@ -190,12 +193,52 @@ const Profile = () => {
         setTreatments(data.doctor.treatments || []);
         setWorkingDays(data.doctor.workingDays || {});
       }
-      
+
       setIsEditing(false);
       alert('Profile updated successfully');
     } catch (error) {
       console.error('Error updating profile:', error);
       alert(`Error updating profile: ${error.message}`);
+    }
+  };
+
+
+  // Add this new handler function
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Show preview
+    setPhotoPreview(URL.createObjectURL(file));
+
+    const formData = new FormData();
+    formData.append('photo', file);
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5000/api/doctor/upload-photo', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload photo');
+      }
+
+      const data = await response.json();
+      setDoctorData(prev => ({
+        ...prev,
+        photoUrl: data.photoUrl
+      }));
+
+      alert('Photo uploaded successfully');
+    } catch (error) {
+      console.error('Error uploading photo:', error);
+      alert('Failed to upload photo');
+      setPhotoPreview(null);
     }
   };
 
@@ -222,8 +265,8 @@ const Profile = () => {
   };
 
   const handleUpdateTreatment = (id, newFee) => {
-    setTreatments(treatments.map(treatment => 
-      treatment.id === id 
+    setTreatments(treatments.map(treatment =>
+      treatment.id === id
         ? { ...treatment, fee: parseFloat(newFee) }
         : treatment
     ));
@@ -245,22 +288,64 @@ const Profile = () => {
     return <div className="error">No doctor data available</div>;
   }
 
-  console.log('Doctor data:', doctorData);
+// Add this before the return statement
+console.log('Image URL:', doctorData?.photoUrl ? `http://localhost:5000${doctorData.photoUrl}` : 'No photo URL');
+
 
   return (
     <div className="section-container">
       <div className="section">
+        <div className="profile-header">
+          <div className="profile-layout">
+            <div className="profile-photo-container">
+              <div className="profile-photo-circle">
+                {(photoPreview || doctorData?.photoUrl) ? (
+                  <img
+                    src={photoPreview || (doctorData?.photoUrl ? `http://localhost:5000${doctorData.photoUrl}` : '')}
+                    alt="Profile"
+                    className="profile-image"
+                  />
+                ) : (
+                  <div className="photo-placeholder">
+                    <i className="fas fa-user"></i>
+                  </div>
+                )}
+              </div>
+              <div className="profile-arrow">
+                <div className="arrow-line"></div>
+              </div>
+            </div>
+            <div className="profile-name-box">
+              <h2>{`Dr. ${doctorData?.firstName || ''} ${doctorData?.lastName || ''}`}</h2>
+              {isEditing && (
+                <div className="upload-controls">
+                  <input
+                    type="file"
+                    id="photo-upload"
+                    accept="image/*"
+                    onChange={handlePhotoUpload}
+                    style={{ display: 'none' }}
+                  />
+                  <label htmlFor="photo-upload" className="upload-button">
+                    {doctorData?.photoUrl ? 'Change Photo' : 'Upload Photo'}
+                  </label>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
         <div className="section-header">
+
           <h3>Personal Information</h3>
           <div className="header-buttons">
-            <button 
+            <button
               className="edit-button"
               onClick={() => setIsEditing(!isEditing)}
             >
               {isEditing ? 'Cancel' : 'Edit Profile'}
             </button>
             {isEditing && (
-              <button 
+              <button
                 className="save-button"
                 onClick={handleSave}
               >
@@ -269,7 +354,7 @@ const Profile = () => {
             )}
           </div>
         </div>
-        
+
         <div className="form-grid">
           <div className="form-group">
             <label>Name</label>
@@ -495,7 +580,7 @@ const Profile = () => {
                   </span>
                 </div>
               </label>
-              
+
               <label className={`preference-card ${editableData.bookingPreference === 'queue' ? 'selected' : ''}`}>
                 <div className="preference-radio">
                   <input
@@ -525,7 +610,7 @@ const Profile = () => {
                   {editableData.bookingPreference === 'queue' ? 'Queue Based Booking' : 'Slot Based Booking'}
                 </span>
                 <span className="preference-description">
-                  {editableData.bookingPreference === 'queue' 
+                  {editableData.bookingPreference === 'queue'
                     ? 'Patients join a queue and are served on a first-come, first-served basis'
                     : 'Patients can book specific time slots from your schedule'}
                 </span>
@@ -603,7 +688,7 @@ const Profile = () => {
                       autoFocus
                     />
                   ) : (
-                    <span 
+                    <span
                       className="treatment-fee"
                       onClick={() => isEditing && handleEditTreatment(treatment)}
                     >
@@ -612,7 +697,7 @@ const Profile = () => {
                   )}
                 </div>
                 {isEditing && (
-                  <button 
+                  <button
                     className="remove-treatment"
                     onClick={() => handleRemoveTreatment(treatment.id)}
                   >
@@ -645,7 +730,7 @@ const Profile = () => {
                 })}
                 className="treatment-input"
               />
-              <button 
+              <button
                 className="add-treatment-button"
                 onClick={handleAddTreatment}
               >
@@ -654,6 +739,9 @@ const Profile = () => {
             </div>
           )}
         </div>
+
+
+
       </div>
     </div>
   );

@@ -79,41 +79,38 @@ const TodaysBookings = () => {
     fetchDoctorPreference();
   }, []);
 
-  const fetchDoctorPreference = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('Authentication required');
-      }
-      
-      const response = await axios.get(
-        'http://localhost:5000/api/doctor/preference',
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
-      
-      if (response.data.success) {
-        // Set the doctor's preference
-        console.log("response.data.preference", response.data.preference);
-        const preference = response.data.preference;
-        setDoctorPreference(preference);
-        
-        // Fetch bookings with the preference we just received
-        fetchTodaysBookings(preference);
-      }
-    } catch (err) {
-      console.error('Error fetching doctor preferences:', err);
-      // Default to queue if there's an error
-      setDoctorPreference('queue');
-      
-      // Fetch bookings with the default preference
-      fetchTodaysBookings('queue');
+const fetchDoctorPreference = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Authentication required');
     }
-  };
-
+    
+    const response = await axios.get(
+      'http://localhost:5000/api/appointment/doctor/booking-preferences',
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+    
+    if (response.data.success) {
+      const preference = response.data.preference;
+      setDoctorPreference(preference);
+      
+      // Fetch bookings with the preference we just received
+      fetchTodaysBookings(preference);
+    }
+  } catch (err) {
+    console.error('Error fetching doctor preferences:', err);
+    // Default to queue if there's an error
+    setDoctorPreference('queue');
+    
+    // Fetch bookings with the default preference
+    fetchTodaysBookings('queue');
+  }
+};
   
   // Function to fetch today's bookings from API
   const fetchTodaysBookings = async (preferenceOverride = null) => {

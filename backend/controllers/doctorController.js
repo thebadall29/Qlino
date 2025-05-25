@@ -79,12 +79,11 @@ exports.getDoctorById = async (req, res) => {
   try {
     const doctorId = req.params.id;
     
-    console.log('Getting doctor details for ID:', doctorId);
     
     // Validate ObjectId format
-    if (!mongoose.Types.ObjectId.isValid(doctorId)) {
-      return res.status(400).json({ message: 'Invalid doctor ID format' });
-    }
+    // if (!mongoose.Types.ObjectId.isValid(doctorId)) {
+    //   return res.status(400).json({ message: 'Invalid doctor ID format' });
+    // }
     
     const doctor = await Doctor.findById(doctorId);
     
@@ -148,7 +147,7 @@ exports.getDoctorById = async (req, res) => {
     res.status(200).json(doctorResponse);
   } catch (error) {
     console.error('Error getting doctor by ID:', error);
-    res.status(500).json({ message: 'Failed to get doctor details', error: error.message });
+   
   }
 };
 
@@ -247,7 +246,7 @@ exports.deleteDoctor = async (req, res) => {
     const doctorId = req.params.id;
     
     if (!mongoose.Types.ObjectId.isValid(doctorId)) {
-      return res.status(400).json({ message: 'Invalid doctor ID format' });
+      return res.status(400).json({ message: '' });
     }
     
     const deletedDoctor = await Doctor.findByIdAndDelete(doctorId);
@@ -269,9 +268,9 @@ exports.getDoctorReviews = async (req, res) => {
   try {
     const doctorId = req.params.id;
     
-    if (!mongoose.Types.ObjectId.isValid(doctorId)) {
-      return res.status(400).json({ message: 'Invalid doctor ID format' });
-    }
+    // if (!mongoose.Types.ObjectId.isValid(doctorId)) {
+    //   return res.status(400).json({ message: 'Invalid doctor ID format' });
+    // }
     
     const reviews = await Review.find({ doctorId })
       .sort({ createdAt: -1 })
@@ -305,14 +304,12 @@ exports.addDoctorReview = async (req, res) => {
   try {
     const doctorId = req.params.id;
     
-    if (!mongoose.Types.ObjectId.isValid(doctorId)) {
-      return res.status(400).json({ message: 'Invalid doctor ID format' });
-    }
+    // if (!mongoose.Types.ObjectId.isValid(doctorId)) {
+    //   return res.status(400).json({ message: 'Invalid doctor ID format' });
+    // }
     
     const { patientId, rating, comment } = req.body;
 
-    console.log('Adding review for doctorId:', doctorId);
-    console.log('Review data:', { patientId, rating, comment });
     
     if (!rating || rating < 1 || rating > 5) {
       return res.status(400).json({ message: 'Rating is required and must be between 1 and 5' });
@@ -350,22 +347,18 @@ exports.addDoctorReview = async (req, res) => {
 // Add photo
 exports.addPhoto = async (req, res) => {
   try {
-    const { title, description, imageUrl } = req.body;
-
-    console.log('Adding photo for doctorId:', req.body);
-    const doctorId = req.user.id; // Changed from req.doctor.id to req.user.id
-
-    if (!title || !imageUrl) {
-      return res.status(400).json({ message: 'Title and image URL are required' });
+    const { title, description } = req.body;
+    const doctorId = req.user.id;
+    if (!title || !req.file) {
+      return res.status(400).json({ message: 'Title and image are required' });
     }
-
+    const imageUrl = `/uploads/photos/${req.file.filename}`;
     const newPhoto = new DoctorPhoto({
       doctorId,
       title,
       description,
       imageUrl
     });
-
     await newPhoto.save();
     res.status(201).json({ success: true, photo: newPhoto });
   } catch (error) {
@@ -389,7 +382,6 @@ exports.getPhotosByDoctorId = async (req, res) => {
 // Get all photos for a doctor
 exports.getPhotos = async (req, res) => {
   try {
-    console.log('Request user:', req.user); // Log the entire user object
     const doctorId = req.user.id;
     
     const photos = await DoctorPhoto.find({ doctorId }).sort({ createdAt: -1 });
@@ -426,25 +418,104 @@ exports.deletePhoto = async (req, res) => {
   }
 };
 
+exports.getUniquePatients = async (req, res) => {
+   try {
+    const doctorId = req.user.id; // Get the doctor ID from the authenticated user
+    
+    // Find all appointments for this doctor
+    const appointments = await Appointment.find({ doctorId })
+      .sort({ createdAt: -1 }); // Sort by creation date, newest first
+    // Create a map to store unique patients by email
+    const uniquePatientsMap = new Map();
+    
+    // Process each appointment to extract unique patients
+    appointments.forEach(appointment => {
+      const patientEmail = appointment.patientEmail;
+      
+      // Only add this patient if we haven't seen this email before
+      if (!uniquePatientsMap.has(patientEmail)) {
+        uniquePatientsMap.set(patientEmail, {
+          id: appointment._id,
+          name: appointment.patientName,
+          email: patientEmail,
+          contactNumber: appointment.contact,
+          lastAppointment: appointment.date,
+          appointmentCount: 1,
+          lastReason: appointment.reason
+        });
+      } else {
+        // If we've seen this patient before, increment their appointment count
+        const patient = uniquePatientsMap.get(patientEmail);
+        patient.appointmentCount += 1;
+        
+        // Update last appointment date if this one is more recent
+        if (new Date(appointment.date) > new Date(patient.lastAppointment)) {
+          patient.lastAppointment = appointment.date;
+          patient.lastReason = appointment.reason;
+        }
+      }
+    });
+    
+    // Convert the map to an array of unique patients
+    const uniquePatients = Array.from(uniquePatientsMap.values());
+
+    
+    return res.status(200).json({
+      success: true,
+      message: 'Unique patients retrieved successfully',
+      count: uniquePatients.length,
+      patients: uniquePatients
+    });
+  } catch (error) {
+    console.error('Error retrieving unique patients:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve unique patients',
+      error: error.message
+    });
+  }
+};
+
+exports.uploadPhoto = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    // Change req.doctor.id to req.user.id
+    const doctor = await Doctor.findById(req.user.id);
+    if (!doctor) {
+      return res.status(404).json({ message: 'Doctor not found' });
+    }
+
+    // Update doctor's photo URL in database - add /photos/ to the path
+    doctor.photoUrl = `/uploads/photos/${req.file.filename}`;
+    await doctor.save();
+
+    res.json({ 
+      message: 'Photo uploaded successfully',
+      photoUrl: doctor.photoUrl 
+    });
+  } catch (error) {
+    console.error('Upload error:', error);
+    res.status(500).json({ message: 'Error uploading photo' });
+  }
+};
+
 // Get doctor dashboard data
 exports.getDashboard = async (req, res) => {
   try {
-    // Get user ID from auth middleware
     const doctorId = req.user.id;
-    console.log('Getting dashboard for doctorId:', doctorId);
-    
-    // Find doctor by ID using Doctor model
     const doctor = await Doctor.findById(doctorId);
     
     if (!doctor) {
       return res.status(404).json({ message: 'Doctor not found' });
     }
     
-    // Return doctor data
     res.json({
       doctor: {
         id: doctor._id,
-        username: doctor.username, // Include username in the response
+        username: doctor.username,
         firstName: doctor.firstName,
         lastName: doctor.lastName,
         email: doctor.email,
@@ -460,12 +531,13 @@ exports.getDashboard = async (req, res) => {
         about: doctor.about,
         workingDays: doctor.workingDays || {},
         treatments: doctor.treatments || [],
-        bookingPreference: doctor.bookingPreference
+        bookingPreference: doctor.bookingPreference,
+        photoUrl: doctor.photoUrl // Add this line
       }
     });
   } catch (error) {
-    console.error('Error in getDashboard:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('Error getting dashboard:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -474,8 +546,6 @@ exports.updateProfile = async (req, res) => {
   try {
     // Get user ID from auth middleware
     const doctorId = req.user.id;
-    console.log('Updating profile for doctorId:', doctorId);
-    console.log('Update data received:', req.body);
     
     // Find doctor by ID using Doctor model
     const doctor = await Doctor.findById(doctorId);
@@ -513,7 +583,6 @@ exports.updateProfile = async (req, res) => {
     
     // Save updated doctor
     await doctor.save();
-    console.log('Doctor profile updated successfully');
     
     // Return updated doctor data
     res.json({
@@ -550,8 +619,6 @@ exports.searchDoctors = async (req, res) => {
   try {
     const { query, location } = req.query;
 
-    console.log('Search query:', query);
-    console.log('Location:', location);
     
     if (!query && !location) {
       return res.status(400).json({ message: 'Search query or location is required' });
@@ -612,7 +679,6 @@ exports.searchDoctors = async (req, res) => {
     const doctors = await Doctor.find(searchConditions)
       .limit(10);
 
-    console.log('Doctors found:', doctors);
     
     // Format the response with complete data
     const doctorData = doctors.map(doc => ({

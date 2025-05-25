@@ -13,7 +13,7 @@ router.get('/doctor/slot/:date', auth, authorize(['doctor']), appointmentControl
 router.patch('/doctor/queue/:id/status', auth, authorize(['doctor']), appointmentController.updateQueueStatus);
 router.patch('/doctor/appointments/:id', auth, authorize(['doctor']), appointmentController.updateAppointmentStatus);
 router.get('/patient/appointment/:email', auth, authorize(['doctor', 'patient']), appointmentController.getPatientAppointmentsByEmail);
-router.get('/doctor/unique-patients', auth, authorize(['doctor']), appointmentController.getUniquePatientsByDoctor);
+// router.get('/doctor/unique-patient', auth, authorize(['doctor']), appointmentController.getUniquePatientsByDoctor);
 router.get('/doctor/unique-patients', auth, authorize(['patient','doctor']), appointmentController.checkPatientExists);
 // In your routes file (e.g., appointmentRoutes.js)
 router.delete('/patient/appointment/delete/:id', auth, authorize(['patient','doctor']), appointmentController.deleteAppointment);
@@ -23,9 +23,9 @@ router.get('/patient/appointments', auth, authorize(['patient']), appointmentCon
 router.post('/appointments', appointmentController.bookAppointmentForUnregisteredPatient);
 router.patch('/doctor/queue/:id/requeue', auth, authorize(['doctor']), appointmentController.readdToQueue);
 // Add the new route for doctor preference
-router.get('/doctor/preference', auth, authorize(['doctor']), appointmentController.getDoctorPreference);
+router.get('/doctor/booking-preferences', auth, authorize(['doctor']), appointmentController.getDoctorPreference);
 // delete appointment 
-router.delete('/:id', auth, authorize(['doctor']), appointmentController.deleteAppointment);
+router.delete('/appointment/delete/:appointmentId', auth, authorize(['doctor']), appointmentController.deleteAppointment);
 
 
 // public appointment routes 

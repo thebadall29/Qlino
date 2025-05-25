@@ -12,6 +12,7 @@ const DoctorProfileModel = ({ doctor, isOpen, onClose }) => {
   const [appointments, setAppointments] = useState([]);
   const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const FALLBACK_IMAGE = 'https://placehold.co/300x200/e2e8f0/64748b?text=No+Image';
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [showBookingModal, setShowBookingModal] = useState(false);
@@ -40,8 +41,15 @@ const DoctorProfileModel = ({ doctor, isOpen, onClose }) => {
     try {
       setLoading(true);
       const response = await fetch(`http://localhost:5000/api/doctor/${doctorId}/data`);
+   const photosResponse = await fetch(`http://localhost:5000/api/doctor/photos/${doctorId}`);
+      
+   if (photosResponse.ok) {
+      const photosData = await photosResponse.json();
+      if (photosData.success && Array.isArray(photosData.photos)) {
+        setPhotos(photosData.photos);
+      }}
 
-      if (!response.ok) {
+   if (!response.ok) {
         throw new Error('Failed to fetch doctor data');
       }
 
@@ -242,7 +250,7 @@ const DoctorProfileModel = ({ doctor, isOpen, onClose }) => {
   // Use merged data from props and API response
   const displayDoctor = doctorData || doctor;
 
-  console.log("displayDoctor", displayDoctor)
+  console.log("photos", photos)
 
   return (
     <div className={`dpm-slidedown-profile ${isOpen ? 'dpm-open' : ''}`}>
@@ -479,19 +487,36 @@ const DoctorProfileModel = ({ doctor, isOpen, onClose }) => {
     />
   )}
             {/* Photos Tab */}
-            {activeTab === 'photos' && (
-              <div className="dpm-photos-tab">
-                <h3>Photos</h3>
-                <div className="dpm-photos-grid">
-                  {photos.map(photo => (
-                    <div key={photo.id} className="dpm-photo-card">
-                      <img src={photo.url} alt={photo.caption} />
-                      <div className="dpm-photo-caption">{photo.caption}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+{activeTab === 'photos' && (
+  <div className="dpm-photos-tab">
+    <h3>Photos</h3>
+    <div className="dpm-photos-grid">
+      {photos && photos.length > 0 ? (
+        photos.map(photo => (
+          <div key={photo._id || photo.id} className="dpm-photo-card">
+            <img 
+              src={`http://localhost:5000${photo.imageUrl}`} 
+              alt={photo.title || photo.caption || 'Doctor photo'} 
+              onError={(e) => {
+                if (e.target.src !== FALLBACK_IMAGE) {
+                  e.target.src = FALLBACK_IMAGE;
+                }
+              }}
+            />
+            <div className="dpm-photo-caption">
+              <h4>{photo.title || photo.caption || 'Untitled'}</h4>
+              {photo.description && (
+                <p className="dpm-photo-description">{photo.description}</p>
+              )}
+            </div>
+          </div>
+        ))
+      ) : (
+        <p className="dpm-no-photos">No photos available</p>
+      )}
+    </div>
+  </div>
+)}
           </>
         )}
       </div>

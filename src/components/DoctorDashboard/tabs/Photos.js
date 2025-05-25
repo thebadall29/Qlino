@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import '../DoctorDashboard.scss';
 
 const Photos = () => {
@@ -8,11 +8,15 @@ const Photos = () => {
   const [newPhoto, setNewPhoto] = useState({
     title: '',
     description: '',
-    imageUrl: ''
+    file: null
   });
   const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef(null);
 
-  // Fetch photos when component mounts
+  // Modal state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalImgUrl, setModalImgUrl] = useState('');
+
   useEffect(() => {
     fetchPhotos();
   }, []);
@@ -22,21 +26,17 @@ const Photos = () => {
       setLoading(true);
       const token = localStorage.getItem('token');
       const userData = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
-      console.log("userData",userData)
       if (!token) {
         throw new Error('No authentication token found');
       }
-
-      const response = await fetch(`http://localhost:5000/api/doctor/photos/${userData.id}`)
-      .then(response => response.json())
-      .then(data => setPhotos(data.photos));
-
-
+      const response = await fetch(`http://localhost:5000/api/doctor/photos/${userData.id}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (!response.ok) {
         throw new Error(`Failed to fetch photos: ${response.status}`);
       }
-
-
+      const data = await response.json();
+      setPhotos(data.photos);
     } catch (error) {
       console.error('Error fetching photos:', error);
       setError('Failed to load photos. Please try again later.');
@@ -44,8 +44,6 @@ const Photos = () => {
       setLoading(false);
     }
   };
-
-  console.log("photos",photos)
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -58,52 +56,45 @@ const Photos = () => {
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setIsUploading(true);
-      
-      // Convert file to base64 string
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setNewPhoto(prev => ({
-          ...prev,
-          imageUrl: reader.result // This will be a base64 string
-        }));
-        setIsUploading(false);
-      };
-      reader.readAsDataURL(file);
+      setNewPhoto(prev => ({
+        ...prev,
+        file: file
+      }));
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      setIsUploading(true);
       const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
+      if (!token) throw new Error('No authentication token found');
+
+      const formData = new FormData();
+      formData.append('title', newPhoto.title);
+      formData.append('description', newPhoto.description);
+      formData.append('image', newPhoto.file);
 
       const response = await fetch('http://localhost:5000/api/doctor/photos', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(newPhoto)
+        body: formData
       });
 
       if (!response.ok) {
         throw new Error(`Failed to add photo: ${response.status}`);
       }
-
       const data = await response.json();
       setPhotos(prev => [data.photo, ...prev]);
-      setNewPhoto({
-        title: '',
-        description: '',
-        imageUrl: ''
-      });
+      setNewPhoto({ title: '', description: '', file: null });
+      if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (error) {
       console.error('Error adding photo:', error);
       setError('Failed to add photo. Please try again.');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -136,11 +127,22 @@ const Photos = () => {
     }
   };
 
+  // Modal open handler
+  const openModal = (imgUrl) => {
+    setModalImgUrl(imgUrl);
+    setModalOpen(true);
+  };
+
+  // Modal close handler
+  const closeModal = () => {
+    setModalOpen(false);
+    setModalImgUrl('');
+  };
+
   return (
     <div className="photos-tab">
       <h2>Photo Gallery</h2>
-      
-      
+
       <div className="photo-upload-form">
         <h3>Add New Photo</h3>
         <form onSubmit={handleSubmit}>
@@ -155,7 +157,7 @@ const Photos = () => {
               required
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="description">Description (optional)</label>
             <textarea
@@ -165,33 +167,37 @@ const Photos = () => {
               onChange={handleInputChange}
             />
           </div>
-          
+
           <div className="form-group">
-            <label htmlFor="image">Upload Image</label>
+            <label htmlFor="image" className="custom-file-upload">
+              {newPhoto.file ? "Change Image" : "Select Image"}
+            </label>
             <input
               type="file"
               id="image"
               accept="image/*"
               onChange={handleImageUpload}
-              required={!newPhoto.imageUrl}
+              required={!newPhoto.file}
+              ref={fileInputRef}
+              className='custom-file-uploader'
             />
             {isUploading && <p>Uploading...</p>}
-            {newPhoto.imageUrl && (
+            {newPhoto.file && (
               <div className="image-preview">
-                <img src={newPhoto.imageUrl} alt="Preview" />
+                <img src={URL.createObjectURL(newPhoto.file)} alt="Preview" />
               </div>
             )}
           </div>
-          
-          <button 
-            type="submit" 
-            disabled={!newPhoto.title || !newPhoto.imageUrl || isUploading}
+
+          <button
+            type="submit"
+            disabled={!newPhoto.title || !newPhoto.file || isUploading}
           >
             Add Photo
           </button>
         </form>
       </div>
-      
+
       <div className="photo-gallery">
         <h3>Your Photos</h3>
         {loading ? (
@@ -202,25 +208,43 @@ const Photos = () => {
           <div className="photo-grid">
             {photos.map(photo => (
               <div key={photo._id} className="photo-card">
-                <img src={photo.imageUrl} alt={photo.title} />
+                <img src={`http://localhost:5000${photo.imageUrl}`} alt={photo.title} />
                 <div className="photo-details">
                   <h4>{photo.title}</h4>
                   {photo.description && <p>{photo.description}</p>}
                   <p className="photo-date">
                     {new Date(photo.createdAt).toLocaleDateString()}
                   </p>
-                  <button 
-                    className="delete-button" 
-                    onClick={() => handleDelete(photo._id)}
-                  >
-                    Delete
-                  </button>
+                  <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+                    <button
+                      className="delete-button"
+                      onClick={() => handleDelete(photo._id)}
+                    >
+                      Delete
+                    </button>
+                    <button
+                      className="open-image-button"
+                      onClick={() => openModal(`http://localhost:5000${photo.imageUrl}`)}
+                    >
+                      Open Image
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {/* Modal for full image */}
+      {modalOpen && (
+        <div className="image-modal" onClick={closeModal}>
+          <div className="image-modal-content" onClick={e => e.stopPropagation()}>
+            <button className="image-modal-close" onClick={closeModal}>&times;</button>
+            <img src={modalImgUrl} alt="Full" />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
