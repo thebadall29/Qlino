@@ -43,11 +43,28 @@
   }
   
   /* Dashboard Layout */
-  .patient-dashboard {
-    max-width: 99vw;
-    margin: 5rem auto;
-    padding: 20px;
+.patient-dashboard {
+  max-width: 99vw;
+  margin: 5rem auto;
+  padding: 20px;
+
+  &.loading-active {
+    // Optional: you could hide or alter the dashboard while loader is explicitly active
+    // For a simple fade-in, we might not need this if the loader covers the screen
   }
+
+  // This will be the main container that fades in
+  .dashboard-content-wrapper {
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out; // Adjust timing as needed
+
+    &.loaded {
+      opacity: 1;
+    }
+  }
+}
+
+  
   
   .dashboard-header {
     display: flex;
@@ -89,6 +106,65 @@
     padding: 15px;
     height: fit-content;
   }
+
+  .profile-photo-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 2rem;
+
+  .profile-photo-container {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    overflow: hidden;
+    background-color: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    border: 3px solid #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+    .profile-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .photo-placeholder {
+      color: #ccc;
+      font-size: 3rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      background-color: #f8f9fa;
+
+      i {
+        opacity: 0.5;
+      }
+    }
+  }
+
+  .upload-controls {
+    margin-top: 1rem;
+
+    .upload-button {
+      background-color: #4a90e2;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+
+      &:hover {
+        background-color: #357abd;
+      }
+    }
+  }
+}
   
   .dashboard-nav ul {
     list-style: none;
@@ -1258,4 +1334,87 @@
       }
     }
   }
+}
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #333;
+  overflow: hidden;
+  
+  .avatar-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .avatar-text {
+    display: block;
+  }
+}
+.profile-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.profile-photo-section {
+  margin-right: 20px;
+}
+
+.profile-photo-container {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.profile-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photo-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f0f0f0;
+  font-size: 40px;
+  color: #999;
+}
+
+.profile-name {
+  font-size: 28px;
+  font-weight: 600;
+  margin: 0;
+  color: #333;
+}
+
+.upload-controls {
+  margin-top: 10px;
+  text-align: center;
+}
+
+.upload-button {
+  display: inline-block;
+  padding: 8px 16px;
+  background-color: #4a90e2;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.upload-button:hover {
+  background-color: #3a7bc8;
 }

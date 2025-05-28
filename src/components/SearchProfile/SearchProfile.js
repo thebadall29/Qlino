@@ -214,9 +214,9 @@ const SearchProfile = ({ doctor, resultCount, index }) => {
             
             <div className="action-buttons-container">
               <div className="action-buttons">
-                <button className="book-appointment-btn">
+                {/* <button className="book-appointment-btn">
                   <i className="far fa-calendar-check"></i> Book Appointment
-                </button>
+                </button> */}
                 <button className="contact-btn" onClick={() => setIsModalOpen(true)}>
                   <i className="fas fa-user-alt"></i> View Profile
                 </button>

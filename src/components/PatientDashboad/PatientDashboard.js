@@ -7,12 +7,14 @@ import AppointmentManager from './tabs/AppointmentManager';
 import MedicationPlan from './tabs/MedicationPlan';
 import EducationalResources from './tabs/EducationalResources';
 import Chat from './tabs/Chat';
+import Loader from '../ui/Loader'; // Adjust path if you place Loader.js elsewhere
 
 const PatientDashboardCompo = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [dashboardTitle, setDashboardTitle] = useState('Patient Admin Panel');
+  const [profilePhoto, setProfilePhoto] = useState(null);
   const navigate = useNavigate();
   
   // Get URL parameters and query parameters
@@ -55,6 +57,25 @@ const PatientDashboardCompo = () => {
         if (data.user) {
           setUserData(data.user);
         }
+        
+        // Fetch profile photo
+        try {
+          const photoResponse = await fetch(`http://localhost:5000/api/patient/profile-photo`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (photoResponse.ok) {
+            const photoData = await photoResponse.json();
+            if (photoData.success && photoData.photoUrl) {
+              setProfilePhoto(photoData.photoUrl);
+            }
+          }
+        } catch (photoError) {
+          console.error('Error fetching profile photo:', photoError);
+        }
       } catch (error) {
         console.error('Error fetching user data:', error);
       } finally {
@@ -75,7 +96,7 @@ const PatientDashboardCompo = () => {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <Loader />;
   }
   
   return (
@@ -85,7 +106,20 @@ const PatientDashboardCompo = () => {
         <div className="user-info">
           <span>Welcome, {userData?.username || 'User'}</span>
           <div className="user-avatar">
-            {userData?.username?.[0]?.toUpperCase() || 'U'}
+            {profilePhoto ? (
+              <img 
+                src={`http://localhost:5000${profilePhoto}`} 
+                alt="Profile" 
+                className="avatar-image"
+                onError={(e) => {
+                  console.error('Avatar image load error:', e.target.src);
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'block';
+                }}
+              />
+            ) : (
+              <span className="avatar-text">{userData?.username?.[0]?.toUpperCase() || 'U'}</span>
+            )}
           </div>
         </div>
       </header>

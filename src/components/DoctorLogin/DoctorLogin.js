@@ -11,7 +11,7 @@ const DoctorLogin = () => {
     lastName: '',
     email: '',
     mobile: '',
-    specialization: '',
+  specialization: '',
     experience: '',
     password: '',
     confirmPassword: ''
@@ -94,6 +94,10 @@ const DoctorLogin = () => {
         // Store token and user data in localStorage
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
+        // Add this line to store the userType directly
+        if (data.user && data.user.role) {
+          localStorage.setItem('userType', data.user.role);
+        }
         
         setSuccess('Login successful! Redirecting to dashboard...');
         

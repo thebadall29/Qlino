@@ -35,6 +35,8 @@ const DoctorDashboardCompo = () => {
           }
         });
 
+        
+
         if (!response.ok) {
           throw new Error(`Failed to fetch doctor data: ${response.status}`);
         }
@@ -44,12 +46,14 @@ const DoctorDashboardCompo = () => {
         
         // Extract doctor data from response
         const doctor = data.doctor || data;
+
+        console.log('Extracted doctor data:', doctor);
         
         // Update state with doctor data
         setDoctorData({
           name: `Dr. ${doctor.firstName} ${doctor.lastName}`,
           specialization: doctor.specialization || 'Specialist',
-          avatar: `${doctor.firstName?.[0]}${doctor.lastName?.[0]}` || 'DR',
+          avatar: doctor.photoUrl,
           availability: doctor.availability || 'Available'
         });
       } catch (error) {
@@ -89,13 +93,29 @@ const DoctorDashboardCompo = () => {
     navigate('/');
   };
 
+
   return (
     <div className="doctor-dashboard">
       <header className="dashboard-header">
         <h1>Doctor Admin Panel</h1>
         <div className="user-info">
           <span>Welcome, {doctorData.name}</span>
-          <div className="user-avatar">{doctorData.avatar}</div>
+           <div className="user-avatar">
+    {doctorData.avatar ? (
+      <img 
+        src={(doctorData?.avatar ? `http://localhost:5000${doctorData.avatar}` : '')} 
+        alt={doctorData.name}
+        onError={(e) => {
+          e.target.onError = null;
+          e.target.src = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="20">${doctorData.name.charAt(0)}</text></svg>`;
+        }}
+      />
+    ) : (
+      <div className="avatar-fallback">
+        {doctorData.name.charAt(0)}
+      </div>
+    )}
+  </div>
         </div>
       </header>
 

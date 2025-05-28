@@ -8,39 +8,74 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = path.join(__dirname, '../uploads/reports');
-    // Create directory if it doesn't exist
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
+// Configure storage for different file types
+const createStorage = (uploadPath) => {
+  return multer.diskStorage({
+    destination: (req, file, cb) => {
+      const uploadDir = path.join(__dirname, `../uploads/${uploadPath}`);
+      // Create directory if it doesn't exist
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, `${uploadPath}-${uniqueSuffix}${path.extname(file.originalname)}`);
     }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  }
-});
+  });
+};
 
-const upload = multer({ 
-  storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
-  fileFilter: (req, file, cb) => {
-    // Accept images and PDFs
-    const filetypes = /jpeg|jpg|png|gif|pdf/;
-    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = filetypes.test(file.mimetype);
+// Configure file filters for different file types
+const fileFilters = {
+  profile: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
     
-    if (mimetype && extname) {
+    if (extname && mimetype) {
       return cb(null, true);
-    } else {
-      cb(new Error('Only images and PDF files are allowed'));
     }
+    cb(new Error('Only .png, .jpg and .jpeg format allowed!'));
+  },
+  report: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|gif|pdf/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+    
+    if (extname && mimetype) {
+      return cb(null, true);
+    }
+    cb(new Error('Only images and PDF files are allowed'));
   }
+};
+
+
+const uploadProfile = multer({
+  storage: createStorage('patients'),
+  limits: { fileSize: 5 * 1024 * 1024 }, 
+  fileFilter: fileFilters.profile
 });
 
+// Add this route to get the patient's profile photo
+router.get('/profile-photo', auth, authorize(['patient']), patientController.getProfilePhoto);
+
+const uploadReport = multer({
+  storage: createStorage('reports'),
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  fileFilter: fileFilters.report
+});
+
+
+
+
+router.post(
+  '/upload-profile-photo',
+  auth,
+  authorize(['patient']),
+  uploadProfile.single('photo'),
+  patientController.uploadProfilePhoto
+);
 // Get patient dashboard data
 router.get('/patient-dashboard', auth, authorize(['patient']), patientController.getPatientDashboard);
 
@@ -121,6 +156,8 @@ router.get('/doctor/check-patient/:email', auth, authorize(['doctor']), async (r
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
+
+
 
 // Add a reminder for a patient
 router.post('/doctor/patient/:email/reminders', auth, authorize(['doctor']), async (req, res) => {
@@ -221,7 +258,7 @@ router.patch('/doctor/patient/:email/reminders/:id', auth, authorize(['doctor'])
 });
 
 // Add a report for a patient
-router.post('/doctor/patient/:email/reports', auth, authorize(['doctor']), upload.single('file'), async (req, res) => {
+router.post('/doctor/patient/:email/reports', auth, authorize(['doctor']), uploadReport.single('file'), async (req, res) => {
   try {
     const { email } = req.params;
     const reportData = req.body;

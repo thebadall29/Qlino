@@ -31,6 +31,14 @@ app.use(express.urlencoded({ limit: '100mb', extended: true }));
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/patient', patientRoutes);
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({
+    success: false,
+    message: 'Internal Server Error',
+    error: err.message
+  });
+});
 app.use('/api/doctor', doctorRoutes);
 app.use('/api/symptoms', symptomRoutes);
 app.use('/api', appointmentRoutes);
@@ -40,6 +48,8 @@ app.use('/api/patient/chat', patientChatRoutes);
 
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads/patients', express.static(path.join(__dirname, 'uploads/patients')));
+app.use('/uploads/reports', express.static(path.join(__dirname, 'uploads/reports')));
 
 
 // Initialize socket.io

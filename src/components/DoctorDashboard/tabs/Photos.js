@@ -206,7 +206,7 @@ const Photos = () => {
           <p>No photos yet. Add your first photo above!</p>
         ) : (
           <div className="photo-grid">
-            {photos.map(photo => (
+          {photos.map(photo => (
               <div key={photo._id} className="photo-card">
                 <img src={`http://localhost:5000${photo.imageUrl}`} alt={photo.title} />
                 <div className="photo-details">

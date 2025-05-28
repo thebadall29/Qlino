@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema({
     enum: ['patient', 'doctor', 'admin'],
     default: 'patient'
   },
+  
   verified: { type: Boolean, default: false },
   
   // Personal Information
@@ -42,6 +43,7 @@ const userSchema = new mongoose.Schema({
       path: { type: String }
     }
   ],
+  photoUrl: { type: String },
   
   // Medical Reports
   medicalReports: [
@@ -76,6 +78,8 @@ const userSchema = new mongoose.Schema({
       createdAt: { type: Date, default: Date.now }
     }
   ],
+
+
   
   // Reminders
   reminders: [
