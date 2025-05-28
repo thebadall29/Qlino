@@ -302,6 +302,81 @@ router.post('/doctor/patient/:email/reports', auth, authorize(['doctor']), uploa
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
+// Add this new route after your other routes
+router.get('/download-report/:filename', auth, authorize(['patient']), async (req, res) => {
+  try {
+    const { filename } = req.params;
+    const filePath = path.join(__dirname, '../uploads/reports', filename);
+    
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'File not found' 
+      });
+    }
+
+    // Set appropriate headers for the file
+    const fileExt = path.extname(filename).toLowerCase();
+    const contentType = fileExt === '.pdf' ? 'application/pdf' : 
+                       fileExt === '.jpg' || fileExt === '.jpeg' ? 'image/jpeg' : 
+                       fileExt === '.png' ? 'image/png' : 'application/octet-stream';
+
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+    // Create read stream and pipe to response
+    const fileStream = fs.createReadStream(filePath);
+    fileStream.pipe(res);
+  } catch (err) {
+    console.error('Error downloading file:', err);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error downloading file' 
+    });
+  }
+});
+router.get('/reports', auth, authorize(['patient']), async (req, res) => {
+  try {
+    // Get authenticated user's ID from the request
+    const userId = req.user.id;
+    
+    // Find the patient by their ID
+    const patient = await User.findById(userId);
+    
+    if (!patient) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Patient not found'
+      });
+    }
+    
+    // Return the medical reports or empty array if none exist
+    const reports = patient.medicalReports || [];
+    
+    res.status(200).json({
+      success: true,
+      reports: reports.map(report => ({
+        _id: report._id,
+        title: report.title,
+        type: report.type,
+        date: report.date,
+        description: report.description,
+        results: report.results,
+        recommendations: report.recommendations,
+        fileUrl: report.fileUrl,
+        createdAt: report.createdAt,
+        createdBy: report.createdBy
+      }))
+    });
+  } catch (err) {
+    console.error('Error fetching patient reports:', err);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error'
+    });
+  }
+});
 
 // Get all reports for a patient
 router.get('/doctor/patient/:email/reports', auth, authorize(['doctor']), async (req, res) => {

@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom'; // Import useNavigate
+import { Link, useNavigate } from 'react-router-dom';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
 const Header = () => {
   const [scrolled, setScrolled] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate();
 
-  // Function to check login status (you'll need to implement this based on your auth logic)
+  // Function to check login status
   const getLoginStatus = () => {
     const token = localStorage.getItem('token');
-    const userType = localStorage.getItem('userType'); // 'doctor' or 'patient'
+    const userType = localStorage.getItem('userType');
 
     if (token && userType) {
       return { isLoggedIn: true, userType };
@@ -46,18 +46,30 @@ const Header = () => {
     e.stopPropagation();
     const { isLoggedIn, userType } = getLoginStatus();
 
-    // Add this console.log for debugging:
     console.log('Login Status:', { isLoggedIn, userType });
 
     if (isLoggedIn) {
-      setShowDropdown(false); // Ensure dropdown is hidden before navigating
+      setShowDropdown(false);
       if (userType === 'doctor') {
         navigate('/doctor-dashboard');
       } else if (userType === 'patient') {
         navigate('/patient-dashboard');
       }
     } else {
-      setShowDropdown(!showDropdown); // Only toggle dropdown if not logged in
+      setShowDropdown(!showDropdown);
+    }
+  };
+
+  // New function to handle medical records click
+  const handleMedicalRecordsClick = (e) => {
+    e.preventDefault(); // Prevent default navigation
+    const { isLoggedIn, userType } = getLoginStatus();
+
+    if (isLoggedIn && userType === 'patient') {
+      navigate('/medical-records');
+    } else {
+      // Show alert and redirect to patient login
+      navigate('/patient-login');
     }
   };
 
@@ -73,7 +85,21 @@ const Header = () => {
           <Link to="/">Home</Link>
           <Link to="/find-your-doctor">Find Doctors</Link>
           <Link to="/appointments">Appointments</Link>
-          <Link to="/medical-records">Medical Records</Link>
+          {/* Replace Link with a button styled as a link */}
+          <button 
+            onClick={handleMedicalRecordsClick}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'inherit',
+              font: 'inherit',
+              cursor: 'pointer',
+              padding: 0,
+              textDecoration: 'none'
+            }}
+          >
+            Medical Records
+          </button>
           <div className="login-dropdown-container">
             <button className="login-btn" onClick={handleLoginIconClick}>
               <i className="fas fa-user"></i>

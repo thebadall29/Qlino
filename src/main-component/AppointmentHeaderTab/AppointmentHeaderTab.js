@@ -1,19 +1,19 @@
 import React from 'react';
 import Header from '../../components/header/Header';
 import Footer from '../../components/footer2/Footer2';
-import MedicalRecordsCompo from '../../components/MedicalRecords/MedicalRecords';
-import './MedicalRecords.scss';
+import './AppointmentHeaderTab.scss';
+import AppointmentHeaderTabCompo from '../../components/AppointmentHeaderTab/AppointmentHeaderTab';
 
-const MedicalRecords = () => {
+const AppointmentHeaderTab = () => {
   return (
     <div className="page-wrapper">
       <Header />
       <div className="content-wrapper">
-        <MedicalRecordsCompo />
+        <AppointmentHeaderTabCompo/>
       </div>
       <Footer />
     </div>
   );
 };
 
-export default MedicalRecords;
+export default AppointmentHeaderTab;

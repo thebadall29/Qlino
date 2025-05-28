@@ -13,6 +13,14 @@
   }
 }
 
+* {
+  /* Ensures smoother animations */
+  will-change: transform;
+  /* Optional: Adds smoother animations on supported browsers */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 .App-header {
   min-height: 100vh;
   display: flex;

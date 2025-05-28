@@ -22,6 +22,7 @@ import Unauthorized from "../../components/ErrorPage/Unauthorized";
 import DoctorLogin from '../../components/DoctorLogin/DoctorLogin';
 import DoctorLoginComp from '../DoctorLogin/DoctorLogin';
 import MedicalRecords from '../MedicalRecords/MedicalRecords';
+import AppointmentHeaderTab from '../AppointmentHeaderTab/AppointmentHeaderTab';
 
 // Protected route component for patient
 const PatientProtectedRoute = ({ children }) => {
@@ -84,6 +85,7 @@ const AllRoute = () => {
           <Route path="doctor-login" element={<DoctorLoginComp/>} /> {/* Create a doctor login component later */}
           <Route path="unauthorized" element={<Unauthorized />} />
           <Route path="medical-records" element={<MedicalRecords />} />
+          <Route path="appointments" element={<AppointmentHeaderTab />} />
           
           {/* Protected routes */}
           <Route 
