@@ -23,6 +23,7 @@ import DoctorLogin from '../../components/DoctorLogin/DoctorLogin';
 import DoctorLoginComp from '../DoctorLogin/DoctorLogin';
 import MedicalRecords from '../MedicalRecords/MedicalRecords';
 import AppointmentHeaderTab from '../AppointmentHeaderTab/AppointmentHeaderTab';
+import SymptomCheckerCompo from '../SymtomsChecker/SymptomChecker';
 
 // Protected route component for patient
 const PatientProtectedRoute = ({ children }) => {
@@ -86,6 +87,7 @@ const AllRoute = () => {
           <Route path="unauthorized" element={<Unauthorized />} />
           <Route path="medical-records" element={<MedicalRecords />} />
           <Route path="appointments" element={<AppointmentHeaderTab />} />
+          <Route path="find-specialist" element={<SymptomCheckerCompo/>} />
           
           {/* Protected routes */}
           <Route 
