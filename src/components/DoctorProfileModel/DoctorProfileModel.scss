@@ -1,42 +1,23 @@
 // Doctor Profile Modal SCSS with unique class names to avoid conflicts
 
 // Modal overlay
-.dpm-modal-overlay {
+.modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  padding: 20px;
+  animation: fadeIn 0.3s ease-out;
+}
 
-  // Critical fixes for flickering
-  pointer-events: all;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  will-change: opacity;
-  
-  // Prevent any hover effects
-  &:hover {
-    background-color: rgba(0, 0, 0, 0.6);
-  }
-
-  -webkit-transform: translateZ(0);
-  -moz-transform: translateZ(0);
-  -ms-transform: translateZ(0);
-  -o-transform: translateZ(0);
-  
-  -webkit-backface-visibility: hidden;
-  -moz-backface-visibility: hidden;
-  -ms-backface-visibility: hidden;
-  
-  -webkit-perspective: 1000;
-  -moz-perspective: 1000;
-  -ms-perspective: 1000;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 // Modal container
@@ -141,52 +122,91 @@
 
 // Modal content
 .dpm-modal-content {
-  padding: 25px;
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  width: 70vw;
+  // max-width: 70vw;
+  // max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  animation: slideIn 0.3s ease-out;
+ height: 90vh;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 // Profile tab
 .dpm-profile-tab {
   .dpm-profile-header {
     display: flex;
-    margin-bottom: 25px;
-    
-    .dpm-profile-avatar {
-      width: 100px;
-      height: 100px;
-      background-color: #4a69bd;
-      color: white;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: #f8fafc;
+    border-radius: 12px;
+
+    .dpm-profile-image {
+      width: 120px;
+      height: 120px;
       border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 36px;
-      font-weight: 500;
-      margin-right: 20px;
-      flex-shrink: 0;
-    }
-    
-    .dpm-profile-info {
-      h3 {
-        margin: 0 0 10px 0;
-        font-size: 20px;
-        color: #333;
+      overflow: hidden;
+      border: 3px solid #fff;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
       }
-      
-      p {
-        margin: 5px 0;
-        color: #666;
-        font-size: 14px;
+
+      .dpm-profile-avatar {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        color: white;
+        text-transform: uppercase;
+      }
+    }
+
+    .dpm-profile-info {
+      flex: 1;
+
+      h3 {
+        margin: 0 0 0.5rem;
+        font-size: 1.5rem;
+        color: #1a202c;
+      }
+
+      .dpm-specialization {
+        color: #4a5568;
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .dpm-location,
+      .dpm-experience {
+        color: #718096;
+        margin: 0.25rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
         
         i {
-          margin-right: 8px;
-          color: #4a69bd;
+          color: #4299e1;
         }
-      }
-      
-      .dpm-specialization {
-        font-weight: 500;
-        color: #4a69bd;
-        font-size: 16px;
       }
     }
   }
@@ -590,8 +610,6 @@
   padding: 25px;
 }
 
-// ... existing code ...
-
 // Appointment tab enhancements
 .dpm-appointments-tab {
   h3 {
@@ -863,75 +881,6 @@
 }
 
 .dpm-value {
-  font-size: 16px;
-  color: #333;
-}
-
-.dpm-services-list {
-  list-style: none;
-  padding: 0;
-  
-  li {
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    
-    i {
-      color: #4a69bd;
-      margin-right: 10px;
-    }
-  }
-}
-
-.dpm-about-text {
-  line-height: 1.6;
-  color: #444;
-}
-
-.dpm-action-buttons {
-  display: flex;
-  gap: 15px;
-  margin-top: 20px;
-  
-  button {
-    padding: 12px 20px;
-    border-radius: 6px;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    border: none;
-    transition: all 0.3s ease;
-    
-    i {
-      font-size: 16px;
-    }
-  }
-  
-  .dpm-book-button {
-    background-color: #2563eb;
-    color: white;
-    flex: 1;
-    
-    &:hover {
-      background-color: #1d4ed8;
-    }
-  }
-  
-  .dpm-contact-button {
-    background-color: #f0f0f0;
-    color: #333;
-    
-    &:hover {
-      background-color: #e0e0e0;
-    }
-  }
-}
-
-// ... existing code ...
-.dpm-value {
   font-size: 15px;
   color: #333;
   font-weight: 500;
@@ -965,4 +914,41 @@
     }
   }
 }
-// ... existing code ...
+
+// New doctor info section in the header
+.dpm-header {
+  .doctor-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+
+    .doctor-image {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 2px solid #e2e8f0;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    }
+
+    .doctor-details {
+      h2 {
+        margin: 0;
+        color: #2d3748;
+        font-size: 1.5rem;
+      }
+
+      p {
+        margin: 0.25rem 0 0;
+        color: #4a5568;
+        font-size: 1rem;
+      }
+    }
+  }
+}

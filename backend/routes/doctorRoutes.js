@@ -12,8 +12,6 @@ const upload = multer({
 
 
 
-
-
 // Get doctor dashboard data
 router.get('/doctor-dashboard', auth, authorize(['doctor']), doctorController.getDashboard);
 

@@ -320,13 +320,23 @@
       }
       
       .book-appointment-btn {
-        background-color: #4a69bd;
+        background: linear-gradient(135deg, #2d68f8 0%, #2753c0 100%);
         color: white;
-        flex: 1;
-        
+        border: none;
+        padding: 1.2rem 2.5rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        transform: translateZ(40px);
+        box-shadow: 0 4px 15px rgba(0, 179, 155, 0.3);
+
         &:hover {
-          background-color: #3c5aa6;
-          transform: translateY(-2px);
+          transform: translateZ(40px) translateY(-5px);
+          box-shadow: 
+            0 8px 25px rgba(0, 179, 155, 0.4),
+            0 0 0 2px rgba(0, 179, 155, 0.2);
         }
       }
       
@@ -384,12 +394,23 @@
     }
     
     .book-appointment-btn {
-      background-color: #2563eb; // Bright blue color from the image
+      background: linear-gradient(135deg, #2d68f8 0%, #2753c0 100%);
       color: white;
-      
+      border: none;
+      padding: 1.2rem 2.5rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      transform: translateZ(40px);
+      box-shadow: 0 4px 15px rgba(0, 179, 155, 0.3);
+
       &:hover {
-        background-color: #1d4ed8;
-        transform: translateY(-2px);
+        transform: translateZ(40px) translateY(-5px);
+        box-shadow: 
+          0 8px 25px rgba(0, 179, 155, 0.4),
+          0 0 0 2px rgba(0, 179, 155, 0.2);
       }
     }
     
@@ -418,6 +439,95 @@
   
   .action-buttons {
     width: 100%;
+  }
+}
+.search-results-header {
+  background: #fff;
+  padding: 24px 0;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 32px;
+
+  .header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    h1 {
+      font-size: 28px;
+      color: #1a365d;
+      margin: 0;
+    }
+
+    .result-count {
+      color: #3b82f6;
+      font-size: 16px;
+      font-weight: 500;
+    }
+  }
+}
+
+.search-profile-container {
+  .search-results-header {
+    background: #fff;
+    padding: 24px 0;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 32px;
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      h1 {
+        font-size: 28px;
+        color: #1a365d;
+        margin: 0;
+      }
+
+      .result-count {
+        color: #3b82f6;
+        font-size: 16px;
+        font-weight: 500;
+      }
+    }
+  }
+
+  .doctor-list-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+}
+
+.doctor-list-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+
+  .doctors-list {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+}
+
+// Match DoctorList card styling
+.doctor-profile {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 12px -2px rgba(0, 0, 0, 0.1);
   }
 }
 
@@ -452,6 +562,33 @@
   
   .doctor-details {
     grid-template-columns: 1fr;
+  }
+  
+  .doctor-list-container {
+    .doctors-list {
+      .doctor-card {
+        .doctor-info {
+          grid-template-columns: 1fr;
+          text-align: center;
+
+          .doctor-image {
+            margin: 0 auto;
+          }
+
+          .doctor-details {
+            .info-grid {
+              grid-template-columns: repeat(2, 1fr);
+            }
+          }
+
+          .action-buttons {
+            width: 100%;
+            flex-direction: row;
+            justify-content: center;
+          }
+        }
+      }
+    }
   }
 }
 

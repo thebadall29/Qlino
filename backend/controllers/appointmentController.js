@@ -5,6 +5,30 @@ const Schedule = require('../models/Schedule');
 const Queue = require('../models/Queue');
 const mongoose = require('mongoose');
 
+
+
+// Helper function to generate default slots
+function generateDefaultSlots(date, preferences) {
+  const slots = [];
+  const startHour = 9; // 9 AM
+  const endHour = 17; // 5 PM
+  const slotDuration = preferences?.slotDuration || 30;
+  
+  for (let hour = startHour; hour < endHour; hour++) {
+    for (let minute = 0; minute < 60; minute += slotDuration) {
+      const slotTime = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      slots.push({
+        doctorId: preferences.doctorId,
+        date,
+        time: slotTime,
+        status: 'Available'
+      });
+    }
+  }
+  
+  return slots;
+}
+
 // Helper function to format date to YYYY-MM-DD
 const formatDate = (date) => {
   try {
@@ -90,6 +114,8 @@ const generateTimeSlots = (workingDay) => {
   
   return slots;
 };
+
+
 
 exports.getPatientAppointmentsByEmail = async (req, res) => {
   try {
@@ -338,103 +364,28 @@ exports.checkPatientExists = async (req, res) => {
 // ... existing code ...
 
 // Get doctor's appointments for a specific date
+
+
+
+
+
+
+
 exports.getDoctorAppointments = async (req, res) => {
-  try {
-    const { date } = req.params;
-    const doctorId = req.user.id;  
+    try {
+    const { doctorId } = req.params;
+    const updates = req.body;
     
-    // Ensure we're using the correct date format for database queries
-    const requestedDate = new Date(date);
-    const formattedDate = formatDate(requestedDate);
+    const preferences = await DoctorPreference.findOneAndUpdate(
+      { doctorId },
+      updates,
+      { new: true, upsert: true }
+    );
     
-    // Find appointments for this doctor on this date
-    const appointments = await Appointment.find({
-      doctorId,
-      date: {
-        $gte: new Date(`${formattedDate}T00:00:00.000Z`),
-        $lt: new Date(`${formattedDate}T23:59:59.999Z`)
-      }
-    }).populate('patientId', 'firstName lastName fullName mobile');
-    
-    
-    // Format appointments for response
-    const formattedAppointments = appointments.map(appointment => {
-      // Check if appointment has patientId populated or uses direct patient info
-      let patient, contact;
-      
-      if (appointment.patientId) {
-        // Case 1: Appointment has a patientId reference
-        patient = appointment.patientId.fullName || 
-                 `${appointment.patientId.firstName || ''} ${appointment.patientId.lastName || ''}`.trim();
-        contact = appointment.patientId.mobile;
-      } else {
-        // Case 2: Appointment has direct patient information
-        patient = appointment.patientName;
-        contact = appointment.contact || appointment.contactNumber;
-      }
-      
-      return {
-        id: appointment._id,
-        time: appointment.time,
-        patient: patient,
-        contact: contact,
-        reason: appointment.reason,
-        status: appointment.status,
-        type: appointment.type,
-        queueNumber: appointment.queueNumber
-      };
-    });
-    
-    // Get doctor data to check working days
-    const doctor = await Doctor.findById(doctorId);
-    if (!doctor) {
-      return res.status(404).json({
-        success: false,
-        message: 'Doctor not found'
-      });
-    }
-    
-    // Check if doctor works on this day
-    const dayOfWeek = requestedDate.getDay();
-    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-    const dayName = dayNames[dayOfWeek];
-    
-    // Generate all possible time slots for this day if doctor is available
-    let allSlots = [];
-    if (doctor.workingDays[dayName] && doctor.workingDays[dayName].active) {
-      const workingDay = doctor.workingDays[dayName];
-      const timeSlots = generateTimeSlots(workingDay);
-      
-      // Create a map of booked times for quick lookup
-      const bookedTimes = new Set(formattedAppointments.map(app => app.time));
-      
-      // Create a complete list of slots (both available and booked)
-      allSlots = timeSlots.map(slot => {
-        const time = slot.time;
-        const existingAppointment = formattedAppointments.find(app => app.time === time);
-        
-        if (existingAppointment) {
-          return existingAppointment; // Return the booked appointment
-        } else {
-          return {
-            time: time,
-            available: true
-          };
-        }
-      });
-    }
-    
-    res.status(200).json({
-      success: true,
-      appointments: allSlots.length > 0 ? allSlots : formattedAppointments
-    });
+    res.json(preferences);
   } catch (error) {
-    console.error('Error fetching appointments:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch appointments',
-      error: error.message
-    });
+    console.error('Error updating doctor preferences:', error);
+    res.status(500).json({ message: 'Error updating doctor preferences' });
   }
 };
 
@@ -496,6 +447,8 @@ exports.getSlotDataByDoctor = async (req, res) => {
     }); 
   } 
 };
+
+
 
 // Get available slots for a specific date
 exports.getAvailableSlots = async (req, res) => {

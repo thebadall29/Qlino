@@ -1,0 +1,195 @@
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.specialties-container {
+  max-width: 1200px;
+  margin: 7rem auto;
+  padding: 0 2rem;
+
+  .specialties-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    opacity: 0;
+    
+    &.slide-up {
+      animation: slideUp 0.6s ease-out forwards;
+    }
+
+    h1 {
+      font-size: 2.8rem;
+      color: #4a5568;
+      margin-bottom: 1rem;
+      font-weight: 700;
+    }
+
+    p {
+      font-size: 1.2rem;
+      color: #718096;
+      margin-bottom: 2rem;
+    }
+
+    .search-box {
+      position: relative;
+      max-width: 600px;
+      margin: 0 auto;
+
+      input {
+        width: 100%;
+        padding: 1.2rem 3rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 50px;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        background-color: #fff;
+
+        &:focus {
+          outline: none;
+          border-color: #4299e1;
+          box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
+        }
+
+        &::placeholder {
+          color: #a0aec0;
+        }
+      }
+
+      .search-icon {
+        position: absolute;
+        left: 1.2rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #a0aec0;
+        font-size: 1.2rem;
+      }
+    }
+  }
+
+  .specialties-list {
+    display: grid;
+    gap: 1.5rem;
+    
+    .specialty-item {
+      background: #fff;
+      border-radius: 16px;
+      padding: 1.5rem 2rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
+      opacity: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid #e2e8f0;
+
+      &.slide-up {
+        animation: slideUp 0.6s ease-out forwards;
+        animation-delay: var(--animation-delay);
+      }
+
+      &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        border-color: #4299e1;
+      }
+
+      .specialty-info {
+        flex: 1;
+
+        h3 {
+          font-size: 1.4rem;
+          color: #2d3748;
+          margin-bottom: 0.5rem;
+          font-weight: 600;
+        }
+
+        .doctor-count {
+          display: inline-block;
+          padding: 0.4rem 1rem;
+          background: #ebf8ff;
+          color: #4299e1;
+          border-radius: 20px;
+          font-size: 0.9rem;
+          font-weight: 500;
+        }
+      }
+
+      .view-doctors-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.8rem 1.5rem;
+        background: #008cff;
+        color: white;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        margin-left: 2rem;
+
+        &:hover {
+          background: #2b6cb0;
+          transform: translateX(5px);
+        }
+
+        svg {
+          font-size: 1.1rem;
+          transition: transform 0.3s ease;
+        }
+
+        &:hover svg {
+          transform: translateX(3px);
+        }
+      }
+    }
+  }
+}
+
+// Responsive styles
+@media (max-width: 768px) {
+  .specialties-container {
+    padding: 0 1rem;
+    margin: 1rem auto;
+
+    .specialties-header {
+      h1 {
+        font-size: 2rem;
+      }
+
+      p {
+        font-size: 1rem;
+      }
+
+      .search-box input {
+        padding: 1rem 2.5rem;
+      }
+    }
+
+    .specialties-list {
+      .specialty-item {
+        flex-direction: column;
+        text-align: center;
+        padding: 1.2rem;
+        gap: 1rem;
+
+        .specialty-info {
+          h3 {
+            font-size: 1.2rem;
+          }
+        }
+
+        .view-doctors-btn {
+          width: 100%;
+          margin-left: 0;
+          justify-content: center;
+        }
+      }
+    }
+  }
+}

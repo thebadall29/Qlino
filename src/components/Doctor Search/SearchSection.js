@@ -89,8 +89,13 @@ const SearchSection = () => {
       }
   
       const response = await axios.get(url);
-      const doctorsData = response.data;
+      const doctorsData = response.data.map(doc => ({
+        ...doc,
+        photoUrl: doc.photoUrl,
+        _id: doc.id || doc._id
+      }));
       
+      console.log('Doctors fetched:', doctorsData); // Log the fetched doctors data
       // If we got no results and used a modified query, try with the original query
       if (doctorsData.length === 0 && searchQuery !== trimmedQuery) {
         url = `http://localhost:5000/api/doctor/search?query=${encodeURIComponent(trimmedQuery)}`;
@@ -571,12 +576,16 @@ const SearchSection = () => {
           onDoubleClick={handleDoubleClick}
           ref={resultsContainerRef}
         >
-          {hasSearched && (  // Only display results area if a search has been performed
+          {hasSearched && (
             searchResults && searchResults.length > 0 ? (
               searchResults.map((doctor, index) => (
                 <SearchProfile
                   key={`search-result-${doctor.id || index}`}
-                  doctor={doctor}
+                  doctor={{
+                    ...doctor,
+                    photoUrl: doctor.photoUrl ,
+                    _id: doctor.id || doctor._id // Ensure _id is present for consistency
+                  }}
                   resultCount={searchResults.length}
                   index={index}
                   onDoubleClick={handleDoubleClick}

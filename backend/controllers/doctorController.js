@@ -1,11 +1,8 @@
-
-
 const Doctor = require('../models/Doctor');
 const Review = require('../models/Review');
 const mongoose = require('mongoose');
 const Appointment = require('../models/Appointment');
 const DoctorPhoto = require('../models/DoctorPhoto');
-// Helper function to format doctor data for frontend
 const formatDoctorResponse = (doctor) => {
   return {
     _id: doctor._id,
@@ -617,14 +614,13 @@ exports.updateProfile = async (req, res) => {
 // Search for doctors based on name, specialization and location
 exports.searchDoctors = async (req, res) => {
   try {
-    const { query, location } = req.query;
+    const { query, location, specialization, experience, rating, verified, sortBy } = req.query;
 
-    
-    if (!query && !location) {
-      return res.status(400).json({ message: 'Search query or location is required' });
+    if (!query && !location && !specialization && !experience && !rating && !verified) {
+      return res.status(400).json({ message: 'At least one search parameter is required' });
     }
 
-    let searchConditions = { verified: true };
+    let searchConditions = {};
     
     // Add query search condition if provided
     if (query) {
@@ -674,42 +670,132 @@ exports.searchDoctors = async (req, res) => {
       }
     }
     
+    // Add specialization filter if provided
+    if (specialization) {
+      const specializationRegex = new RegExp(specialization, 'i');
+      if (searchConditions['$and']) {
+        searchConditions['$and'].push({ specialization: specializationRegex });
+      } else if (searchConditions['$or']) {
+        const orConditions = searchConditions['$or'];
+        delete searchConditions['$or'];
+        searchConditions['$and'] = [
+          { '$or': orConditions },
+          { specialization: specializationRegex }
+        ];
+      } else {
+        searchConditions.specialization = specializationRegex;
+      }
+    }
+    
+    // Add experience filter if provided
+    if (experience) {
+      const experienceValue = parseInt(experience);
+      if (!isNaN(experienceValue)) {
+        if (searchConditions['$and']) {
+          searchConditions['$and'].push({ experience: { $gte: experienceValue } });
+        } else if (searchConditions['$or']) {
+          const orConditions = searchConditions['$or'];
+          delete searchConditions['$or'];
+          searchConditions['$and'] = [
+            { '$or': orConditions },
+            { experience: { $gte: experienceValue } }
+          ];
+        } else {
+          searchConditions.experience = { $gte: experienceValue };
+        }
+      }
+    }
+    
+    // Add verified filter if provided
+    if (verified === 'true') {
+      if (searchConditions['$and']) {
+        searchConditions['$and'].push({ verified: true });
+      } else if (searchConditions['$or']) {
+        const orConditions = searchConditions['$or'];
+        delete searchConditions['$or'];
+        searchConditions['$and'] = [
+          { '$or': orConditions },
+          { verified: true }
+        ];
+      } else {
+        searchConditions.verified = true;
+      }
+    }
     
     // Find doctors that match the search conditions
-    const doctors = await Doctor.find(searchConditions)
-      .limit(10);
-
+    let doctorsQuery = Doctor.find(searchConditions);
+    
+    // Apply sorting if provided
+    if (sortBy) {
+      switch (sortBy) {
+        case 'experience_high':
+          doctorsQuery = doctorsQuery.sort({ experience: -1 });
+          break;
+        case 'experience_low':
+          doctorsQuery = doctorsQuery.sort({ experience: 1 });
+          break;
+        case 'rating_high':
+          doctorsQuery = doctorsQuery.sort({ averageRating: -1 });
+          break;
+        case 'rating_low':
+          doctorsQuery = doctorsQuery.sort({ averageRating: 1 });
+          break;
+        default:
+          // Default sorting by name
+          doctorsQuery = doctorsQuery.sort({ firstName: 1 });
+      }
+    } else {
+      // Default sorting by name if not specified
+      doctorsQuery = doctorsQuery.sort({ firstName: 1 });
+    }
+    
+    // Apply limit
+    const limit = req.query.limit ? parseInt(req.query.limit) : 10;
+    doctorsQuery = doctorsQuery.limit(limit);
+    
+    const doctors = await doctorsQuery.exec();
     
     // Format the response with complete data
-    const doctorData = doctors.map(doc => ({
-      // Include basic formatted fields
-      id: doc._id,
-      name: `${doc.firstName} ${doc.lastName}`,
-      specialization: doc.specialization,
-      location: doc.city ? `${doc.city}, ${doc.state}` : doc.state || '',
-      qualification: doc.qualification,
-      experience: doc.experience,
+    const doctorData = await Promise.all(doctors.map(async (doc) => {
+      // Get average rating for this doctor
+      const reviews = await Review.find({ doctorId: doc._id });
+      const averageRating = reviews.length > 0 
+        ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length 
+        : 0;
       
-      // Include all the additional fields
-      firstName: doc.firstName,
-      lastName: doc.lastName,
-      username: doc.username,
-      email: doc.email,
-      mobile: doc.mobile,
-      emergency: doc.emergency,
-      address: doc.address,
-      city: doc.city,
-      state: doc.state,
-      country: doc.country,
-      about: doc.about,
-      verified: doc.verified,
-      workingDays: doc.workingDays,
-      treatments: doc.treatments,
-      bookingPreference: doc.bookingPreference,
-      
-      // Include any other fields you need
-      createdAt: doc.createdAt,
-      updatedAt: doc.updatedAt
+      return {
+        // Include basic formatted fields
+        id: doc._id,
+        name: `${doc.firstName} ${doc.lastName}`,
+        specialization: doc.specialization,
+        location: doc.city ? `${doc.city}, ${doc.state}` : doc.state || '',
+        qualification: doc.qualification,
+        experience: doc.experience,
+        averageRating: averageRating.toFixed(1),
+        reviewCount: reviews.length,
+        
+        // Add photoUrl field here
+        photoUrl: doc.photoUrl,
+        
+        // Include all the additional fields
+        firstName: doc.firstName,
+        lastName: doc.lastName,
+        username: doc.username,
+        email: doc.email,
+        mobile: doc.mobile,
+        emergency: doc.emergency,
+        address: doc.address,
+        city: doc.city,
+        state: doc.state,
+        country: doc.country,
+        about: doc.about,
+        verified: doc.verified,
+        workingDays: doc.workingDays,
+        treatments: doc.treatments,
+        bookingPreference: doc.bookingPreference,
+        createdAt: doc.createdAt,
+        updatedAt: doc.updatedAt
+      };
     }));
     
     res.json(doctorData);
