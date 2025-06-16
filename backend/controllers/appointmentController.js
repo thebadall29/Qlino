@@ -4,6 +4,7 @@ const User = require('../models/User');
 const Schedule = require('../models/Schedule');
 const Queue = require('../models/Queue');
 const mongoose = require('mongoose');
+const DoctorPreference = require('../models/DoctorPreference');
 
 
 

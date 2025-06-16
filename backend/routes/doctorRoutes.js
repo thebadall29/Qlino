@@ -14,6 +14,10 @@ const upload = multer({
 
 // Get doctor dashboard data
 router.get('/doctor-dashboard', auth, authorize(['doctor']), doctorController.getDashboard);
+// router.get('/doctor-dashboard', auth, authorize(['doctor']), doctorController.getDashboard);
+
+router.put('/tags', auth, authorize(['doctor']), doctorController.updateTags);
+router.get('/tags/:doctorId', doctorController.getTags);
 
 // Update doctor profile
 router.put('/profile', auth, authorize(['doctor']), doctorController.updateProfile);
@@ -47,5 +51,11 @@ router.post('/photos', auth, authorize(['doctor']), upload.single('image'), doct
 router.get('/photos', doctorController.getPhotos);
 router.get('/photos/:doctorId', doctorController.getPhotosByDoctorId);
 router.delete('/photos/:id', auth,authorize(['doctor']), doctorController.deletePhoto);
+
+// Fee management routes
+router.get('/fees', auth, authorize(['doctor']), doctorController.getFees);
+router.put('/fees', auth, authorize(['doctor']), doctorController.updateFees);
+router.post('/fees', auth, authorize(['doctor']), doctorController.addFee);
+router.delete('/fees/:feeId', auth, authorize(['doctor']), doctorController.deleteFee);
 
 module.exports = router;

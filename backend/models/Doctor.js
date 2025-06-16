@@ -91,6 +91,29 @@ const DoctorSchema = new mongoose.Schema({
   bookingPreference:{
     type: String,
     default: 'slot'
+  },
+  tags: {
+    type: [String],
+    default: [],
+    validate: [
+      {
+        validator: function(tags) {
+          return tags.length <= 10;
+        },
+        message: 'Maximum 10 tags allowed'
+      },
+      {
+        validator: function(tags) {
+          const totalLength = tags.reduce((sum, tag) => sum + tag.length, 0);
+          return totalLength <= 500;
+        },
+        message: 'Total tags length must not exceed 500 characters'
+      }
+    ]
+  },
+  consultationFee: {
+    type: Number,
+    default: 0
   }
 }, {
   timestamps: true

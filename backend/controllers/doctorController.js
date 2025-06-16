@@ -33,7 +33,10 @@ const formatDoctorResponse = (doctor) => {
     timings: doctor.timings || '10:00 AM - 4:00 PM',
     registrationNumber: doctor.registrationNumber || 'MCI-12345',
     languages: doctor.languages || 'English, Hindi',
-    services: doctor.treatments || []
+    services: doctor.treatments || [],
+    photoUrl: doctor.photoUrl || '',
+    tags:doctor.tags || [],
+    fees: doctor.fees || []
   };
 };
 
@@ -340,7 +343,6 @@ exports.addDoctorReview = async (req, res) => {
   }
 };
 
-// ... existing code ...
 // Add photo
 exports.addPhoto = async (req, res) => {
   try {
@@ -364,7 +366,7 @@ exports.addPhoto = async (req, res) => {
   }
 };
 
-// ... existing code ...
+// Get photos by doctor ID
 exports.getPhotosByDoctorId = async (req, res) => {
   try {
     const doctorId = req.params.doctorId;
@@ -510,27 +512,8 @@ exports.getDashboard = async (req, res) => {
     }
     
     res.json({
-      doctor: {
-        id: doctor._id,
-        username: doctor.username,
-        firstName: doctor.firstName,
-        lastName: doctor.lastName,
-        email: doctor.email,
-        specialization: doctor.specialization,
-        experience: doctor.experience,
-        qualification: doctor.qualification,
-        mobile: doctor.mobile,
-        emergency: doctor.emergency,
-        address: doctor.address,
-        city: doctor.city,
-        state: doctor.state,
-        country: doctor.country,
-        about: doctor.about,
-        workingDays: doctor.workingDays || {},
-        treatments: doctor.treatments || [],
-        bookingPreference: doctor.bookingPreference,
-        photoUrl: doctor.photoUrl // Add this line
-      }
+      success: true,
+      doctor:formatDoctorResponse(doctor)
     });
   } catch (error) {
     console.error('Error getting dashboard:', error);
@@ -541,26 +524,29 @@ exports.getDashboard = async (req, res) => {
 // Update doctor profile
 exports.updateProfile = async (req, res) => {
   try {
-    // Get user ID from auth middleware
     const doctorId = req.user.id;
-    
-    // Find doctor by ID using Doctor model
-    const doctor = await Doctor.findById(doctorId);
-    
-    if (!doctor) {
-      return res.status(404).json({ message: 'Doctor not found' });
-    }
-    
-    // Update doctor data with all fields from request
     const updateFields = [
       'username', 'firstName', 'lastName', 'email', 'specialization', 
       'experience', 'qualification', 'mobile', 'emergency',
-      'address', 'city', 'state', 'country', 'about', 'bookingPreference'
+      'address', 'city', 'state', 'country', 'about', 'bookingPreference',
+      'tags', 'consultationFee', // Added consultationFee here
+      'photoUrl' // Add this field
     ];
     
+    console.log("tags",req.body.tags); // Debug log to check tags
+    const doctor = await Doctor.findById(doctorId);
+    if (!doctor) {
+      return res.status(404).json({ message: 'Doctor not found' });
+    }
+
     updateFields.forEach(field => {
       if (req.body[field] !== undefined) {
-        doctor[field] = req.body[field];
+        // Convert consultationFee to number
+        if (field === 'consultationFee') {
+          doctor[field] = Number(req.body[field]);
+        } else {
+          doctor[field] = req.body[field];
+        }
       }
     });
     
@@ -602,7 +588,9 @@ exports.updateProfile = async (req, res) => {
         about: doctor.about,
         workingDays: doctor.workingDays,
         treatments: doctor.treatments,
-        bookingPreference: doctor.bookingPreference
+        bookingPreference: doctor.bookingPreference,
+        tags:doctor.tags,
+        consultationFee: doctor.consultationFee // Include consultationFee in response
       }
     });
   } catch (error) {
@@ -614,195 +602,124 @@ exports.updateProfile = async (req, res) => {
 // Search for doctors based on name, specialization and location
 exports.searchDoctors = async (req, res) => {
   try {
-    const { query, location, specialization, experience, rating, verified, sortBy } = req.query;
+    const { query, location, page = 1, limit = 10 } = req.query;
+    const skip = (page - 1) * limit;
 
-    if (!query && !location && !specialization && !experience && !rating && !verified) {
-      return res.status(400).json({ message: 'At least one search parameter is required' });
+    let searchQuery = {};
+
+    // Handle location search
+    if (location && location.trim()) {
+      const locationParts = location.trim().split(',').map(part => part.trim());
+      const city = locationParts[0];
+      const state = locationParts[1];
+
+      if (state) {
+        // If both city and state are provided
+        searchQuery = {
+          $and: [
+            { city: new RegExp(city, 'i') },
+            { state: new RegExp(state, 'i') }
+          ]
+        };
+      } else {
+        // If only city is provided, search in both city and state
+        searchQuery = {
+          $or: [
+            { city: new RegExp(city, 'i') },
+            { state: new RegExp(city, 'i') }
+          ]
+        };
+      }
     }
 
-    let searchConditions = {};
-    
-    // Add query search condition if provided
-    if (query) {
-      const queryRegex = new RegExp(query, 'i');
-      searchConditions['$or'] = [
+    // Handle query search (name, specialization, tags)
+    if (query && query.trim()) {
+      const queryRegex = new RegExp(query.trim(), 'i');
+      const queryConditions = [
         { firstName: queryRegex },
         { lastName: queryRegex },
         { specialization: queryRegex },
-        { treatments: queryRegex }
+        { tags: queryRegex },
+        { 'treatments.name': queryRegex }
       ];
-    }
-    
-    // Add location search condition if provided
-    if (location) {
-      const locationParts = location.split(',').map(part => part.trim());
-      
-      // Create a more specific location filter
-      const locationFilter = [];
-      
-      if (locationParts.length > 1) {
-        // If format is "City, State"
-        locationFilter.push(
-          { city: new RegExp('^' + locationParts[0] + '$', 'i') },
-          { city: new RegExp(locationParts[0], 'i'), state: new RegExp(locationParts[1], 'i') }
-        );
+
+      // Combine location and query conditions
+      if (Object.keys(searchQuery).length > 0) {
+        searchQuery = {
+          $and: [
+            searchQuery,
+            { $or: queryConditions }
+          ]
+        };
       } else {
-        // If only city is provided
-        locationFilter.push(
-          { city: new RegExp('^' + location + '$', 'i') },
-          { state: new RegExp('^' + location + '$', 'i') }
-        );
-      }
-      
-      // If we have both query and location, we need to structure the conditions differently
-      if (query) {
-        // If query is also provided, we need doctors that match BOTH the query AND location
-        const queryConditions = searchConditions['$or'];
-        delete searchConditions['$or'];
-        
-        searchConditions['$and'] = [
-          { '$or': queryConditions },
-          { '$or': locationFilter }
-        ];
-      } else {
-        // If only location is provided
-        searchConditions['$or'] = locationFilter;
+        searchQuery = { $or: queryConditions };
       }
     }
+
+    console.log('Search Query:', JSON.stringify(searchQuery, null, 2));
+
+    // Get total count
+    const total = await Doctor.countDocuments(searchQuery);
     
-    // Add specialization filter if provided
-    if (specialization) {
-      const specializationRegex = new RegExp(specialization, 'i');
-      if (searchConditions['$and']) {
-        searchConditions['$and'].push({ specialization: specializationRegex });
-      } else if (searchConditions['$or']) {
-        const orConditions = searchConditions['$or'];
-        delete searchConditions['$or'];
-        searchConditions['$and'] = [
-          { '$or': orConditions },
-          { specialization: specializationRegex }
-        ];
-      } else {
-        searchConditions.specialization = specializationRegex;
-      }
-    }
-    
-    // Add experience filter if provided
-    if (experience) {
-      const experienceValue = parseInt(experience);
-      if (!isNaN(experienceValue)) {
-        if (searchConditions['$and']) {
-          searchConditions['$and'].push({ experience: { $gte: experienceValue } });
-        } else if (searchConditions['$or']) {
-          const orConditions = searchConditions['$or'];
-          delete searchConditions['$or'];
-          searchConditions['$and'] = [
-            { '$or': orConditions },
-            { experience: { $gte: experienceValue } }
-          ];
-        } else {
-          searchConditions.experience = { $gte: experienceValue };
-        }
-      }
-    }
-    
-    // Add verified filter if provided
-    if (verified === 'true') {
-      if (searchConditions['$and']) {
-        searchConditions['$and'].push({ verified: true });
-      } else if (searchConditions['$or']) {
-        const orConditions = searchConditions['$or'];
-        delete searchConditions['$or'];
-        searchConditions['$and'] = [
-          { '$or': orConditions },
-          { verified: true }
-        ];
-      } else {
-        searchConditions.verified = true;
-      }
-    }
-    
-    // Find doctors that match the search conditions
-    let doctorsQuery = Doctor.find(searchConditions);
-    
-    // Apply sorting if provided
-    if (sortBy) {
-      switch (sortBy) {
-        case 'experience_high':
-          doctorsQuery = doctorsQuery.sort({ experience: -1 });
-          break;
-        case 'experience_low':
-          doctorsQuery = doctorsQuery.sort({ experience: 1 });
-          break;
-        case 'rating_high':
-          doctorsQuery = doctorsQuery.sort({ averageRating: -1 });
-          break;
-        case 'rating_low':
-          doctorsQuery = doctorsQuery.sort({ averageRating: 1 });
-          break;
-        default:
-          // Default sorting by name
-          doctorsQuery = doctorsQuery.sort({ firstName: 1 });
-      }
-    } else {
-      // Default sorting by name if not specified
-      doctorsQuery = doctorsQuery.sort({ firstName: 1 });
-    }
-    
-    // Apply limit
-    const limit = req.query.limit ? parseInt(req.query.limit) : 10;
-    doctorsQuery = doctorsQuery.limit(limit);
-    
-    const doctors = await doctorsQuery.exec();
-    
-    // Format the response with complete data
-    const doctorData = await Promise.all(doctors.map(async (doc) => {
-      // Get average rating for this doctor
-      const reviews = await Review.find({ doctorId: doc._id });
-      const averageRating = reviews.length > 0 
-        ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length 
-        : 0;
-      
-      return {
-        // Include basic formatted fields
-        id: doc._id,
-        name: `${doc.firstName} ${doc.lastName}`,
-        specialization: doc.specialization,
-        location: doc.city ? `${doc.city}, ${doc.state}` : doc.state || '',
-        qualification: doc.qualification,
-        experience: doc.experience,
-        averageRating: averageRating.toFixed(1),
-        reviewCount: reviews.length,
-        
-        // Add photoUrl field here
-        photoUrl: doc.photoUrl,
-        
-        // Include all the additional fields
-        firstName: doc.firstName,
-        lastName: doc.lastName,
-        username: doc.username,
-        email: doc.email,
-        mobile: doc.mobile,
-        emergency: doc.emergency,
-        address: doc.address,
-        city: doc.city,
-        state: doc.state,
-        country: doc.country,
-        about: doc.about,
-        verified: doc.verified,
-        workingDays: doc.workingDays,
-        treatments: doc.treatments,
-        bookingPreference: doc.bookingPreference,
-        createdAt: doc.createdAt,
-        updatedAt: doc.updatedAt
-      };
+    // Get paginated results
+    const doctors = await Doctor
+      .find(searchQuery)
+      .select('-password')
+      .sort({ firstName: 1 })
+      .skip(skip)
+      .limit(parseInt(limit))
+      .lean();
+
+    // Format the response
+    const formattedDoctors = doctors.map(doctor => ({
+      id: doctor._id,
+      firstName: doctor.firstName,
+      lastName: doctor.lastName,
+      name: `${doctor.firstName} ${doctor.lastName}`,
+      specialization: doctor.specialization,
+      city: doctor.city,
+      state: doctor.state,
+      location: doctor.city && doctor.state ? `${doctor.city}, ${doctor.state}` : 'Location not available',
+      experience: doctor.experience,
+      treatments: doctor.treatments || [],
+      tags: doctor.tags || [],
+      photoUrl: doctor.photoUrl
     }));
-    
-    res.json(doctorData);
+
+    res.json({
+      success: true,
+      doctors: formattedDoctors,
+      total,
+      page: parseInt(page),
+      totalPages: Math.ceil(total / limit),
+      resultsPerPage: parseInt(limit),
+      query: query || '',
+      location: location || '',
+      searchQuery: searchQuery // Include for debugging
+    });
+
   } catch (error) {
     console.error('Error in searchDoctors:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ 
+      success: false,
+      message: 'Error searching doctors', 
+      error: error.message 
+    });
   }
+};
+
+// Helper function to get synonyms and related terms
+const getSynonymsAndRelatedTerms = (term) => {
+  // Add common medical term variations and synonyms
+  const medicalTermsMap = {
+    'pain': ['ache', 'discomfort', 'soreness'],
+    'chest': ['thoracic', 'cardiac', 'heart'],
+    'stomach': ['abdominal', 'digestive', 'gastric'],
+    'head': ['cranial', 'migraine', 'headache'],
+    // Add more medical terms and their variations
+  };
+
+  return medicalTermsMap[term.toLowerCase()] || [];
 };
 
 // Get all locations from doctors database
@@ -862,5 +779,244 @@ exports.getLocations = async (req, res) => {
   } catch (error) {
     console.error('Error in getLocations:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// Add these methods to the doctor controller
+exports.updateTags = async (req, res) => {
+  try {
+    const { tags } = req.body;
+    const doctorId = req.user.id;
+
+    console.log('Received tags:', tags); // Debug log
+
+    // Validate tags
+    if (!Array.isArray(tags)) {
+      return res.status(400).json({ message: 'Tags must be an array' });
+    }
+
+    if (tags.length > 10) {
+      return res.status(400).json({ message: 'Maximum 10 tags allowed' });
+    }
+
+    // Clean and validate each tag
+    const cleanedTags = tags.map(tag => tag.trim()).filter(tag => tag.length > 0);
+    
+    const totalLength = cleanedTags.reduce((sum, tag) => sum + tag.length, 0);
+    if (totalLength > 500) {
+      return res.status(400).json({ message: 'Total tags length exceeds 500 characters' });
+    }
+
+    // Update doctor tags using findOneAndUpdate
+    const doctor = await Doctor.findOneAndUpdate(
+      { _id: doctorId },
+      { $set: { tags: cleanedTags } },
+      { new: true, runValidators: true }
+    );
+
+    if (!doctor) {
+      return res.status(404).json({ message: 'Doctor not found' });
+    }
+
+    console.log('Updated doctor:', doctor); // Debug log
+
+    res.json({ 
+      success: true,
+      message: 'Tags updated successfully',
+      tags: doctor.tags 
+    });
+  } catch (error) {
+    console.error('Error updating tags:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Error updating tags',
+      error: error.message 
+    });
+  }
+};
+
+exports.getTags = async (req, res) => {
+  try {
+    const { doctorId } = req.params;
+    const doctor = await Doctor.findById(doctorId);
+
+    if (!doctor) {
+      return res.status(404).json({ message: 'Doctor not found' });
+    }
+
+    res.json({ tags: doctor.tags || [] });
+  } catch (error) {
+    console.error('Error fetching tags:', error);
+    res.status(500).json({ message: 'Error fetching tags' });
+  }
+};
+
+// Add these new methods
+
+// Get doctor fees
+exports.getFees = async (req, res) => {
+  try {
+    const doctorId = req.user.id;
+    const doctor = await Doctor.findById(doctorId);
+    
+    if (!doctor) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Doctor not found' 
+      });
+    }
+
+    res.json({
+      success: true,
+      fees: doctor.fees || []
+    });
+  } catch (error) {
+    console.error('Error getting fees:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error fetching fees',
+      error: error.message 
+    });
+  }
+};
+
+// Update doctor fees
+exports.updateFees = async (req, res) => {
+  try {
+    const doctorId = req.user.id;
+    const { fees } = req.body;
+
+    // Validate fees array
+    if (!Array.isArray(fees)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Fees must be an array'
+      });
+    }
+
+    // Validate each fee object
+    for (const fee of fees) {
+      if (!fee.type || !fee.amount) {
+        return res.status(400).json({
+          success: false,
+          message: 'Each fee must have a type and amount'
+        });
+      }
+      if (fee.amount < 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Fee amount cannot be negative'
+        });
+      }
+    }
+
+    const doctor = await Doctor.findByIdAndUpdate(
+      doctorId,
+      { $set: { fees: fees } },
+      { new: true }
+    );
+
+    if (!doctor) {
+      return res.status(404).json({
+        success: false,
+        message: 'Doctor not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Fees updated successfully',
+      fees: doctor.fees
+    });
+  } catch (error) {
+    console.error('Error updating fees:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating fees',
+      error: error.message
+    });
+  }
+};
+
+// Add single fee
+exports.addFee = async (req, res) => {
+  try {
+    const doctorId = req.user.id;
+    const { type, amount } = req.body;
+
+    // Validate input
+    if (!type || amount === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: 'Fee type and amount are required'
+      });
+    }
+
+    if (amount < 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Fee amount cannot be negative'
+      });
+    }
+
+    const doctor = await Doctor.findByIdAndUpdate(
+      doctorId,
+      { $push: { fees: { type, amount } } },
+      { new: true }
+    );
+
+    if (!doctor) {
+      return res.status(404).json({
+        success: false,
+        message: 'Doctor not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Fee added successfully',
+      fees: doctor.fees
+    });
+  } catch (error) {
+    console.error('Error adding fee:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error adding fee',
+      error: error.message
+    });
+  }
+};
+
+// Delete fee
+exports.deleteFee = async (req, res) => {
+  try {
+    const doctorId = req.user.id;
+    const { feeId } = req.params;
+
+    const doctor = await Doctor.findByIdAndUpdate(
+      doctorId,
+      { $pull: { fees: { _id: feeId } } },
+      { new: true }
+    );
+
+    if (!doctor) {
+      return res.status(404).json({
+        success: false,
+        message: 'Doctor not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Fee deleted successfully',
+      fees: doctor.fees
+    });
+  } catch (error) {
+    console.error('Error deleting fee:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting fee',
+      error: error.message
+    });
   }
 };
