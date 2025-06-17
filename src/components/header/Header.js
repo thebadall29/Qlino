@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { FaBars, FaTimes, FaUser } from 'react-icons/fa';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
 const Header = () => {
   const [scrolled, setScrolled] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const token = localStorage.getItem('token');
+  const user = JSON.parse(localStorage.getItem('user'));
 
   // Function to check login status
   const getLoginStatus = () => {
@@ -73,50 +77,55 @@ const Header = () => {
     }
   };
 
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+    // Prevent body scroll when menu is open
+    document.body.style.overflow = !isMenuOpen ? 'hidden' : 'auto';
+  };
+
   return (
     <header className={`header ${scrolled ? 'scrolled' : ''}`}>
-      <nav className="nav-container">
+      <div className="nav-container">
         <div className="logo-section">
           <Link to="/" className="logo-text">
             Qlino
           </Link>
         </div>
-        <div className="nav-links">
-          <Link to="/">Home</Link>
-          <Link to="/find-your-doctor">Find Doctors</Link>
-          <Link to="/appointments">Appointments</Link>
-          {/* Replace Link with a button styled as a link */}
-          <button 
-            onClick={handleMedicalRecordsClick}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'inherit',
-              font: 'inherit',
-              cursor: 'pointer',
-              padding: 0,
-              textDecoration: 'none'
-            }}
-          >
-            Medical Records
-          </button>
-          <div className="login-dropdown-container">
-            <button className="login-btn" onClick={handleLoginIconClick}>
-              <i className="fas fa-user"></i>
-            </button>
-            {showDropdown && (
-              <div className="login-dropdown">
-                <Link to="/doctor-login" className="dropdown-item" onClick={() => setShowDropdown(false)}>
-                  <i className="fas fa-user-md"></i> Doctor Login
-                </Link>
-                <Link to="/patient-login" className="dropdown-item" onClick={() => setShowDropdown(false)}>
-                  <i className="fas fa-user-injured"></i> Patient Login
-                </Link>
+
+        <button 
+          className={`mobile-menu-toggle ${isMenuOpen ? 'active' : ''}`}
+          onClick={toggleMenu}
+          aria-label="Toggle menu"
+        >
+          {isMenuOpen ? <FaTimes /> : <FaBars />}
+        </button>
+
+        <nav className={`nav-links ${isMenuOpen ? 'active' : ''}`}>
+          {token && (
+            <div className="profile-section mobile">
+              <div className="profile-info">
+                <FaUser />
+                <span>{user?.name || 'User'}</span>
               </div>
-            )}
+            </div>
+          )}
+          <Link to="/">Home</Link>
+          <Link to="/find-doctors">Find Doctors</Link>
+          <Link to="/appointments">Appointments</Link>
+          <Link to="/medical-records">Medical Records</Link>
+          {token && <Link to="/profile">My Profile</Link>}
+          {token && <Link to="/settings">Settings</Link>}
+          {!token && <Link to="/login" className="mobile-login">Login</Link>}
+        </nav>
+
+        {token && (
+          <div className="profile-section desktop">
+            <Link to="/profile" className="profile-link">
+              <FaUser />
+            </Link>
           </div>
-        </div>
-      </nav>
+        )}
+      </div>
     </header>
   );
 };
