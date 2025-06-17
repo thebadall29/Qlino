@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate, Navigate, useLocation } from 'react-router-dom';
 import './MedicalRecords.scss';
 import { FaFilePdf, FaDownload, FaEye } from 'react-icons/fa';
 import ReactDOM from 'react-dom';
 
 const MedicalRecordsCompo = () => {
+    const navigate = useNavigate();
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -45,8 +47,17 @@ const MedicalRecordsCompo = () => {
   const handleViewFile = async (fileUrl, fileName) => {
     try {
       const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('Authentication token not found');
+       if (!token) {
+        // If no token, redirect to login
+        navigate('/patient-dashboard', { 
+          state: { 
+            from: window.location.pathname,
+            message: 'Please login to add medicines' 
+          } 
+        });
+      } else {
+        // If logged in, go to medicines page
+        navigate('/patient-login');
       }
 
       // Extract filename from fileUrl
@@ -221,6 +232,18 @@ const MedicalRecordsCompo = () => {
       </div>
     </div>
   );
+};
+
+const PatientProtectedRoute = ({ children }) => {
+  const token = localStorage.getItem('patientToken');
+  const location = useLocation();
+
+  if (!token) {
+    // Redirect to patient login with return path
+    return <Navigate to="/patient-login" state={{ from: location.pathname }} replace />;
+  }
+
+  return children;
 };
 
 export default MedicalRecordsCompo;

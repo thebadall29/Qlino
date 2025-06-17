@@ -89,8 +89,8 @@ const AllRoute = () => {
           <Route path="patient-login" element={<PatientLogin/>} />
           <Route path="doctor-login" element={<DoctorLoginComp/>} /> {/* Create a doctor login component later */}
           <Route path="unauthorized" element={<Unauthorized />} />
-          <Route path="medical-records" element={<MedicalRecords />} />
-          <Route path="appointments" element={<AppointmentHeaderTab />} />
+          {/* <Route path="medical-records" element={<MedicalRecords />} /> */}
+          {/* <Route path="appointments" element={<AppointmentHeaderTab />} /> */}
           <Route path="find-specialist" element={<SymptomCheckerCompo/>} />
           <Route path="specialties" element={<DoctorSpecialtiesComp/>} />
           <Route path="/:specialty/doctors" element={<DoctorListComp/>} />
@@ -114,6 +114,22 @@ const AllRoute = () => {
               </DoctorProtectedRoute>
             } 
           />
+           <Route 
+        path="/appointments" 
+        element={
+          <PatientProtectedRoute>
+            <AppointmentHeaderTab />
+          </PatientProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/medical-records" 
+        element={
+          <PatientProtectedRoute>
+            <MedicalRecords />
+          </PatientProtectedRoute>
+        } 
+      />
           
           {/* 404 route */}
           <Route path="*" element={<div>404 Not Found</div>} />

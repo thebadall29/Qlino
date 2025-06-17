@@ -1,15 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaBars, FaTimes, FaUser } from 'react-icons/fa';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
 const Header = () => {
   const [scrolled, setScrolled] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const token = localStorage.getItem('token');
-  const user = JSON.parse(localStorage.getItem('user'));
 
   // Function to check login status
   const getLoginStatus = () => {
@@ -30,21 +27,36 @@ const Header = () => {
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
-
     const handleClickOutside = (event) => {
       if (!event.target.closest('.login-dropdown-container')) {
         setShowDropdown(false);
       }
     };
 
+    const handleResize = () => {
+      if (window.innerWidth > 768) {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('resize', handleResize);
     document.addEventListener('click', handleClickOutside);
+
+    // Prevent body scroll when mobile menu is open
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleResize);
       document.removeEventListener('click', handleClickOutside);
+      document.body.style.overflow = 'unset';
     };
-  }, [scrolled]);
+  }, [scrolled, mobileMenuOpen]);
 
   const handleLoginIconClick = (e) => {
     e.stopPropagation();
@@ -64,69 +76,84 @@ const Header = () => {
     }
   };
 
-  // New function to handle medical records click
-  const handleMedicalRecordsClick = (e) => {
-    e.preventDefault(); // Prevent default navigation
-    const { isLoggedIn, userType } = getLoginStatus();
-
-    if (isLoggedIn && userType === 'patient') {
-      navigate('/medical-records');
-    } else {
-      // Show alert and redirect to patient login
-      navigate('/patient-login');
-    }
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+    setShowDropdown(false); // Close login dropdown when opening mobile menu
   };
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-    // Prevent body scroll when menu is open
-    document.body.style.overflow = !isMenuOpen ? 'hidden' : 'auto';
+  const closeMobileMenu = () => {
+    setMobileMenuOpen(false);
+  };
+
+  const handleNavLinkClick = () => {
+    setMobileMenuOpen(false);
+    setShowDropdown(false);
   };
 
   return (
-    <header className={`header ${scrolled ? 'scrolled' : ''}`}>
-      <div className="nav-container">
-        <div className="logo-section">
-          <Link to="/" className="logo-text">
-            Qlino
-          </Link>
-        </div>
-
-        <button 
-          className={`mobile-menu-toggle ${isMenuOpen ? 'active' : ''}`}
-          onClick={toggleMenu}
-          aria-label="Toggle menu"
-        >
-          {isMenuOpen ? <FaTimes /> : <FaBars />}
-        </button>
-
-        <nav className={`nav-links ${isMenuOpen ? 'active' : ''}`}>
-          {token && (
-            <div className="profile-section mobile">
-              <div className="profile-info">
-                <FaUser />
-                <span>{user?.name || 'User'}</span>
-              </div>
-            </div>
-          )}
-          <Link to="/">Home</Link>
-          <Link to="/find-doctors">Find Doctors</Link>
-          <Link to="/appointments">Appointments</Link>
-          <Link to="/medical-records">Medical Records</Link>
-          {token && <Link to="/profile">My Profile</Link>}
-          {token && <Link to="/settings">Settings</Link>}
-          {!token && <Link to="/login" className="mobile-login">Login</Link>}
-        </nav>
-
-        {token && (
-          <div className="profile-section desktop">
-            <Link to="/profile" className="profile-link">
-              <FaUser />
+    <>
+      <header className={`header ${scrolled ? 'scrolled' : ''}`}>
+        <nav className="nav-container">
+          <div className="logo-section">
+            <Link to="/" className="logo-text" onClick={handleNavLinkClick}>
+              Qlino
             </Link>
           </div>
-        )}
-      </div>
-    </header>
+
+          {/* Mobile Menu Toggle */}
+          <button 
+            className={`mobile-menu-toggle ${mobileMenuOpen ? 'active' : ''}`}
+            onClick={toggleMobileMenu}
+            aria-label="Toggle mobile menu"
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+
+          {/* Navigation Links */}
+          <div className={`nav-links ${mobileMenuOpen ? 'active' : ''}`}>
+            <Link to="/" onClick={handleNavLinkClick}>Home</Link>
+            <Link to="/find-your-doctor" onClick={handleNavLinkClick}>Find Doctors</Link>
+            <Link to="/appointments" onClick={handleNavLinkClick}>Appointments</Link>
+            <Link to="/medical-records" onClick={handleNavLinkClick}>Medical Records</Link>
+            
+            <div className="login-dropdown-container">
+              <button className="login-btn" onClick={handleLoginIconClick}>
+                <i className="fas fa-user"></i>
+              </button>
+              {showDropdown && (
+                <div className="login-dropdown">
+                  <Link 
+                    to="/doctor-login" 
+                    className="dropdown-item" 
+                    onClick={() => {
+                      setShowDropdown(false);
+                      setMobileMenuOpen(false);
+                    }}
+                  >
+                    <i className="fas fa-user-md"></i> Doctor Login
+                  </Link>
+                  <Link 
+                    to="/patient-login" 
+                    className="dropdown-item" 
+                    onClick={() => {
+                      setShowDropdown(false);
+                      setMobileMenuOpen(false);
+                    }}
+                  >
+                    <i className="fas fa-user-injured"></i> Patient Login
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        </nav>
+      </header>
+
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && <div className="mobile-menu-overlay" onClick={closeMobileMenu}></div>}
+    </>
   );
 };
 
