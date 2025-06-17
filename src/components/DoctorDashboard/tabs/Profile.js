@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { mockDoctorData } from '../mockData';
 import "../DoctorDashboard.scss"
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const Profile = () => {
   const [doctorData, setDoctorData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [consultationFee, setConsultationFee] = useState('');
   const [treatments, setTreatments] = useState([]);
+  const [newTreatment, setNewTreatment] = useState({ name: '', fee: '' });
+  const [isEditingFees, setIsEditingFees] = useState(false);
   const [workingDays, setWorkingDays] = useState({});
   const [editingTreatment, setEditingTreatment] = useState(null);
-  const [newTreatment, setNewTreatment] = useState({ name: '', fee: '' });
-  // Add these new states at the top with other states
   const [photoPreview, setPhotoPreview] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [editableData, setEditableData] = useState({
@@ -30,19 +33,21 @@ const Profile = () => {
     about: '',
     bookingPreference: ''
   });
+  const [tags, setTags] = useState([]);
+  const [tagInput, setTagInput] = useState('');
+  // Add photoUrl to state
+  const [photoUrl, setPhotoUrl] = useState('');
 
   useEffect(() => {
     const fetchDoctorData = async () => {
       setLoading(true);
       try {
-        // Get token from localStorage
         const token = localStorage.getItem('token');
 
         if (!token) {
           throw new Error('Authentication token not found');
         }
 
-        // Fetch doctor data from API
         const response = await fetch('http://localhost:5000/api/doctor/doctor-dashboard', {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -56,10 +61,8 @@ const Profile = () => {
         const data = await response.json();
         console.log('Fetched doctor data:', data);
 
-        // Set doctor data
         setDoctorData(data.doctor);
 
-        // Initialize editable data
         setEditableData({
           firstName: data.doctor?.firstName || '',
           lastName: data.doctor?.lastName || '',
@@ -77,16 +80,21 @@ const Profile = () => {
           bookingPreference: data.doctor?.bookingPreference || ''
         });
 
-        // Set treatments
         setTreatments(data.doctor?.treatments || []);
 
-        // Set working days
         setWorkingDays(data.doctor?.workingDays || {});
 
-        // Hide register button if user is already registered
         if (data.doctor && data.doctor.email) {
           setIsEditing(false);
         }
+
+        setTags(data.doctor?.tags || []);
+
+        // Set consultation fee
+        setConsultationFee(data.doctor?.consultationFee || '');
+
+        // Set photo URL
+        setPhotoUrl(data.doctor?.photoUrl || '');
 
       } catch (error) {
         console.error('Error fetching doctor data:', error);
@@ -136,23 +144,24 @@ const Profile = () => {
 
   const handleSave = async () => {
     try {
-      // Get token from localStorage
       const token = localStorage.getItem('token');
 
       if (!token) {
         throw new Error('Authentication token not found');
       }
 
-      // Prepare data to send
       const updateData = {
         ...editableData,
         workingDays,
-        treatments
+        treatments,
+        tags,
+        consultationFee: Number(consultationFee),
+        photoUrl: photoUrl // Add this line to preserve photo
       };
+
 
       console.log('Sending profile update:', updateData);
 
-      // Send update to API
       const response = await fetch('http://localhost:5000/api/doctor/profile', {
         method: 'PUT',
         headers: {
@@ -171,9 +180,11 @@ const Profile = () => {
       const data = await response.json();
       console.log('Update response:', data);
 
-      // Update local state with response data
       if (data.doctor) {
-        setDoctorData(data.doctor);
+        setDoctorData({
+          ...data.doctor,
+          photoUrl: data.doctor.photoUrl || photoUrl // Preserve existing photo if new one isn't provided
+        });
         setEditableData({
           firstName: data.doctor.firstName || '',
           lastName: data.doctor.lastName || '',
@@ -188,27 +199,26 @@ const Profile = () => {
           state: data.doctor.state || '',
           country: data.doctor.country || '',
           about: data.doctor.about || '',
-          bookingPreference: data.doctor.bookingPreference || ''
+          bookingPreference: data.doctor.bookingPreference || '',
+          tags: data.doctor.tags || []
         });
         setTreatments(data.doctor.treatments || []);
         setWorkingDays(data.doctor.workingDays || {});
+        setConsultationFee(data.doctor.consultationFee || ''); // Add this line
       }
 
       setIsEditing(false);
-      alert('Profile updated successfully');
+      toast.success('Profile updated successfully'); // Changed alert to toast
     } catch (error) {
       console.error('Error updating profile:', error);
-      alert(`Error updating profile: ${error.message}`);
+      toast.error(`Error updating profile: ${error.message}`); // Changed alert to toast
     }
   };
 
-
-  // Add this new handler function
   const handlePhotoUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Show preview
     setPhotoPreview(URL.createObjectURL(file));
 
     const formData = new FormData();
@@ -273,6 +283,38 @@ const Profile = () => {
     setEditingTreatment(null);
   };
 
+  const handleAddTag = () => {
+    if (tagInput && tags.length < 10 && getTotalTagsLength() + tagInput.length <= 500) {
+      setTags([...tags, tagInput.trim()]);
+      setTagInput('');
+    }
+  };
+
+  const handleRemoveTag = (indexToRemove) => {
+    setTags(tags.filter((_, index) => index !== indexToRemove));
+  };
+
+  const getTotalTagsLength = () => {
+    return tags.reduce((total, tag) => total + tag.length, 0);
+  };
+
+  const handleConsultationFeeChange = (value) => {
+    // Validate input to allow only numbers
+    if (!isNaN(value) && value >= 0) {
+      setConsultationFee(value);
+    }
+  };
+
+  const handleTreatmentChange = (index, field, value) => {
+    const updatedTreatments = [...treatments];
+    if (field === 'fee' && (!isNaN(value) && value >= 0)) {
+      updatedTreatments[index][field] = value;
+    } else if (field === 'name') {
+      updatedTreatments[index][field] = value;
+    }
+    setTreatments(updatedTreatments);
+  };
+
   // Show loading state
   if (loading) {
     return <div className="loading">Loading doctor profile...</div>;
@@ -288,9 +330,12 @@ const Profile = () => {
     return <div className="error">No doctor data available</div>;
   }
 
-// Add this before the return statement
-console.log('Image URL:', doctorData?.photoUrl ? `http://localhost:5000${doctorData.photoUrl}` : 'No photo URL');
+  // Add this before the return statement
+  console.log('Image URL:', doctorData?.photoUrl ? `http://localhost:5000${doctorData.photoUrl}` : 'No photo URL');
 
+
+  // Add safe access to fee property with default values
+  const feeDetails = doctorData?.fee || [];
 
   return (
     <div className="section-container">
@@ -692,7 +737,7 @@ console.log('Image URL:', doctorData?.photoUrl ? `http://localhost:5000${doctorD
                       className="treatment-fee"
                       onClick={() => isEditing && handleEditTreatment(treatment)}
                     >
-                      ${treatment.fee}
+                      ₹{treatment.fee}
                     </span>
                   )}
                 </div>
@@ -740,7 +785,76 @@ console.log('Image URL:', doctorData?.photoUrl ? `http://localhost:5000${doctorD
           )}
         </div>
 
+        <div className="tags-section">
+          <h4>Profile Tags</h4>
+          <div className="tags-container">
+            {tags.map((tag, index) => (
+              <div key={index} className="tag">
+                <span>{tag}</span>
+                {isEditing && (
+                  <button 
+                    className="remove-tag"
+                    onClick={() => handleRemoveTag(index)}
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+          
+          {isEditing && (
+            <div className="add-tag-form">
+              <input
+                type="text"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                placeholder="Add a service tag"
+                maxLength={50}
+                className="tag-input"
+              />
+              <button
+                className="add-tag-button"
+                onClick={handleAddTag}
+                disabled={!tagInput || tags.length >= 10 || getTotalTagsLength() + tagInput.length > 500}
+              >
+                Add Tag
+              </button>
+              <div className="tag-limits">
+                <small>{`${tags.length}/10 tags used (${getTotalTagsLength()}/500 characters)`}</small>
+              </div>
+            </div>
+          )}
+        </div>
 
+        <div className="consultation-fees-section">
+          <div className="section-header">
+            <h3>Consultation Fees</h3>
+          </div>
+
+          <div className="fee-container">
+            <div className="general-consultation-box">
+              <h4>General Consultation Fee</h4>
+              {isEditing ? (
+                <div className="fee-input-group">
+                  <span className="currency-symbol">₹</span>
+                  <input
+                    type="number"
+                    value={consultationFee}
+                    onChange={(e) => setConsultationFee(e.target.value)}
+                    placeholder="Enter consultation fee"
+                    className="fee-input"
+                    min="0"
+                  />
+                </div>
+              ) : (
+                <div className="fee-display">
+                 ₹{consultationFee || '0'}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
 
       </div>
     </div>

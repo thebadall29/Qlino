@@ -2,9 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import SearchProfile from '../SearchProfile/SearchProfile';
+import Pagination from '../Pagination/Pagination'; // Import the Pagination component
 
 const SearchSection = () => {
   const location = useLocation();
+  // Add this with other state declarations at the top
+const [searchContext, setSearchContext] = useState('all'); // 'all', 'doctor', 'specialization', 'problem'
   const navigate = useNavigate();
   const resultsContainerRef = useRef(null);
 
@@ -31,6 +34,11 @@ const SearchSection = () => {
   const [isLoadingDoctors, setIsLoadingDoctors] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalResults, setTotalResults] = useState(0);
+  const RESULTS_PER_PAGE = 10;
 
   const locationDebounceRef = useRef(null);
   const doctorDebounceRef = useRef(null);
@@ -66,73 +74,44 @@ const SearchSection = () => {
   };
 
   // Function to fetch doctors from API
-  const fetchDoctors = async (query, location) => {
+  const fetchDoctors = async (query, location, page = 1) => {
     try {
       setIsLoadingDoctors(true);
-  
-      // Trim the query to remove any leading/trailing spaces
       const trimmedQuery = query.trim();
-      
-      // If query contains spaces, we need to handle it specially
       let searchQuery = trimmedQuery;
       
-      // For partial name searches with spaces, use only the first part if the last part is very short
       const parts = trimmedQuery.split(' ');
       if (parts.length > 1 && parts[parts.length - 1].length < 2) {
-        // If the last part after space is just 1 character, search using only the first part
         searchQuery = parts[0];
       }
       
-      let url = `http://localhost:5000/api/doctor/search?query=${encodeURIComponent(searchQuery)}`;
+      let url = `http://localhost:5000/api/doctor/search?query=${encodeURIComponent(searchQuery)}&page=${page}&limit=${RESULTS_PER_PAGE}`;
       if (location) {
         url += `&location=${encodeURIComponent(location)}`;
       }
-  
+
       const response = await axios.get(url);
-      const doctorsData = response.data.map(doc => ({
+      
+      // Update search context based on response
+      if (response.data.matchType) {
+        setSearchContext(response.data.matchType);
+      }
+
+      // Update pagination states
+      setTotalResults(response.data.total); // This should be the total count of all results
+      setTotalPages(Math.ceil(response.data.total / RESULTS_PER_PAGE));
+      setCurrentPage(page);
+
+      const doctorsData = response.data.doctors.map(doc => ({
         ...doc,
         photoUrl: doc.photoUrl,
-        _id: doc.id || doc._id
+        _id: doc.id || doc._id,
+        context: response.data.matchType
       }));
-      
-      console.log('Doctors fetched:', doctorsData); // Log the fetched doctors data
-      // If we got no results and used a modified query, try with the original query
-      if (doctorsData.length === 0 && searchQuery !== trimmedQuery) {
-        url = `http://localhost:5000/api/doctor/search?query=${encodeURIComponent(trimmedQuery)}`;
-        if (location) {
-          url += `&location=${encodeURIComponent(location)}`;
-        }
-        
-        const fullResponse = await axios.get(url);
-        doctorsData.push(...fullResponse.data);
-      }
-      
-      // If we still have no results but have a space in the query, try searching with each part separately
-      if (doctorsData.length === 0 && parts.length > 1) {
-        
-        // Try searching with first name
-        const firstNameUrl = `http://localhost:5000/api/doctor/search?query=${encodeURIComponent(parts[0])}`;
-        const firstNameResponse = await axios.get(firstNameUrl);
-        
-        // Filter results that might match the full name
-        const filteredResults = firstNameResponse.data.filter(doctor => {
-          if (!doctor.name) return false;
-          const lowerName = doctor.name.toLowerCase();
-          // Check if doctor name contains all parts of the search query
-          return parts.every(part => part.length > 1 ? lowerName.includes(part.toLowerCase()) : true);
-        });
-        
-        doctorsData.push(...filteredResults);
-      }
-      
-      
-      // Remove duplicates if any
-      const uniqueDoctors = Array.from(new Map(doctorsData.map(doc => [doc.id, doc])).values());
-      console.log('Doctors fetched successfully:', uniqueDoctors); // Log the fetched doctors data
-      
-      setDoctors(uniqueDoctors);
+
+      setDoctors(doctorsData);
       setIsLoadingDoctors(false);
-      return uniqueDoctors;
+      return doctorsData;
     } catch (error) {
       console.error('Error fetching doctors:', error);
       setDoctors([]);
@@ -347,7 +326,7 @@ const SearchSection = () => {
         } else if (partialMatch) {
           setSelectedDoctor(partialMatch);
         } else if (results.length === 1) {
-          // If there's only one result, select it
+          // If there's only one result, set it as the selected doctor
           setSelectedDoctor(results[0]);
         } else {
           // Multiple results but no match
@@ -405,6 +384,14 @@ const SearchSection = () => {
   const handleTagClick = (tag) => {
     setDoctorTerm(tag);
     setSelectedDoctor(null); // Clear any selected doctor when clicking on tags
+  };
+
+  // Add handlePageChange function
+  const handlePageChange = async (page) => {
+    setIsSearching(true);
+    const results = await fetchDoctors(doctorTerm, locationTerm, page);
+    setSearchResults(results);
+    setIsSearching(false);
   };
 
   console.log("Selected Doctor:", selectedDoctor);
@@ -586,7 +573,8 @@ const SearchSection = () => {
                     photoUrl: doctor.photoUrl ,
                     _id: doctor.id || doctor._id // Ensure _id is present for consistency
                   }}
-                  resultCount={searchResults.length}
+                  resultCount={totalResults} // Changed from searchResults.length to totalResults
+                  totalResults={totalResults} // Add this new prop
                   index={index}
                   onDoubleClick={handleDoubleClick}
                 />
@@ -594,6 +582,14 @@ const SearchSection = () => {
             ) : (
               <div className="no-results-message">No doctors found matching your search criteria.</div>
             )
+          )}
+
+          {hasSearched && searchResults.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
           )}
         </div>
       )}

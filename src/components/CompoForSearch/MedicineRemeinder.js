@@ -1,6 +1,27 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const MedicineReminder = () => {
+  const navigate = useNavigate();
+
+  const handleAddMedicines = () => {
+    // Check if user is logged in by looking for token
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+      // If no token, redirect to login
+      navigate('/patient-dashboard', { 
+        state: { 
+          from: window.location.pathname,
+          message: 'Please login to add medicines' 
+        } 
+      });
+    } else {
+      // If logged in, go to medicines page
+      navigate('/patient-login');
+    }
+  };
+
   return (
     <div className="medicine-reminder-section">
       <div className="reminder-container">
@@ -24,7 +45,10 @@ const MedicineReminder = () => {
               </div>
             </div>
 
-            <button className="add-medicine-btn">
+            <button 
+              className="add-medicine-btn"
+              onClick={handleAddMedicines}
+            >
               Add Your Medicines
             </button>
           </div>

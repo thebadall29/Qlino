@@ -6,32 +6,32 @@ const MarqueeSection = () => {
     {
       icon: "https://images.unsplash.com/photo-1631815589968-fdb09a223b1e?w=200&q=80&auto=format",
       title: "Period doubts or Pregnancy",
-      link: "/consult/pregnancy"
+      link: "/search-problem/pregnancy"
     },
     {
       icon: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=200&q=80&auto=format",
       title: "Acne, pimple or skin issues",
-      link: "/consult/skin"
+      link: "/search-problem/skin rash"
     },
     {
       icon: "https://images.unsplash.com/photo-1584515933487-779824d29309?w=200&q=80&auto=format",
       title: "Performance issues in bed",
-      link: "/consult/performance"
+      link: "/search-problem/disc bulge"
     },
     {
       icon: "https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=200&q=80&auto=format",
       title: "Cold, cough or fever",
-      link: "/consult/fever"
+      link: "/search-problem/fever"
     },
     {
       icon: "https://images.unsplash.com/photo-1555252333-9f8e92e65df9?w=200&q=80&auto=format",
       title: "Child not feeling well",
-      link: "/consult/pediatric"
+      link: "/search-problem/chest pain"
     },
     {
       icon: "https://images.unsplash.com/photo-1527613426441-4da17471b66d?w=200&q=80&auto=format",
       title: "Depression or anxiety",
-      link: "/consult/mental-health"
+      link: "/search-problem/diabetes"
     }
   ];
 

@@ -365,28 +365,44 @@ exports.checkPatientExists = async (req, res) => {
 // ... existing code ...
 
 // Get doctor's appointments for a specific date
-
-
-
-
-
-
-
 exports.getDoctorAppointments = async (req, res) => {
-    try {
-    const { doctorId } = req.params;
-    const updates = req.body;
-    
-    const preferences = await DoctorPreference.findOneAndUpdate(
-      { doctorId },
-      updates,
-      { new: true, upsert: true }
-    );
-    
-    res.json(preferences);
+  try {
+    const doctorId = req.user.id;
+
+    // Ensure we have valid update data before attempting update
+    if (req.body && Object.keys(req.body).length > 0) {
+      // Update doctor preferences if provided
+      await Doctor.findOneAndUpdate(
+        { _id: doctorId },
+        { $set: req.body },
+        { new: true }
+      );
+    }
+
+    // Get appointments for the doctor
+    const appointments = await Appointment.find({ doctorId })
+      .populate('patientId', 'name email phone')
+      .sort({ appointmentDate: 1 });
+
+    if (!appointments) {
+      return res.status(404).json({
+        success: false,
+        message: 'No appointments found'
+      });
+    }
+
+    res.json({
+      success: true,
+      appointments
+    });
+
   } catch (error) {
-    console.error('Error updating doctor preferences:', error);
-    res.status(500).json({ message: 'Error updating doctor preferences' });
+    console.error('Error in getDoctorAppointments:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching appointments',
+      error: error.message
+    });
   }
 };
 
@@ -795,6 +811,8 @@ exports.bookAppointmentForUnregisteredPatient = async (req, res) => {
 exports.addToQueue = async (req, res) => {
   try {
     const { doctorId, date, patientName, contact, email, reason } = req.body;
+
+    console.log('Request body:', req.body.doctorId);
     
     // Validate required fields
     if (!doctorId || !date || !patientName || !contact || !reason) {
@@ -860,6 +878,7 @@ exports.addToQueue = async (req, res) => {
       queueNumber,
       status: 'scheduled'
     });
+
     
     await appointment.save();
     

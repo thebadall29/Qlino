@@ -238,12 +238,13 @@ const Appointments = () => {
         }
 
         const data = await response.json();
+        console.log('Doctor data from API:', data);
 
         // Transform the doctor data to match expected structure
         if (data.doctor) {
           const transformedDoctorData = {
             ...data.doctor,
-            _id: data.doctor.id // Map id to _id
+            _id: data.doctor._id // Map id to _id
           };
           setDoctorData(transformedDoctorData);
 
@@ -420,6 +421,8 @@ const Appointments = () => {
         alert("Cannot add patients to queue when doctor is not available on the selected date");
         return;
       }
+
+      console.log("doctor data", doctorData);
 
       // Prepare queue data
       const queueData = {

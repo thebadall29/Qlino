@@ -8,7 +8,7 @@ import MedicationPlan from './tabs/MedicationPlan';
 import EducationalResources from './tabs/EducationalResources';
 import Chat from './tabs/Chat';
 import Loader from '../ui/Loader'; // Adjust path if you place Loader.js elsewhere
-
+import MedicalRecordsTab from './tabs/MedicalRecordsTab';
 const PatientDashboardCompo = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [userData, setUserData] = useState(null);
@@ -165,6 +165,15 @@ const PatientDashboardCompo = () => {
             </li>
             <li>
               <button 
+                className={activeTab === 'medicalrecords' ? 'active' : ''} 
+                onClick={() => setActiveTab('medicalrecords')}
+              >
+                <span className="icon">📁</span>
+                Medical Records
+              </button>
+            </li>
+            <li>
+              <button 
                 className={activeTab === 'chat' ? 'active' : ''} 
                 onClick={() => setActiveTab('chat')}
               >
@@ -198,6 +207,7 @@ const PatientDashboardCompo = () => {
           {activeTab === 'symptoms' && <SymptomChecker />}
           {activeTab === 'appointments' && <AppointmentManager />}
           {activeTab === 'medications' && <MedicationPlan />}
+          {activeTab === 'medicalrecords' && <MedicalRecordsTab />}
           {activeTab === 'chat' && <Chat/>}
           {/* {activeTab === 'resources' && <EducationalResources />} */}
         </main>

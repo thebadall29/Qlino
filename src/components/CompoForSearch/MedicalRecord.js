@@ -1,6 +1,25 @@
 import React from 'react';
-
+import { useNavigate } from 'react-router-dom';
 const MedicalRecord = () => {
+  const navigate = useNavigate();
+  
+    const handleAddMedicalRecords = () => {
+      // Check if user is logged in by looking for token
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        // If no token, redirect to login
+        navigate('/patient-dashboard', { 
+          state: { 
+            from: window.location.pathname,
+            message: 'Please login to add medicines' 
+          } 
+        });
+      } else {
+        // If logged in, go to medicines page
+        navigate('/patient-login');
+      }
+    };
   return (
     <div className="medical-record-intro">
       <div className="intro-container">
@@ -29,7 +48,7 @@ const MedicalRecord = () => {
           </div>
         </div>
 
-        <button className="cta-button">
+        <button className="cta-button" onClick={handleAddMedicalRecords}>
           View Your Medical Records
         </button>
       </div>

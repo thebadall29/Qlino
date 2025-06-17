@@ -8,25 +8,25 @@ const ServiceSection = () => {
       image: "https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=500&q=80",
       title: "Dentist",
       description: "Teething troubles? Schedule a dental checkup",
-      route: "/dentist"
+      route: "/dermatology/doctors"
     },
     {
       image: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=500&q=80",
       title: "Gynecologist/Obstetrician",
       description: "Explore for women's health, pregnancy and infertility treatments",
-      route: "/gynecologist"
+      route: "/gynecology/doctors"
     },
     {
       image: "https://images.unsplash.com/photo-1505576399279-565b52d4ac71?w=500&q=80",
       title: "Dietitian/Nutrition",
       description: "Get guidance on eating right, weight management and sports nutrition",
-      route: "/dietitian"
+      route: "/general medicine/doctors"
     },
     {
       image: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=500&q=80",
       title: "Physiotherapist",
       description: "Pulled a muscle? Get it treated by a trained physiotherapist",
-      route: "/physiotherapist"
+      route: "/nephrology/doctors"
     }
   ];
 

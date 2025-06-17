@@ -468,6 +468,84 @@
 
   // Add these new styles to your existing SCSS file
 
+  .consultation-fees-section {
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  margin: 20px 0;
+
+  .section-header {
+    margin-bottom: 20px;
+
+    h3 {
+      margin: 0;
+      color: #333;
+      font-size: 1.2rem;
+    }
+  }
+
+  .general-consultation-box {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+
+    h4 {
+      margin: 0 0 16px 0;
+      color: #495057;
+      font-size: 1rem;
+    }
+  }
+
+  .fee-input-group {
+    display: flex;
+    align-items: center;
+    background: white;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: 0 12px;
+    max-width: 200px;
+
+    .currency-symbol {
+      color: #495057;
+      font-weight: 500;
+    }
+
+    .fee-input {
+      border: none;
+      padding: 8px;
+      width: 100%;
+      outline: none;
+      font-size: 1rem;
+
+      &:focus {
+        background: #fff;
+      }
+    }
+  }
+
+  .fee-display {
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: #2196f3;
+  }
+}
+
+.profile-image {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
 .section-header {
     display: flex;
     justify-content: space-between;
@@ -3856,6 +3934,91 @@ input[type="file"] {
       font-size: 18px;
       font-weight: 500;
       text-transform: uppercase;
+    }
+  }
+}
+
+.tags-section {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+  h4 {
+    margin-bottom: 1rem;
+    color: #2d3748;
+  }
+
+  .tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+
+    .tag {
+      display: flex;
+      align-items: center;
+      background: #edf2f7;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      color: #4a5568;
+
+      .remove-tag {
+        margin-left: 0.5rem;
+        background: none;
+        border: none;
+        color: #718096;
+        cursor: pointer;
+        padding: 0 0.25rem;
+        
+        &:hover {
+          color: #e53e3e;
+        }
+      }
+    }
+  }
+
+  .add-tag-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+
+    .tag-input {
+      flex: 1;
+      min-width: 200px;
+      padding: 0.5rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      font-size: 0.875rem;
+
+      &:focus {
+        outline: none;
+        border-color: #4299e1;
+      }
+    }
+
+    .add-tag-button {
+      padding: 0.5rem 1rem;
+      background: #4299e1;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+
+      &:disabled {
+        background: #cbd5e0;
+        cursor: not-allowed;
+      }
+    }
+
+    .tag-limits {
+      width: 100%;
+      color: #718096;
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
     }
   }
 }

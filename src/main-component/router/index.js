@@ -26,6 +26,8 @@ import AppointmentHeaderTab from '../AppointmentHeaderTab/AppointmentHeaderTab';
 import SymptomCheckerCompo from '../SymtomsChecker/SymptomChecker';
 import DoctorSpecialtiesComp from '../DoctorSpecialties/DoctorSpecialties';
 import DoctorListComp from '../DoctorList/DoctorList';
+import TagsSearchCompo from '../TagsSearch/TagsSearch';
+import TagDoctorListCompo from '../TagDoctorList/TagDoctorLIst';
 
 // Protected route component for patient
 const PatientProtectedRoute = ({ children }) => {
@@ -92,6 +94,8 @@ const AllRoute = () => {
           <Route path="find-specialist" element={<SymptomCheckerCompo/>} />
           <Route path="specialties" element={<DoctorSpecialtiesComp/>} />
           <Route path="/:specialty/doctors" element={<DoctorListComp/>} />
+          <Route path="/search-problem/:tag" element={<TagDoctorListCompo />} />
+        <Route path="/search-problem" element={<TagsSearchCompo />} />
           
           {/* Protected routes */}
           <Route 

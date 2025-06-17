@@ -1,0 +1,44 @@
+// Create a new file: d:\Qlino\src\components\Pagination\Pagination.scss
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 2rem 0;
+  
+  .pagination-button {
+    padding: 0.5rem 1rem;
+    border: 1px solid #e2e8f0;
+    background: white;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    
+    &:hover:not(:disabled) {
+      background: #f7fafc;
+      border-color: #cbd5e0;
+    }
+    
+    &.active {
+      background: #4299e1;
+      color: white;
+      border-color: #4299e1;
+    }
+    
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    &.ellipsis {
+      border: none;
+      padding: 0.5rem;
+      cursor: default;
+      
+      &:hover {
+        background: transparent;
+      }
+    }
+  }
+}

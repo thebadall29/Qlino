@@ -10,6 +10,7 @@ exports.getPatientsList = async (req, res) => {
     console.log("req.user:", req.user);
     // Use req.user.id instead of req.doctor.id
     const doctorId = req.user.id;
+    console.log("doctorId:", doctorId);
     
     if (!doctorId) {
       return res.status(401).json({
@@ -23,7 +24,7 @@ exports.getPatientsList = async (req, res) => {
     // Find all patients who have had appointments with this doctor
     const appointments = await Appointment.find({ 
       doctorId: doctorId,
-      status: { $in: ['completed', 'scheduled', 'Completed'] } // Add capital C version
+      status: { $in: ['completed', 'scheduled', 'Completed','Waiting'] } // Add capital C version
     }).distinct('patientEmail'); // Use patientEmail instead of patientId
     
     console.log("appointments:", appointments);

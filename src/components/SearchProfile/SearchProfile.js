@@ -5,7 +5,7 @@ import DoctorCard from '../DoctorCard/DoctorCard';
 import DoctorProfileModel from '../DoctorProfileModel/DoctorProfileModel';
 import './SearchProfile.scss';
 
-const SearchProfile = ({ doctor, resultCount, index }) => {
+const SearchProfile = ({ doctor, resultCount, index, totalResults }) => {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
@@ -101,7 +101,7 @@ const stringToColor = (string) => {
         <div className="search-results-header">
           <div className="header-content">
             <h1>Search Results</h1>
-            <span className="result-count">({resultCount} doctors found)</span>
+            <span className="result-count">({totalResults} doctors found)</span> {/* Changed from resultCount to totalResults */}
           </div>
         </div>
       )}

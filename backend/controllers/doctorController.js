@@ -26,7 +26,6 @@ const formatDoctorResponse = (doctor) => {
     treatments: doctor.treatments,
     bookingPreference: doctor.bookingPreference,
     location: doctor.city ? `${doctor.city}, ${doctor.state}` : 'Location not available',
-    // Additional formatting for frontend
     consultationFee: doctor.consultationFee || '1000',
     consultationTime: doctor.consultationTime || '20 minutes',
     availableDays: formatWorkingDays(doctor.workingDays),
@@ -614,19 +613,17 @@ exports.searchDoctors = async (req, res) => {
       const state = locationParts[1];
 
       if (state) {
-        // If both city and state are provided
         searchQuery = {
           $and: [
-            { city: new RegExp(city, 'i') },
-            { state: new RegExp(state, 'i') }
+            { city: new RegExp(`^${city}`, 'i') },
+            { state: new RegExp(`^${state}`, 'i') }
           ]
         };
       } else {
-        // If only city is provided, search in both city and state
         searchQuery = {
           $or: [
-            { city: new RegExp(city, 'i') },
-            { state: new RegExp(city, 'i') }
+            { city: new RegExp(`^${city}`, 'i') },
+            { state: new RegExp(`^${city}`, 'i') }
           ]
         };
       }
@@ -634,13 +631,29 @@ exports.searchDoctors = async (req, res) => {
 
     // Handle query search (name, specialization, tags)
     if (query && query.trim()) {
-      const queryRegex = new RegExp(query.trim(), 'i');
+      const queryTerms = query.trim().split(/\s+/);
+      
       const queryConditions = [
-        { firstName: queryRegex },
-        { lastName: queryRegex },
-        { specialization: queryRegex },
-        { tags: queryRegex },
-        { 'treatments.name': queryRegex }
+        // Full name match
+        {
+          $expr: {
+            $regexMatch: {
+              input: { $concat: ["$firstName", " ", "$lastName"] },
+              regex: new RegExp(query.trim(), 'i')
+            }
+          }
+        },
+        // Individual term matches for names
+        ...queryTerms.map(term => ({
+          $or: [
+            { firstName: new RegExp(`^${term}`, 'i') },
+            { lastName: new RegExp(`^${term}`, 'i') }
+          ]
+        })),
+        // Other fields
+        { specialization: new RegExp(query.trim(), 'i') },
+        { tags: new RegExp(query.trim(), 'i') },
+        { 'treatments.name': new RegExp(query.trim(), 'i') }
       ];
 
       // Combine location and query conditions
@@ -656,36 +669,36 @@ exports.searchDoctors = async (req, res) => {
       }
     }
 
-    console.log('Search Query:', JSON.stringify(searchQuery, null, 2));
 
-    // Get total count
-    const total = await Doctor.countDocuments(searchQuery);
-    
-    // Get paginated results
-    const doctors = await Doctor
-      .find(searchQuery)
-      .select('-password')
-      .sort({ firstName: 1 })
-      .skip(skip)
-      .limit(parseInt(limit))
-      .lean();
+    // Get total count with improved performance
+    const [total, doctors] = await Promise.all([
+      Doctor.countDocuments(searchQuery),
+      Doctor
+        .find(searchQuery)
+        .select('firstName lastName specialization city state experience treatments tags photoUrl')
+        .sort({ firstName: 1 })
+        .skip(skip)
+        .limit(parseInt(limit))
+        .lean()
+    ]);
 
-    // Format the response
+    // Format the response with improved name handling
     const formattedDoctors = doctors.map(doctor => ({
       id: doctor._id,
       firstName: doctor.firstName,
       lastName: doctor.lastName,
-      name: `${doctor.firstName} ${doctor.lastName}`,
+      name: `${doctor.firstName || ''} ${doctor.lastName || ''}`.trim(),
       specialization: doctor.specialization,
       city: doctor.city,
       state: doctor.state,
-      location: doctor.city && doctor.state ? `${doctor.city}, ${doctor.state}` : 'Location not available',
+      location: doctor.city && doctor.state 
+        ? `${doctor.city}, ${doctor.state}`
+        : doctor.city || doctor.state || 'Location not available',
       experience: doctor.experience,
       treatments: doctor.treatments || [],
       tags: doctor.tags || [],
       photoUrl: doctor.photoUrl
     }));
-
     res.json({
       success: true,
       doctors: formattedDoctors,
@@ -694,8 +707,7 @@ exports.searchDoctors = async (req, res) => {
       totalPages: Math.ceil(total / limit),
       resultsPerPage: parseInt(limit),
       query: query || '',
-      location: location || '',
-      searchQuery: searchQuery // Include for debugging
+      location: location || ''
     });
 
   } catch (error) {

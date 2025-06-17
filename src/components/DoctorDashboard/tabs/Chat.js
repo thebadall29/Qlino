@@ -34,11 +34,13 @@ const Chat = () => {
           }
         });
 
+
         if (!response.ok) {
           throw new Error(`Failed to fetch patients: ${response.status}`);
         }
 
         const data = await response.json();
+        console.log('Fetched patients:', data);
 
         if (data.success) {
           setPatients(data.patients);

@@ -15,6 +15,7 @@ const patientChatRoutes = require('./routes/patientChatRoutes');
 const PORT = process.env.PORT || 5000;
 const authRoutes = require('./routes/authRoutes');
 const specialtyRoutes = require('./routes/specialtyRoutes');
+const tagRoutes = require('./routes/tagRoutes');
 
 // Connect to MongoDB
 connectDB();
@@ -43,6 +44,7 @@ app.use((err, req, res, next) => {
 app.use('/api/doctor', doctorRoutes);
 app.use('/api/symptoms', symptomRoutes);
 app.use('/api', appointmentRoutes);
+app.use('/api/tags', tagRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/doctor/chat', doctorChatRoutes);
 app.use('/api/patient/chat', patientChatRoutes);
