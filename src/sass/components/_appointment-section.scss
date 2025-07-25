@@ -445,8 +445,19 @@
       }
 
       .appointment-title {
-        font-size: 3rem;
+        font-size: 2.5rem;
+        text-align: left;
       }
+    }
+    .guaranteed{
+      display: block;
+      margin: 0;
+    }
+    .find-doctor-btn{
+      width: 70vw;
+    }
+    .app-preview{
+      width: 70vw;
     }
   }
 }

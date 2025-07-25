@@ -9,7 +9,7 @@ const QlinoApp = () => {
         <section className="qlino-app-section">
             <div className="container">
                 <div className="row align-items-center">
-                    <div className="col-lg-6">
+                    <div className="col-lg-6 div-box">
                         <motion.div 
                             className="app-mockup"
                             initial={{ opacity: 0, scale: 0.8 }}
@@ -19,7 +19,7 @@ const QlinoApp = () => {
                             <img src={GoolgePlayStore} alt="Qlino App Chat" className="mockup-image" />
                         </motion.div>
                     </div>
-                    <div className="col-lg-6">
+                    <div className="col-lg-6 div-box">
                         <motion.div 
                             className="app-info"
                             initial={{ opacity: 0, x: -50 }}

@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
+const passport = require('passport');
 const app = express();
 const path = require('path'); 
 const patientRoutes = require('./routes/patientRoutes');
@@ -30,6 +31,9 @@ app.use(express.json());
 
 app.use(express.json({ limit: '100mb' })); // Adjust limit as needed, e.g., '10mb', '50mb', '100mb'
 app.use(express.urlencoded({ limit: '100mb', extended: true }));
+
+// Initialize Passport
+app.use(passport.initialize());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/patient', patientRoutes);

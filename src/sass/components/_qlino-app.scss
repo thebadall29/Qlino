@@ -74,3 +74,17 @@
 .app-buttons a:hover img {
     transform: translateY(-5px);
 }
+
+@media (max-width: 992px) {
+    .container div{
+        display: flex;
+        flex-direction: column;
+    }
+    .container .div-box{
+        max-width: 90vw;
+        margin: 0 auto;
+    }
+    .app-buttons{
+        flex-direction: column;
+    }
+}

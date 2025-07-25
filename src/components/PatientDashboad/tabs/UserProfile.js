@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 
 const UserProfile = () => {
   const [personalInfo, setPersonalInfo] = useState({
@@ -12,6 +13,7 @@ const UserProfile = () => {
     state: '',
     country: ''
   });
+  const [selectedFile, setSelectedFile] = useState(null);
 
   const [profilePhoto, setProfilePhoto] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
@@ -186,16 +188,38 @@ const UserProfile = () => {
 
   const handleSave = async () => {
     try {
-      // Get the auth token from localStorage - use only 'token'
       const token = localStorage.getItem('token');
 
       if (!token) {
         throw new Error('Authentication token not found');
       }
 
+      // First upload photo if one is selected
+      let photoUrl = personalInfo.photoUrl;
+      if (selectedFile) {
+        const formData = new FormData();
+        formData.append('photo', selectedFile);
+
+        const photoResponse = await fetch('http://localhost:5000/api/patient/upload-profile-photo', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: formData
+        });
+
+        if (!photoResponse.ok) {
+          throw new Error('Failed to upload photo');
+        }
+
+        const photoData = await photoResponse.json();
+        photoUrl = photoData.photoUrl;
+        setSelectedFile(null);
+      }
+
       // Log the data being sent to the server
       console.log('Sending profile update:', {
-        personalInfo: editData.personalInfo,
+        personalInfo: { ...editData.personalInfo, photoUrl },
         medicalHistory: editData.medicalHistory
       });
 
@@ -206,7 +230,7 @@ const UserProfile = () => {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          personalInfo: editData.personalInfo,
+          personalInfo: { ...editData.personalInfo, photoUrl },
           medicalHistory: editData.medicalHistory
         })
       });
@@ -234,17 +258,16 @@ const UserProfile = () => {
       setMedicalHistory({ ...editData.medicalHistory });
       setEditMode(false);
 
-      // Show success message (optional)
-      alert('Profile updated successfully');
+      toast.success('Profile updated successfully');
     } catch (error) {
       console.error('Error updating profile:', error);
       setError(error.message);
-      alert(`Error: ${error.message}`);
+      toast.error(`Error updating profile: ${error.message}`);
     }
   };
 
   // Add this handler function
-  const handlePhotoUpload = async (e) => {
+  const handlePhotoUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -253,47 +276,9 @@ const UserProfile = () => {
       URL.revokeObjectURL(photoPreview);
     }
 
-    // Create preview
+    setSelectedFile(file);
     const previewUrl = URL.createObjectURL(file);
     setPhotoPreview(previewUrl);
-
-    try {
-      const formData = new FormData();
-      formData.append('photo', file);
-
-      const token = localStorage.getItem('token');
-      if (!token) throw new Error('Authentication token not found');
-
-      const response = await fetch('http://localhost:5000/api/patient/upload-profile-photo', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to upload photo');
-      }
-
-      const data = await response.json();
-
-      if (data.success) {
-        setProfilePhoto(data.photoUrl);
-        setPersonalInfo(prev => ({
-          ...prev,
-          photoUrl: data.photoUrl
-        }));
-        alert('Profile photo uploaded successfully');
-      }
-    } catch (error) {
-      console.error('Error uploading photo:', error);
-      alert('Failed to upload photo: ' + error.message);
-    } finally {
-      // Clean up preview URL
-      URL.revokeObjectURL(previewUrl);
-      setPhotoPreview(null);
-    }
   };
   const handleEdit = () => {
     setEditMode(true);

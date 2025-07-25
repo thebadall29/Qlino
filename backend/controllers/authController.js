@@ -2,6 +2,7 @@ const User = require('../models/User');
 const Doctor = require('../models/Doctor');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const passport = require('passport');
 const { invalidateToken } = require('../middleware/auth');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
@@ -11,15 +12,26 @@ exports.register = async (req, res) => {
   try {
     const { username, email, password, firstName, lastName, mobile, role, specialization, experience } = req.body;
     
-    // Check if user already exists
-    const existingUser = await User.findOne({ 
-      $or: [{ email }, { username }] 
-    });
+    // Check if email exists in either User or Doctor collection
+    const existingUser = await User.findOne({ email });
+    const existingDoctor = await Doctor.findOne({ email });
     
-    if (existingUser) {
+    if (existingUser || existingDoctor) {
       return res.status(400).json({ 
-        message: 'User with this email or username already exists' 
+        message: 'This email is already registered. Please use a different email address.' 
       });
+    }
+    
+    // Check if username exists (if provided)
+    if (username) {
+      const userWithUsername = await User.findOne({ username });
+      const doctorWithUsername = await Doctor.findOne({ username });
+      
+      if (userWithUsername || doctorWithUsername) {
+        return res.status(400).json({ 
+          message: 'This username is already taken. Please choose a different username.' 
+        });
+      }
     }
     
     // Create new user with verified status
@@ -111,12 +123,13 @@ exports.registerDoctor = async (req, res) => {
   try {
     const { firstName, lastName, email, password, specialization, mobile, experience } = req.body;
     
-    // Check if doctor already exists
+    // Check if email exists in either Doctor or User collection
     const existingDoctor = await Doctor.findOne({ email });
+    const existingUser = await User.findOne({ email });
     
-    if (existingDoctor) {
+    if (existingDoctor || existingUser) {
       return res.status(400).json({ 
-        message: 'Doctor with this email already exists' 
+        message: 'This email is already registered. Please use a different email address.' 
       });
     }
     
@@ -213,4 +226,97 @@ exports.doctorLogin = async (req, res) => {
     console.error('Doctor login error details:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
+};
+
+// Google OAuth routes
+exports.googleAuth = (req, res, next) => {
+
+  const userType = req.userType || 'patient';
+  passport.authenticate('google', {
+    scope: ['profile', 'email'],
+    state: userType
+  })(req, res, next);
+};
+
+exports.googleCallback = (req, res, next) => {
+  // Get the userType from the state parameter
+  const userType = req.query.state || 'patient';
+  
+  console.log('Google callback received with state:', userType);
+  
+  passport.authenticate('google', { session: false }, async (err, user) => {
+    try {
+      if (err) {
+        console.error('Google authentication error:', err); // Debug log
+        return res.redirect(`/doctor-login?error=${encodeURIComponent('Authentication failed')}`);
+      }
+      
+      if (!user) {
+        return res.redirect(`doctor/login?error=${encodeURIComponent('User not found')}`);
+      }
+      
+      // Ensure the role matches the intended userType from the OAuth flow
+      const role = userType;
+      
+      // Check if the email is already registered in the other role
+      const email = user.email;
+      const existingDoctor = await Doctor.findOne({ email });
+      const existingUser = await User.findOne({ email });
+    
+      const frontendURL = 'http://localhost:3000';
+
+      if (role === 'doctor' && existingUser) {
+        return res.redirect(`${frontendURL}/doctor-login?error=${encodeURIComponent('This email is already registered as a patient. Please use a different email.')}`);
+      }
+      
+      if (role === 'patient' && existingDoctor) {
+        return res.redirect(`${frontendURL}/patient-login?error=${encodeURIComponent('This email is already registered as a doctor. Please use a different email.')}`);
+      }
+      
+      console.log('User authenticated as:', role); // Debug log
+      
+      // Generate JWT token with the role from state parameter
+      const token = jwt.sign(
+        { id: user._id, role },
+        process.env.JWT_SECRET || 'your_jwt_secret_key',
+        { expiresIn: '1d' }
+      );
+      
+      // Store user data in a format that can be retrieved by the frontend
+      const userData = {
+        id: user._id,
+        email: user.email,
+        role: role,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        ...(role === 'doctor' && { specialization: user.specialization })
+      };
+      
+      // Encode user data for URL
+      const encodedUserData = encodeURIComponent(JSON.stringify(userData));
+      
+      // Redirect to frontend with token and user data
+      const redirectPath = role === 'patient' ? 'patient-dashboard' : 'doctor-dashboard';
+      res.redirect(`${frontendURL}/${redirectPath}?token=${token}&userData=${encodedUserData}&role=${role}`);
+    } catch (error) {
+      console.error('Error in Google OAuth callback:', error);
+      return res.redirect(`${frontendURL}/doctor-login?error=${encodeURIComponent('Authentication failed: ' + error.message)}`);
+    }
+  })(req, res, next);
+};
+
+// Handle Google login for doctor
+exports.googleDoctorAuth = (req, res, next) => {
+  // Set userType directly on the request object
+  req.userType = 'doctor';
+  console.log('Setting up Google OAuth for doctor');
+  exports.googleAuth(req, res, next);
+};
+
+// Handle Google login for patient
+exports.googlePatientAuth = (req, res, next) => {
+  // Set userType directly on the request object
+  req.userType = 'patient';
+  console.log('Setting up Google OAuth for patient');
+  exports.googleAuth(req, res, next);
 };

@@ -1,12 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { handleAuthRedirect } from '../../utils/authUtils';
+import { 
+  FaUserMd, FaUsers, FaCalendarAlt, FaComments, 
+  FaClipboardList, FaImages, FaSignOutAlt, FaBars, FaTimes 
+} from 'react-icons/fa';
 import './DoctorDashboard.scss';
+
+// Import components
 import Profile from './tabs/Profile';
 import PatientManagement from './tabs/PatientManagement';
 import Appointments from './tabs/Appointments';
 import Chat from './tabs/Chat';
 import TodaysBookings from './tabs/TodaysBookings';
-import Photos from './tabs/Photos'; // Import the new Photos component
+import Photos from './tabs/Photos';
 
 const DoctorDashboardCompo = () => {
   const [activeTab, setActiveTab] = useState('profile');
@@ -17,15 +24,63 @@ const DoctorDashboardCompo = () => {
     availability: ""
   });
   const [loading, setLoading] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Fetch doctor data when component mounts
+  // Check for token in URL and handle authentication, then fetch user data
   useEffect(() => {
-    const fetchDoctorData = async () => {
+    const fetchUserData = async () => {
+      setLoading(true);
       try {
+        // First check URL parameters for token and user data
+        const params = new URLSearchParams(window.location.search);
+        const tokenFromUrl = params.get('token');
+        const userDataFromUrl = params.get('userData');
+
+        console.log('URL parameters:', {
+          token: tokenFromUrl,
+          userData: userDataFromUrl
+        });
+
+        // If we have data in URL, store it
+        if (tokenFromUrl) {
+          localStorage.setItem('token', tokenFromUrl);
+          // Clean up URL
+          params.delete('token');
+        }
+
+        if (userDataFromUrl) {
+          try {
+            const userData = JSON.parse(decodeURIComponent(userDataFromUrl));
+            localStorage.setItem('user', JSON.stringify(userData));
+            localStorage.setItem('userType', userData.role || 'doctor');
+            params.delete('userData');
+          } catch (e) {
+            console.error('Error parsing userData from URL:', e);
+          }
+        }
+
+        // Clean up URL if we had parameters
+        if (tokenFromUrl || userDataFromUrl) {
+          const newUrl = window.location.pathname + (params.toString() ? `?${params.toString()}` : '');
+          window.history.replaceState({}, '', newUrl);
+        }
+
+        // Now check authentication state
         const token = localStorage.getItem('token');
-        if (!token) {
-          console.error('No authentication token found');
+        const userStr = localStorage.getItem('user');
+        
+        console.log('Current auth state after URL check:', {
+          token: token ? token.substring(0, 20) + '...' : null,
+          userStr: userStr,
+          tokenType: typeof token,
+          userType: localStorage.getItem('userType')
+        });
+
+        if (!token || !userStr) {
+          console.error('No authentication data found');
+          navigate('/doctor-login'); 
           return;
         }
 
@@ -35,21 +90,12 @@ const DoctorDashboardCompo = () => {
           }
         });
 
-        
-
         if (!response.ok) {
           throw new Error(`Failed to fetch doctor data: ${response.status}`);
         }
 
         const data = await response.json();
-        console.log('Doctor data from API:', data);
-        
-        // Extract doctor data from response
         const doctor = data.doctor || data;
-
-        console.log('Extracted doctor data:', doctor);
-        
-        // Update state with doctor data
         setDoctorData({
           name: `Dr. ${doctor.firstName} ${doctor.lastName}`,
           specialization: doctor.specialization || 'Specialist',
@@ -58,14 +104,50 @@ const DoctorDashboardCompo = () => {
         });
       } catch (error) {
         console.error('Error fetching doctor data:', error);
-        // Keep the default values if there's an error
       } finally {
         setLoading(false);
       }
     };
 
-    fetchDoctorData();
-  }, []);
+    // Handle OAuth redirect first
+    const userData = handleAuthRedirect();
+    if (userData) {
+      // If profile is incomplete, fetch it
+      if (!userData.specialization) {
+        const fetchDoctorProfile = async () => {
+          try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://localhost:5000/api/doctor/profile/${userData.id}`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+              const data = await response.json();
+              localStorage.setItem('user', JSON.stringify({ ...data, role: 'doctor' }));
+            }
+          } catch (error) {
+            console.error('Error fetching doctor profile after OAuth:', error);
+          } finally {
+            // After attempting to fetch profile, fetch dashboard data
+            fetchUserData();
+          }
+        };
+        fetchDoctorProfile();
+      } else {
+        // If profile is complete, just fetch dashboard data
+        fetchUserData();
+      }
+    } else {
+      // For normal component load, fetch dashboard data
+      fetchUserData();
+    }
+  }, [location, navigate]);
+
+  // URL parameters are now handled in the main useEffect
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setMobileMenuOpen(false); // Close mobile menu when changing tabs
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -80,7 +162,7 @@ const DoctorDashboardCompo = () => {
       case 'todaysBookings':
         return <TodaysBookings />;
       case 'photos':
-        return <Photos />; // Add the Photos component
+        return <Photos />;
       default:
         return <Profile />;
     }
@@ -89,99 +171,77 @@ const DoctorDashboardCompo = () => {
   const handleLogout = () => {
     // Clear the authentication token
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     // Redirect to login page
     navigate('/');
   };
 
+  // Define navigation items with icons
+  const navItems = [
+    { id: 'profile', label: 'Profile', icon: <FaUserMd /> },
+    { id: 'patients', label: 'Patient Management', icon: <FaUsers /> },
+    { id: 'appointments', label: 'Appointments', icon: <FaCalendarAlt /> },
+    { id: 'chat', label: 'Chat', icon: <FaComments /> },
+    { id: 'todaysBookings', label: 'Today\'s Bookings', icon: <FaClipboardList /> },
+    { id: 'photos', label: 'Photos', icon: <FaImages /> },
+  ];
 
   return (
     <div className="doctor-dashboard">
       <header className="dashboard-header">
-        <h1>Doctor Admin Panel</h1>
+        <div className="menu-toggle-container">
+          <button 
+            className="menu-toggle"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle navigation menu"
+          >
+            {mobileMenuOpen ? <FaTimes /> : <FaBars />}
+          </button>
+          <h1>Doctor Dashboard</h1>
+        </div>
+        
         <div className="user-info">
           <span>Welcome, {doctorData.name}</span>
-           <div className="user-avatar">
-    {doctorData.avatar ? (
-      <img 
-        src={(doctorData?.avatar ? `http://localhost:5000${doctorData.avatar}` : '')} 
-        alt={doctorData.name}
-        onError={(e) => {
-          e.target.onError = null;
-          e.target.src = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="20">${doctorData.name.charAt(0)}</text></svg>`;
-        }}
-      />
-    ) : (
-      <div className="avatar-fallback">
-        {doctorData.name.charAt(0)}
-      </div>
-    )}
-  </div>
+          <div className="user-avatar">
+            {doctorData.avatar ? (
+              <img 
+                src={`http://localhost:5000${doctorData.avatar}`} 
+                alt={doctorData.name}
+                onError={(e) => {
+                  e.target.onError = null;
+                  e.target.src = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="20">${doctorData.name.charAt(0)}</text></svg>`;
+                }}
+              />
+            ) : (
+              <div className="avatar-fallback">
+                {doctorData.name.charAt(0)}
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
       <div className="dashboard-container">
-        <nav className="dashboard-nav">
+        <nav className={`dashboard-nav ${mobileMenuOpen ? 'mobile-open' : ''}`}>
           <ul>
-            <li>
-              <button 
-                className={activeTab === 'profile' ? 'active' : ''} 
-                onClick={() => setActiveTab('profile')}
-              >
-                <span className="icon">👤</span>
-                Profile
-              </button>
-            </li>
-            <li>
-              <button 
-                className={activeTab === 'patients' ? 'active' : ''} 
-                onClick={() => setActiveTab('patients')}
-              >
-                <span className="icon">👥</span>
-                Patient Management
-              </button>
-            </li>
-            <li>
-              <button 
-                className={activeTab === 'appointments' ? 'active' : ''} 
-                onClick={() => setActiveTab('appointments')}
-              >
-                <span className="icon">📅</span>
-                Appointments
-              </button>
-            </li>
-            <li>
-              <button 
-                className={activeTab === 'chat' ? 'active' : ''} 
-                onClick={() => setActiveTab('chat')}
-              >
-                <span className="icon">💬</span>
-                Chat
-              </button>
-            </li>
-            <li>
-              <button 
-                className={activeTab === 'todaysBookings' ? 'active' : ''} 
-                onClick={() => setActiveTab('todaysBookings')}
-              >
-                <span className="icon">📋</span>
-                Today's Bookings
-              </button>
-            </li>
-            <li>
-              <button 
-                className={activeTab === 'photos' ? 'active' : ''} 
-                onClick={() => setActiveTab('photos')}
-              >
-                <span className="icon">📷</span>
-                Photos
-              </button>
-            </li>
+            {navItems.map(item => (
+              <li key={item.id}>
+                <button 
+                  className={activeTab === item.id ? 'active' : ''}
+                  onClick={() => handleTabChange(item.id)}
+                >
+                  <span className="icon">{item.icon}</span>
+                  {item.label}
+                </button>
+              </li>
+            ))}
             <li className="logout-item">
               <button 
                 onClick={handleLogout}
                 className="logout-button"
+                aria-label="Logout"
               >
-                <span className="icon">🚪</span>
+                <span className="icon"><FaSignOutAlt /></span>
                 Logout
               </button>
             </li>

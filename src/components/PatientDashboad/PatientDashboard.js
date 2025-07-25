@@ -1,20 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
+import { handleAuthRedirect } from '../../utils/authUtils';
+import { 
+  FaUserAlt, FaThermometerHalf, FaCalendarAlt, FaPills, 
+  FaFolder, FaComments, FaSignOutAlt, FaBars, FaTimes 
+} from 'react-icons/fa';
 import './PatientDashboard.scss';
+
+// Import tab components
 import UserProfile from './tabs/UserProfile';
 import SymptomChecker from './tabs/SymptomChecker';
 import AppointmentManager from './tabs/AppointmentManager';
 import MedicationPlan from './tabs/MedicationPlan';
 import EducationalResources from './tabs/EducationalResources';
 import Chat from './tabs/Chat';
-import Loader from '../ui/Loader'; // Adjust path if you place Loader.js elsewhere
+import Loader from '../ui/Loader';
 import MedicalRecordsTab from './tabs/MedicalRecordsTab';
+
 const PatientDashboardCompo = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [dashboardTitle, setDashboardTitle] = useState('Patient Admin Panel');
+  const [dashboardTitle, setDashboardTitle] = useState('Patient Dashboard');
   const [profilePhoto, setProfilePhoto] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   
   // Get URL parameters and query parameters
@@ -23,6 +32,37 @@ const PatientDashboardCompo = () => {
   const queryParams = new URLSearchParams(location.search);
 
   useEffect(() => {
+    // Check if we have a token in the URL (from Google OAuth redirect)
+    const userData = handleAuthRedirect();
+    if (userData) {
+      // If we have user data from the token but need additional profile data
+      if (!userData.medicalHistory) {
+        // Fetch the complete patient profile if needed
+        const fetchPatientProfile = async () => {
+          try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://localhost:5000/api/patient/profile/${userData.id}`, {
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            });
+            
+            if (response.ok) {
+              const data = await response.json();
+              // Update user data in localStorage with complete profile
+              localStorage.setItem('user', JSON.stringify({
+                ...data,
+                role: 'patient'
+              }));
+            }
+          } catch (error) {
+            console.error('Error fetching patient profile after OAuth:', error);
+          }
+        };
+        fetchPatientProfile();
+      }
+    }
+    
     // Get dashboard title from URL query parameter if available
     const titleFromUrl = queryParams.get('title');
     if (titleFromUrl) {
@@ -52,7 +92,6 @@ const PatientDashboardCompo = () => {
         }
     
         const data = await response.json();
-        // console.log('Dashboard data:', data);
         
         if (data.user) {
           setUserData(data.user);
@@ -95,14 +134,39 @@ const PatientDashboardCompo = () => {
     navigate('/');
   };
 
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setMobileMenuOpen(false); // Close mobile menu when changing tabs
+  };
+
   if (loading) {
     return <Loader />;
   }
   
+  // Define navigation items with icons
+  const navItems = [
+    { id: 'profile', label: 'Profile', icon: <FaUserAlt /> },
+    { id: 'symptoms', label: 'Symptom Checker', icon: <FaThermometerHalf /> },
+    { id: 'appointments', label: 'Appointment Manager', icon: <FaCalendarAlt /> },
+    { id: 'medications', label: 'Medication Plan', icon: <FaPills /> },
+    { id: 'medicalrecords', label: 'Medical Records', icon: <FaFolder /> },
+    { id: 'chat', label: 'Chat', icon: <FaComments /> },
+  ];
+  
   return (
-    <div className="patient-dashboard">
+    <div className={`patient-dashboard ${mobileMenuOpen ? 'menu-open' : ''}`}>
       <header className="dashboard-header">
-        <h1>{dashboardTitle}</h1>
+        <div className="menu-toggle-container">
+          <button 
+            className="menu-toggle"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle navigation menu"
+          >
+            {mobileMenuOpen ? <FaTimes /> : <FaBars />}
+          </button>
+          <h1>{dashboardTitle}</h1>
+        </div>
+        
         <div className="user-info">
           <span>Welcome, {userData?.username || 'User'}</span>
           <div className="user-avatar">
@@ -112,90 +176,45 @@ const PatientDashboardCompo = () => {
                 alt="Profile" 
                 className="avatar-image"
                 onError={(e) => {
-                  console.error('Avatar image load error:', e.target.src);
+                  e.target.onError = null;
                   e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'block';
+                  // Show user initials instead
+                  const avatarFallback = document.createElement('div');
+                  avatarFallback.className = 'avatar-fallback';
+                  avatarFallback.textContent = userData?.username?.[0]?.toUpperCase() || 'U';
+                  e.target.parentNode.appendChild(avatarFallback);
                 }}
               />
             ) : (
-              <span className="avatar-text">{userData?.username?.[0]?.toUpperCase() || 'U'}</span>
+              <div className="avatar-fallback">
+                {userData?.username?.[0]?.toUpperCase() || 'U'}
+              </div>
             )}
           </div>
         </div>
       </header>
 
       <div className="dashboard-container">
-        <nav className="dashboard-nav">
+        <nav className={`dashboard-nav ${mobileMenuOpen ? 'mobile-open' : ''}`}>
           <ul>
-            <li>
-              <button 
-                className={activeTab === 'profile' ? 'active' : ''} 
-                onClick={() => setActiveTab('profile')}
-              >
-                <span className="icon">👤</span>
-                Profile
-              </button>
-            </li>
-            <li>
-              <button 
-                className={activeTab === 'symptoms' ? 'active' : ''} 
-                onClick={() => setActiveTab('symptoms')}
-              >
-                <span className="icon">🤒</span>
-                Symptom Checker
-              </button>
-            </li>
-            <li>
-              <button 
-                className={activeTab === 'appointments' ? 'active' : ''} 
-                onClick={() => setActiveTab('appointments')}
-              >
-                <span className="icon">📅</span>
-                Appointment Manager
-              </button>
-            </li>
-            <li>
-              <button 
-                className={activeTab === 'medications' ? 'active' : ''} 
-                onClick={() => setActiveTab('medications')}
-              >
-                <span className="icon">💊</span>
-                Medication Plan
-              </button>
-            </li>
-            <li>
-              <button 
-                className={activeTab === 'medicalrecords' ? 'active' : ''} 
-                onClick={() => setActiveTab('medicalrecords')}
-              >
-                <span className="icon">📁</span>
-                Medical Records
-              </button>
-            </li>
-            <li>
-              <button 
-                className={activeTab === 'chat' ? 'active' : ''} 
-                onClick={() => setActiveTab('chat')}
-              >
-                <span className="icon">💬</span>
-                Chat
-              </button>
-            </li>
-            <li>
-              {/* <button 
-                className={activeTab === 'resources' ? 'active' : ''} 
-                onClick={() => setActiveTab('resources')}
-              >
-                <span className="icon">📚</span>
-                Educational Resources
-              </button> */}
-            </li>
+            {navItems.map(item => (
+              <li key={item.id}>
+                <button 
+                  className={activeTab === item.id ? 'active' : ''}
+                  onClick={() => handleTabChange(item.id)}
+                >
+                  <span className="icon">{item.icon}</span>
+                  {item.label}
+                </button>
+              </li>
+            ))}
             <li className="logout-item">
               <button 
                 onClick={handleLogout}
                 className="logout-button"
+                aria-label="Logout"
               >
-                <span className="icon">🚪</span>
+                <span className="icon"><FaSignOutAlt /></span>
                 Logout
               </button>
             </li>
@@ -203,13 +222,12 @@ const PatientDashboardCompo = () => {
         </nav>
 
         <main className="dashboard-content">
-          {activeTab === 'profile' && <UserProfile />}
+          {activeTab === 'profile' && <UserProfile userData={userData} />}
           {activeTab === 'symptoms' && <SymptomChecker />}
           {activeTab === 'appointments' && <AppointmentManager />}
           {activeTab === 'medications' && <MedicationPlan />}
           {activeTab === 'medicalrecords' && <MedicalRecordsTab />}
-          {activeTab === 'chat' && <Chat/>}
-          {/* {activeTab === 'resources' && <EducationalResources />} */}
+          {activeTab === 'chat' && <Chat />}
         </main>
       </div>
     </div>

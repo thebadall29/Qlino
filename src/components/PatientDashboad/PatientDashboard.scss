@@ -1,5 +1,20 @@
 /* PatientDashboard.css */
 
+/* Core Variables */
+$primary-color: #0066ff;
+$secondary-color: #2c3e50;
+$accent-color: #10b981;
+$danger-color: #ef4444;
+$warning-color: #f59e0b;
+$light-bg: #f8fafc;
+$border-color: #e2e8f0;
+$text-primary: #1e293b;
+$text-secondary: #64748b;
+$box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+$transition: all 0.3s ease;
+$border-radius: 12px;
+$border-radius-sm: 6px;
+
 /* General Styles */
 * {
     box-sizing: border-box;
@@ -42,409 +57,387 @@
     margin-bottom: 16px;
   }
   
-  /* Dashboard Layout */
+  /* Main Dashboard Layout */
 .patient-dashboard {
-  max-width: 99vw;
-  margin: 5rem auto;
-  padding: 20px;
+  min-height: 100vh;
+  background-color: $light-bg;
+  font-family: 'Inter', system-ui, sans-serif;
+  position: relative;
+  
+  // Header Styles
+  .dashboard-header {
+    height: 70px;
+    background-color: white;
+    padding: 0 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
 
-  &.loading-active {
-    // Optional: you could hide or alter the dashboard while loader is explicitly active
-    // For a simple fade-in, we might not need this if the loader covers the screen
-  }
+    h1 {
+      color: $text-primary;
+      font-size: clamp(1rem, 5vw, 1.5rem);
+      font-weight: 600;
+      margin: 0;
+    }
 
-  // This will be the main container that fades in
-  .dashboard-content-wrapper {
-    opacity: 0;
-    transition: opacity 0.5s ease-in-out; // Adjust timing as needed
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
 
-    &.loaded {
-      opacity: 1;
+      span {
+        display: none;
+        font-weight: 500;
+        color: $text-secondary;
+        font-size: 0.95rem;
+
+        @media (min-width: 768px) {
+          display: block;
+        }
+      }
+
+      .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        overflow: hidden;
+        background-color: $primary-color;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+
+        .avatar-image {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .avatar-fallback {
+          font-size: 1.25rem;
+          line-height: 1;
+        }
+      }
     }
   }
-}
 
-  
-  
-  .dashboard-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid #e5e7eb;
-  }
-  
-  .user-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  
-  .user-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: #3b82f6;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-  }
-  
+  // Dashboard Container
   .dashboard-container {
     display: flex;
-    gap: 20px;
+    padding-top: 70px;
+    position: relative;
+    height: calc(100vh - 70px);
+    margin-top: 4rem;
   }
-  
+
+  // Navigation Sidebar
   .dashboard-nav {
-    width: 320px;
+    width: 70px;
     background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    padding: 15px;
-    height: fit-content;
-  }
+    position: fixed;
+    left: 0;
+    top: 70px;
+    bottom: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 99;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.03);
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
-  .profile-photo-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 2rem;
-
-  .profile-photo-container {
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    overflow: hidden;
-    background-color: #f0f0f0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 1rem;
-    border: 3px solid #fff;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-
-    .profile-image {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
+    @media (min-width: 768px) {
+      width: 240px;
+    }
+    
+    &:hover {
+      @media (min-width: 768px) {
+        width: 240px;
+      }
     }
 
-    .photo-placeholder {
-      color: #ccc;
-      font-size: 3rem;
+    ul {
+      padding: 1rem 0;
+      margin: 0;
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    li {
+      width: 100%;
+      margin-bottom: 0.25rem;
+
+      &:last-child {
+        margin-top: auto;
+      }
+
+      button {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        padding: 0.875rem 1rem;
+        border: none;
+        background: transparent;
+        color: $text-secondary;
+        font-size: 1rem;
+        text-align: left;
+        cursor: pointer;
+        transition: $transition;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+        &:hover {
+          background-color: rgba($primary-color, 0.08);
+          color: $primary-color;
+        }
+
+        &.active {
+          background-color: rgba($primary-color, 0.1);
+          color: $primary-color;
+          font-weight: 600;
+        }
+
+        .icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 20px;
+          margin-right: 0.75rem;
+          font-size: 1.2rem;
+          flex-shrink: 0;
+        }
+      }
+
+      .logout-button {
+        color: $danger-color;
+
+        &:hover {
+          background-color: rgba($danger-color, 0.08);
+        }
+      }
+    }
+  }
+
+  // Main Content Area
+  .dashboard-content {
+    flex: 1;
+    margin-left: 70px;
+    padding: 1.5rem;
+    overflow-y: auto;
+    max-height: calc(100vh - 70px);
+
+    @media (min-width: 768px) {
+      margin-left: 240px;
+      padding: 2rem;
+    }
+    
+    // Section Containers
+    .section-container {
+      background-color: white;
+      border-radius: $border-radius;
+      box-shadow: $box-shadow;
+      margin-bottom: 2rem;
+      overflow: hidden;
+    }
+
+    .section {
+      padding: 1.5rem;
+
+      @media (min-width: 768px) {
+        padding: 2rem;
+      }
+    }
+
+    // Section Headers
+    .section-header {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid $border-color;
+
+      @media (min-width: 768px) {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      h3 {
+        color: $text-primary;
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0;
+      }
+
+      .header-buttons {
+        display: flex;
+        gap: 0.75rem;
+      }
+    }
+  }
+
+  // Mobile menu support
+  .menu-toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    .menu-toggle {
+      background: none;
+      border: none;
+      color: $text-secondary;
+      font-size: 1.25rem;
+      cursor: pointer;
+      padding: 0.5rem;
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 100%;
-      height: 100%;
-      background-color: #f8f9fa;
-
-      i {
-        opacity: 0.5;
+      
+      @media (min-width: 768px) {
+        display: none; // Hide on larger screens
       }
     }
   }
 
-  .upload-controls {
-    margin-top: 1rem;
+  // Mobile navigation
+  .dashboard-nav {
+    &.mobile-open {
+      width: 240px;
+      z-index: 999;
+      
+      @media (max-width: 767px) {
+        transform: translateX(0);
+      }
+    }
+    
+    @media (max-width: 767px) {
+      transform: translateX(-100%);
+      transition: transform 0.3s ease-in-out;
+    }
+  }
 
-    .upload-button {
-      background-color: #4a90e2;
-      color: white;
-      padding: 8px 16px;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background-color 0.2s;
+  // Adjust content margin for mobile
+  .dashboard-content {
+    @media (max-width: 767px) {
+      margin-left: 0;
+    }
+  }
+  
+  // Overlay for mobile menu
+  &::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 90;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+  }
+  
+  &.menu-open::before {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  // Animation keyframes for transitions
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  
+  @keyframes slideIn {
+    from {
+      transform: translateX(-20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  
+  // Add animation classes
+  .fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  
+  .slide-in {
+    animation: slideIn 0.3s ease-in-out;
+  }
 
+  // Updated Logout Button Styles
+  .logout-item {
+    margin-top: auto;
+    position: relative;
+    
+    .logout-button {
+      display: flex;
+      align-items: center;
+      color: $danger-color;
+      padding: 0.875rem 1rem;
+      width: 100%;
+      position: relative;
+      transition: all 0.3s ease;
+      
+      &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: -15px;
+        width: 0;
+        height: 0;
+        border-top: 20px solid transparent;
+        border-bottom: 20px solid transparent;
+        border-left: 15px solid $danger-color;
+        opacity: 0;
+        transform: translateX(-10px);
+        transition: all 0.3s ease;
+      }
+      
       &:hover {
-        background-color: #357abd;
+        background-color: rgba($danger-color, 0.1);
+        padding-left: 1.5rem;
+        
+        &::after {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      
+      .icon {
+        margin-right: 0.75rem;
+      }
+    }
+  }
+
+  // For mobile view
+  @media (max-width: 767px) {
+    .dashboard-nav.mobile-open .logout-item {
+      .logout-button::after {
+        display: none;
       }
     }
   }
 }
   
-  .dashboard-nav ul {
-    list-style: none;
-  }
   
-  .dashboard-nav button {
-    width: 100%;
-    text-align: left;
-    background: none;
-    border: none;
-    padding: 12px 15px;
-    margin-bottom: 5px;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: #4b5563;
-    font-weight: 500;
-  }
-  
-  .dashboard-nav button.active {
-    background-color: #eef2ff;
-    color: #3b82f6;
-    font-weight: 600;
-  }
-  
-  .dashboard-nav button:hover:not(.active) {
-    background-color: #f9fafb;
-  }
-  
-  .dashboard-nav .icon {
-    font-size: 16px;
-  }
-  
-  .dashboard-content {
-    flex: 1;
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    min-height: 600px;
-  }
-  
-  /* Common Section Styles */
-  .section-container {
-    padding: 15px;
-  }
-  
-  .section {
-    margin-bottom: 30px;
-    border-bottom: 1px solid #e5e7eb;
-    padding-bottom: 20px;
-  }
-  
-  .section:last-child {
-    border-bottom: none;
-  }
-  
-  .section h3 {
-    font-size: 18px;
-    margin-bottom: 15px;
-    color: #1f2937;
-  }
-  
-  .form-group {
-    margin-bottom: 15px;
-  }
-  
-  .form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 500;
-    color: #4b5563;
-  }
-  
-  .form-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 15px;
-  }
-  
-  /* User Profile Styles */
-  .file-upload {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 20px;
-  }
-  
-  .custom-file-upload {
-    background-color: #f3f4f6;
-    color: #4b5563;
-    padding: 10px 12px;
-    border-radius: 4px;
-    border: 1px dashed #d1d5db;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  
-  .upload-icon {
-    font-size: 16px;
-  }
-  
-  input[type="file"] {
-    display: none;
-  }
-  
-  .upload-button {
-    background-color: #3b82f6;
-    color: white;
-    padding: 10px 15px;
-  }
-  
-  .upload-button:hover {
-    background-color: #2563eb;
-  }
-  
-  .uploaded-files h4 {
-    font-size: 16px;
-    margin-bottom: 10px;
-  }
-  
-  .files-list {
-    list-style: none;
-  }
-  
-  .file-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    border: 1px solid #e5e7eb;
-    border-radius: 4px;
-    margin-bottom: 8px;
-  }
-  
-  .file-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  
-  .file-icon {
-    font-size: 18px;
-  }
-  
-  .file-name {
-    font-weight: 500;
-  }
-  
-  .file-date {
-    color: #6b7280;
-    font-size: 12px;
-    margin-left: 10px;
-  }
-  
-  .remove-file {
-    background-color: #f3f4f6;
-    color: #4b5563;
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-  }
-  
-  .remove-file:hover {
-    background-color: #e5e7eb;
-    color: #ef4444;
-  }
-  
-  
-  /* Appointment Manager Styles */
-  .appointment-form {
-    max-width: 600px;
-  }
-  
-  .form-buttons {
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
-  }
-  
-  .submit-button {
-    background-color: #3b82f6;
-    color: white;
-  }
-  
-  .submit-button:hover {
-    background-color: #2563eb;
-  }
-  
-  .cancel-button {
-    background-color: #f3f4f6;
-    color: #4b5563;
-  }
-  
-  .cancel-button:hover {
-    background-color: #e5e7eb;
-  }
-  
-  .no-appointments {
-    color: #6b7280;
-    font-style: italic;
-  }
-  
-  .appointments-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  
-  .appointment-card {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    border: 1px solid #e5e7eb;
-    border-radius: 6px;
-    background-color: #f9fafb;
-  }
-  
-  .appointment-info {
-    flex: 1;
-  }
-  
-  .appointment-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 5px;
-  }
-  
-  .upcoming-badge {
-    background-color: #fee2e2;
-    color: #b91c1c;
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 500;
-  }
-  
-  .appointment-date, .appointment-time {
-    color: #4b5563;
-    margin-bottom: 2px;
-  }
-  
-  .appointment-actions {
-    display: flex;
-    gap: 8px;
-  }
-  
-  .edit-button {
-    background-color: #eff6ff;
-    color: #3b82f6;
-  }
-  
-  .edit-button:hover {
-    background-color: #dbeafe;
-  }
-  
-  .cancel-appointment-button {
-    background-color: #f3f4f6;
-    color: #ef4444;
-  }
-  
-  .cancel-appointment-button:hover {
-    background-color: #fee2e2;
-  }
-  
-  .past-appointment {
-    opacity: 0.7;
-  }
-// ... existing code ...
-
-
   /* Communication Support Styles */
   .chat-container {
     display: flex;
@@ -1069,8 +1062,6 @@
   }
 }
 
-// ... existing code ...
-
 /* AppointmentManager Styles */
 .search-section {
   margin-bottom: 24px;
@@ -1368,8 +1359,8 @@
 }
 
 .profile-photo-container {
-  width: 120px;
-  height: 120px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
   overflow: hidden;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);

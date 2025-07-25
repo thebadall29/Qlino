@@ -11,7 +11,7 @@ const DoctorLogin = () => {
     lastName: '',
     email: '',
     mobile: '',
-  specialization: '',
+    specialization: '',
     experience: '',
     password: '',
     confirmPassword: ''
@@ -20,14 +20,49 @@ const DoctorLogin = () => {
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Check if user is already logged in
+  // SIMPLIFIED: Check for existing login only
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const user = JSON.parse(localStorage.getItem('user'));
-    
-    if (token && user && user.role === 'doctor') {
-      navigate('/doctor-dashboard');
+    // Only check for existing login on component mount
+    const existingToken = localStorage.getItem('token');
+    const existingUser = JSON.parse(localStorage.getItem('user') || 'null');
+
+    console.log('Current token:', existingToken);
+    console.log('Token type:', typeof existingToken);
+    console.log('Checking existing login:', { 
+      hasToken: !!existingToken, 
+      tokenLength: existingToken ? existingToken.length : 0,
+      user: existingUser 
+    });
+
+    if (existingToken && existingUser && existingUser.role === 'doctor') {
+      console.log('Found existing doctor login, redirecting to dashboard');
+      navigate('/doctor-dashboard', { replace: true });
     }
+
+    // Handle URL parameters from OAuth redirect (if any)
+    const urlParams = new URLSearchParams(window.location.search);
+    const oauthError = urlParams.get('error');
+    const tokenFromUrl = urlParams.get('token');
+
+    // Log any URL parameters
+    console.log('URL Parameters:', {
+      token: tokenFromUrl,
+      error: oauthError,
+      allParams: Object.fromEntries(urlParams.entries())
+    });
+
+    if (oauthError) {
+      setError(decodeURIComponent(oauthError));
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    // Additional logging after any potential OAuth redirect
+    console.log('Current authentication state:', {
+      localStorage_token: localStorage.getItem('token'),
+      localStorage_user: localStorage.getItem('user'),
+      localStorage_userType: localStorage.getItem('userType')
+    });
   }, [navigate]);
 
   const handleChange = (e) => {
@@ -65,12 +100,8 @@ const DoctorLogin = () => {
           }),
         });
 
-        // Clone the response before logging
-        const responseToLog = response.clone();
-        console.log('Login response:', responseToLog);
-        
         const data = await response.json();
-        console.log('Response data:', data);
+        console.log('Login response:', data);
         
         if (!response.ok) {
           throw new Error(data.message || 'Login failed');
@@ -94,14 +125,15 @@ const DoctorLogin = () => {
         // Store token and user data in localStorage
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        // Add this line to store the userType directly
-        if (data.user && data.user.role) {
-          localStorage.setItem('userType', data.user.role);
-        }
+        localStorage.setItem('userType', data.user.role);
+        
+        console.log('Manual login successful, data stored:', {
+          token: data.token.substring(0, 20) + '...',
+          user: data.user
+        });
         
         setSuccess('Login successful! Redirecting to dashboard...');
         
-        // Redirect to dashboard after successful login
         setTimeout(() => {
           navigate('/doctor-dashboard');
         }, 1500);
@@ -132,7 +164,7 @@ const DoctorLogin = () => {
           throw new Error(data.message || 'Registration failed');
         }
         
-        setSuccess('Registration successful! Please wait for admin verification. You can now log in.');
+        setSuccess('Registration successful! You can now log in.');
         
         // Reset form and switch to login view after successful registration
         setTimeout(() => {
@@ -164,8 +196,35 @@ const DoctorLogin = () => {
   };
 
   const handleGoogleLogin = () => {
-    // Implement Google login logic (requires additional backend setup)
-    setError('Google login is not implemented yet');
+    console.log('Initiating Google OAuth login for doctor');
+    
+    // Clear existing auth data before starting OAuth
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('userType');
+    
+    // Log state after clearing
+    console.log('Cleared existing auth data. Current state:', {
+      token: localStorage.getItem('token'),
+      user: localStorage.getItem('user'),
+      userType: localStorage.getItem('userType')
+    });
+    
+    // Clear any existing error messages
+    setError('');
+    setSuccess('');
+    
+    // Store current URL for potential fallback
+    sessionStorage.setItem('preOAuthUrl', window.location.href);
+    
+    // Add timestamp to URL to prevent caching
+    const timestamp = new Date().getTime();
+    const oauthUrl = `http://localhost:5000/api/auth/google/doctor?t=${timestamp}`;
+    
+    console.log('Redirecting to OAuth URL:', oauthUrl);
+    
+    // Redirect to Google OAuth
+    window.location.href = oauthUrl;
   };
 
   return (
@@ -179,7 +238,7 @@ const DoctorLogin = () => {
         
         {error && <div className="error-message">{error}</div>}
         {success && <div className="success-message">{success}</div>}
-        
+      
         <form onSubmit={handleSubmit}>
           {!isLogin && (
             <>
@@ -381,6 +440,7 @@ const DoctorLogin = () => {
             type="button" 
             className="google-button"
             onClick={handleGoogleLogin}
+            disabled={isLoading}
           >
             <FaGoogle className="google-icon" />
             {isLogin ? 'Login with Google' : 'Sign up with Google'}

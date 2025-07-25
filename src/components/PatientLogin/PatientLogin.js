@@ -162,8 +162,9 @@ const PatientLogin = () => {
   };
 
   const handleGoogleLogin = () => {
-    // Implement Google login logic (requires additional backend setup)
-    setError('Google login is not implemented yet');
+    // Redirect to Google OAuth endpoint for patients with state parameter
+    console.log('Initiating Google OAuth login for patient');
+    window.location.href = 'http://localhost:5000/api/auth/google/patient';
   };
 
   return (

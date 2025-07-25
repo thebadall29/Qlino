@@ -31,37 +31,137 @@ import TagDoctorListCompo from '../TagDoctorList/TagDoctorLIst';
 
 // Protected route component for patient
 const PatientProtectedRoute = ({ children }) => {
-  const token = localStorage.getItem('token');
-  const user = JSON.parse(localStorage.getItem('user'));
+  const location = window.location;
+  const params = new URLSearchParams(location.search);
   
+  // First check URL parameters
+  const tokenFromUrl = params.get('token');
+  const userDataFromUrl = params.get('userData');
+  
+  console.log('PatientProtectedRoute - Checking URL parameters:', {
+    hasTokenInUrl: !!tokenFromUrl,
+    hasUserDataInUrl: !!userDataFromUrl
+  });
+
+  // If we have URL parameters, store them first
+  if (tokenFromUrl && userDataFromUrl) {
+    try {
+      const userData = JSON.parse(decodeURIComponent(userDataFromUrl));
+      
+      // Store in localStorage
+      localStorage.setItem('token', tokenFromUrl);
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('userType', userData.role);
+
+      console.log('Stored auth data from URL parameters');
+
+      // Clean up URL
+      const newUrl = location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    } catch (error) {
+      console.error('Error processing URL parameters:', error);
+    }
+  }
+
+  // Now check localStorage
+  let token = localStorage.getItem('token');
+  let user = null;
+  
+  try {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      user = JSON.parse(userStr);
+    }
+  } catch (error) {
+    console.error('Error parsing user data:', error);
+  }
+
+  console.log('PatientProtectedRoute - Auth state:', {
+    hasToken: !!token,
+    hasUser: !!user,
+    userRole: user?.role
+  });
+
+  // Check authentication
   if (!token || !user) {
-    // Redirect to login if not authenticated
+    console.log('No authentication data found, redirecting to login');
     return <Navigate to="/patient-login" replace />;
   }
-  
+
   // Verify that user is a patient
   if (user.role !== 'patient') {
+    console.log('User is not a patient, redirecting to unauthorized');
     return <Navigate to="/unauthorized" replace />;
   }
-  
+
   return children;
 };
 
 // Protected route component for doctor
 const DoctorProtectedRoute = ({ children }) => {
-  const token = localStorage.getItem('token');
-  const user = JSON.parse(localStorage.getItem('user'));
+  const location = window.location;
+  const params = new URLSearchParams(location.search);
   
-  if (!token || !user) {
-    // Redirect to login if not authenticated
-    return <Navigate to="/doctor-login" replace />; // Create a doctor login page
+  // First check URL parameters
+  const tokenFromUrl = params.get('token');
+  const userDataFromUrl = params.get('userData');
+  
+  console.log('DoctorProtectedRoute - Checking URL parameters:', {
+    hasTokenInUrl: !!tokenFromUrl,
+    hasUserDataInUrl: !!userDataFromUrl
+  });
+
+  // If we have URL parameters, store them
+  if (tokenFromUrl && userDataFromUrl) {
+    try {
+      const userData = JSON.parse(decodeURIComponent(userDataFromUrl));
+      
+      // Store in localStorage
+      localStorage.setItem('token', tokenFromUrl);
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('userType', userData.role);
+
+      console.log('Stored auth data from URL parameters');
+
+      // Clean up URL
+      const newUrl = location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    } catch (error) {
+      console.error('Error processing URL parameters:', error);
+    }
   }
+
+  // Now check localStorage
+  let token = localStorage.getItem('token');
+  let user = null;
   
+  try {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      user = JSON.parse(userStr);
+    }
+  } catch (error) {
+    console.error('Error parsing user data:', error);
+  }
+
+  console.log('DoctorProtectedRoute - Auth state:', {
+    hasToken: !!token,
+    hasUser: !!user,
+    userRole: user?.role
+  });
+
+  // Check authentication
+  if (!token || !user) {
+    console.log('No authentication data found, redirecting to login');
+    return <Navigate to="/doctor-login" replace />;
+  }
+
   // Verify that user is a doctor
   if (user.role !== 'doctor') {
+    console.log('User is not a doctor, redirecting to unauthorized');
     return <Navigate to="/unauthorized" replace />;
   }
-  
+
   return children;
 };
 

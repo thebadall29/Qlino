@@ -150,15 +150,36 @@ const Profile = () => {
         throw new Error('Authentication token not found');
       }
 
+      // First upload photo if one is selected
+      let photoUrl = doctorData?.photoUrl;
+      if (selectedFile) {
+        const formData = new FormData();
+        formData.append('photo', selectedFile);
+
+        const photoResponse = await fetch('http://localhost:5000/api/doctor/upload-photo', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: formData
+        });
+
+        if (!photoResponse.ok) {
+          throw new Error('Failed to upload photo');
+        }
+
+        const photoData = await photoResponse.json();
+        photoUrl = photoData.photoUrl;
+      }
+
       const updateData = {
         ...editableData,
         workingDays,
         treatments,
         tags,
         consultationFee: Number(consultationFee),
-        photoUrl: photoUrl // Add this line to preserve photo
+        photoUrl: photoUrl
       };
-
 
       console.log('Sending profile update:', updateData);
 
@@ -215,41 +236,14 @@ const Profile = () => {
     }
   };
 
-  const handlePhotoUpload = async (e) => {
+  const [selectedFile, setSelectedFile] = useState(null);
+
+  const handlePhotoUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
+    setSelectedFile(file);
     setPhotoPreview(URL.createObjectURL(file));
-
-    const formData = new FormData();
-    formData.append('photo', file);
-
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/doctor/upload-photo', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to upload photo');
-      }
-
-      const data = await response.json();
-      setDoctorData(prev => ({
-        ...prev,
-        photoUrl: data.photoUrl
-      }));
-
-      alert('Photo uploaded successfully');
-    } catch (error) {
-      console.error('Error uploading photo:', error);
-      alert('Failed to upload photo');
-      setPhotoPreview(null);
-    }
   };
 
   const handleAddTreatment = () => {

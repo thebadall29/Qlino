@@ -2,6 +2,9 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const DoctorSchema = new mongoose.Schema({
+  googleId: {
+    type: String
+  },
   firstName: {
     type: String,
     required: true
@@ -22,7 +25,7 @@ const DoctorSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true
+    required: function() { return !this.googleId; }
   },
   specialization: {
     type: String,
