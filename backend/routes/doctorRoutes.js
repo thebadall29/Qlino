@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const doctorController = require('../controllers/doctorController');
 const { auth, authorize } = require('../middleware/auth');
+const checkSubscription = require('../middleware/checkSubscription');
 
 const multer = require('multer');
 const path = require('path');

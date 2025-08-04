@@ -14,6 +14,15 @@ import Appointments from './tabs/Appointments';
 import Chat from './tabs/Chat';
 import TodaysBookings from './tabs/TodaysBookings';
 import Photos from './tabs/Photos';
+import Subscription from './tabs/Subscription';
+import withSubscriptionCheck from './withSubscriptionCheck';
+
+// Wrap components that need subscription check
+const ProtectedPatientManagement = withSubscriptionCheck(PatientManagement, 'patientManagement');
+const ProtectedAppointments = withSubscriptionCheck(Appointments, 'appointments');
+const ProtectedChat = withSubscriptionCheck(Chat, 'chat');
+const ProtectedTodaysBookings = withSubscriptionCheck(TodaysBookings, 'appointments');
+const ProtectedPhotos = withSubscriptionCheck(Photos, 'photos');
 
 const DoctorDashboardCompo = () => {
   const [activeTab, setActiveTab] = useState('profile');
@@ -154,15 +163,17 @@ const DoctorDashboardCompo = () => {
       case 'profile':
         return <Profile />;
       case 'patients':
-        return <PatientManagement />;
+        return <ProtectedPatientManagement onTabChange={setActiveTab} />;
       case 'appointments':
-        return <Appointments />;
+        return <ProtectedAppointments onTabChange={setActiveTab} />;
       case 'chat':
-        return <Chat />;
+        return <ProtectedChat onTabChange={setActiveTab} />;
       case 'todaysBookings':
-        return <TodaysBookings />;
+        return <ProtectedTodaysBookings onTabChange={setActiveTab} />;
       case 'photos':
-        return <Photos />;
+        return <ProtectedPhotos onTabChange={setActiveTab} />;
+      case 'subscription':
+        return <Subscription />;
       default:
         return <Profile />;
     }
@@ -184,6 +195,7 @@ const DoctorDashboardCompo = () => {
     { id: 'chat', label: 'Chat', icon: <FaComments /> },
     { id: 'todaysBookings', label: 'Today\'s Bookings', icon: <FaClipboardList /> },
     { id: 'photos', label: 'Photos', icon: <FaImages /> },
+    { id: 'subscription', label: 'Subscription', icon: <FaClipboardList /> },
   ];
 
   return (

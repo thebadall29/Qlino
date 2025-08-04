@@ -17,6 +17,7 @@ const PORT = process.env.PORT || 5000;
 const authRoutes = require('./routes/authRoutes');
 const specialtyRoutes = require('./routes/specialtyRoutes');
 const tagRoutes = require('./routes/tagRoutes');
+const subscriptionRoutes = require('./routes/subscriptionRoutes');
 
 // Connect to MongoDB
 connectDB();
@@ -37,6 +38,7 @@ app.use(passport.initialize());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/patient', patientRoutes);
+app.use('/api/subscription', subscriptionRoutes);
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({
