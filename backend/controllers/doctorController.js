@@ -78,11 +78,13 @@ exports.getDoctorById = async (req, res) => {
   try {
     const doctorId = req.params.id;
     
-    
     // Validate ObjectId format
-    // if (!mongoose.Types.ObjectId.isValid(doctorId)) {
-    //   return res.status(400).json({ message: 'Invalid doctor ID format' });
-    // }
+    if (!mongoose.Types.ObjectId.isValid(doctorId)) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Invalid doctor ID format' 
+      });
+    }
     
     const doctor = await Doctor.findById(doctorId);
     
@@ -497,6 +499,33 @@ exports.uploadPhoto = async (req, res) => {
   } catch (error) {
     console.error('Upload error:', error);
     res.status(500).json({ message: 'Error uploading photo' });
+  }
+};
+
+// Get doctor's booking preference
+exports.getDoctorPreference = async (req, res) => {
+  try {
+    const doctorId = req.user.id;
+    const doctor = await Doctor.findById(doctorId).select('bookingPreference');
+    
+    if (!doctor) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'Doctor not found' 
+      });
+    }
+    
+    return res.status(200).json({
+      success: true,
+      preference: doctor.bookingPreference || 'slot' // Default to 'slot' if not set
+    });
+  } catch (error) {
+    console.error('Error getting doctor preference:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error fetching doctor preference',
+      error: error.message
+    });
   }
 };
 

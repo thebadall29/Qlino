@@ -1018,10 +1018,13 @@ exports.deleteAppointments = async (req, res) => {
 // Get doctor's booking preference
 exports.getDoctorPreference = async (req, res) => {
   try {
-    const doctorId = req.user.id;
+    const { id } = req.params;
 
-    // Find the doctor using the ID from auth token
-    const doctor = await Doctor.findById(doctorId).select('bookingPreference');
+    // Find the doctor using the ID from the URL parameter
+    const doctor = await Doctor.findById(id).select('bookingPreference');
+
+    console.log('Doctor ID:', id);
+    console.log('Doctor Preference:', doctor ? doctor.bookingPreference : 'Not found'); 
     
     if (!doctor) {
       return res.status(404).json({
@@ -1490,57 +1493,45 @@ exports.bookPublicAppointment = async (req, res) => {
     });
   }
 };
-// Update the readdToQueue function in appointmentController.js
+// In appointmentController.js
 exports.readdToQueue = async (req, res) => {
   try {
     const { id } = req.params;
-    const doctorId = req.user.id;
-    
-    // Find the queue item by ID
-    const queueItem = await Appointment.findById(id);
-    
-    if (!queueItem) {
-      return res.status(404).json({
+    const { queueNumber } = req.body;
+
+    if (!queueNumber || isNaN(queueNumber)) {
+      return res.status(400).json({
         success: false,
-        message: 'Queue item not found'
+        message: 'Valid queue number is required'
       });
     }
 
-    // Get today's date in YYYY-MM-DD format
-    const today = new Date();
-    const formattedDate = today.toISOString().split('T')[0];
-    
-    // Find the highest queue number for this doctor and date
-    const highestQueue = await Appointment.findOne({
-      doctorId,
-      date: {
-        $gte: new Date(`${formattedDate}T00:00:00.000Z`),
-        $lt: new Date(`${formattedDate}T23:59:59.999Z`)
+    const appointment = await Appointment.findByIdAndUpdate(
+      id,
+      {
+        status: 'Waiting',
+        queueNumber: queueNumber
       },
-      status: { $ne: 'Hold' }  // Exclude 'Hold' status items
-    }).sort({ queueNumber: -1 });
-    
-    // Set new queue number to be the highest current queue number + 1
-    const newQueueNumber = highestQueue ? highestQueue.queueNumber + 1 : 1;
-    
-    // Update the queue item with new queue number and status
-    queueItem.status = 'Waiting';
-    queueItem.queueNumber = newQueueNumber;
-    queueItem.wasOnHold = true; // Add a flag to mark that this item was on hold
-    
-    // Save the updated queue item
-    await queueItem.save();
-    
-    return res.status(200).json({
+      { new: true, runValidators: true }
+    );
+
+    if (!appointment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Appointment not found'
+      });
+    }
+
+    res.status(200).json({
       success: true,
-      message: 'Queue item added back to queue successfully',
-      data: queueItem
+      appointment
     });
+
   } catch (error) {
     console.error('Error updating queue item:', error);
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
-      message: 'Failed to update queue item',
+      message: 'Error updating queue item',
       error: error.message
     });
   }

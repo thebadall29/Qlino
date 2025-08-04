@@ -261,6 +261,8 @@ const AppointmentManager = ({ doctorId: propDoctorId }) => {
     }
   };
 
+  console.log('AppointmentManager - Doctor Data:', todayAppointments);
+
   // Process appointments data from API
   const processAppointmentsData = (apiAppointments, date, doctorData) => {
     // If doctor is not available, return empty array

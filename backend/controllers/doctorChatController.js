@@ -3,8 +3,6 @@ const Appointment = require('../models/Appointment');
 const Doctor = require('../models/Doctor')
 const Patient = require('../models/User');
 
-// Get all patients who have had appointments with this doctor
-// Get all patients who have had appointments with this doctor
 exports.getPatientsList = async (req, res) => {
   try {
     console.log("req.user:", req.user);

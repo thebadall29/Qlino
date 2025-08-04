@@ -28,6 +28,7 @@ import DoctorSpecialtiesComp from '../DoctorSpecialties/DoctorSpecialties';
 import DoctorListComp from '../DoctorList/DoctorList';
 import TagsSearchCompo from '../TagsSearch/TagsSearch';
 import TagDoctorListCompo from '../TagDoctorList/TagDoctorLIst';
+// import VideoCall from '../../components/VideoCall/VideoCall';
 
 // Protected route component for patient
 const PatientProtectedRoute = ({ children }) => {

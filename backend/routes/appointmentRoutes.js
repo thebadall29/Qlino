@@ -2,6 +2,31 @@ const express = require('express');
 const router = express.Router();
 const appointmentController = require('../controllers/appointmentController');
 const { auth, authorize } = require('../middleware/auth');
+const { sendWhatsAppNotification, formatPhoneNumber } = require('../utils/whatsappNotification');
+const Doctor = require('../models/Doctor');
+
+// Helper function to send appointment notification
+const sendAppointmentNotification = async (appointmentData, doctorData) => {
+    try {
+        // Format the phone number for WhatsApp
+        const formattedPhone = formatPhoneNumber(appointmentData.contactNumber || appointmentData.contact);
+        
+        // Prepare appointment details for the message
+        const details = {
+            patientName: appointmentData.patientName,
+            doctorName: `${doctorData.firstName} ${doctorData.lastName}`,
+            date: appointmentData.date,
+            time: appointmentData.time,
+            reason: appointmentData.reason
+        };
+
+        // Send WhatsApp notification
+        await sendWhatsAppNotification(formattedPhone, details);
+    } catch (error) {
+        console.error('Error sending appointment notification:', error);
+        // Don't throw error as this is a non-critical feature
+    }
+};
 
 
 
@@ -25,7 +50,7 @@ router.get('/patient/appointments', auth, authorize(['patient']), appointmentCon
 router.post('/appointments', appointmentController.bookAppointmentForUnregisteredPatient);
 router.patch('/doctor/queue/:id/requeue', auth, authorize(['doctor']), appointmentController.readdToQueue);
 // Add the new route for doctor preference
-router.get('/doctor/booking-preferences', auth, authorize(['doctor']), appointmentController.getDoctorPreference);
+router.get('/doctor/booking-preferences/:id', auth, authorize(['doctor']), appointmentController.getDoctorPreference);
 // delete appointment 
 router.delete('/appointment/delete/:appointmentId', auth, authorize(['doctor']), appointmentController.deleteAppointment);
 
