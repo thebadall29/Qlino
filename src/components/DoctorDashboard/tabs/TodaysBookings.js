@@ -2,18 +2,28 @@ import React, { useState, useEffect } from 'react';
 import "../DoctorDashboard.scss";
 import axios from 'axios';
 import { FaPrint, FaPlus, FaFilePdf } from 'react-icons/fa';
+import { toast } from 'react-toastify';
 
 const TodaysBookings = () => {
+  // Core booking states
   const [activeBookings, setActiveBookings] = useState([]);
   const [completedBookings, setCompletedBookings] = useState([]);
   const [holdBookings, setHoldBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // UI control states
   const [showProfileModal, setShowProfileModal] = useState(false);
-  const [selectedPatient, setSelectedPatient] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [patients, setPatients] = useState([]);
+  const [selectedPatient, setSelectedPatient] = useState(null);
+  
+  // Booking type specific states
   const [doctorPreference, setDoctorPreference] = useState(null);
+  const [timeSlots, setTimeSlots] = useState([]);
+  const [selectedDate] = useState(new Date());
+  const [estimatedWaitTime, setEstimatedWaitTime] = useState(0);
+  const [queueLength, setQueueLength] = useState(0);
+  const [patients, setPatients] = useState([]);
 
   // State for tabs
   const [activeTab, setActiveTab] = useState('profile');
@@ -82,12 +92,14 @@ const TodaysBookings = () => {
   const fetchDoctorPreference = async () => {
     try {
       const token = localStorage.getItem('token');
-      if (!token) {
+      const user = JSON.parse(localStorage.getItem('user'));
+      
+      if (!token || !user) {
         throw new Error('Authentication required');
       }
       
       const response = await axios.get(
-        'http://localhost:5000/api/doctor/preference',
+        `http://localhost:5000/api/doctor/booking-preferences/${user.id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -95,10 +107,12 @@ const TodaysBookings = () => {
         }
       );
       
-      if (response.data.success) {
-        // Set the doctor's preference
-        console.log("response.data.preference", response.data.preference);
+      // Log the full response for debugging
+      console.log("Doctor preference response:", response.data);
+      
+      if (response.data && response.data.preference) {
         const preference = response.data.preference;
+        console.log("Setting doctor preference to:", preference);
         setDoctorPreference(preference);
         
         // Fetch bookings with the preference we just received
@@ -106,17 +120,31 @@ const TodaysBookings = () => {
       }
     } catch (err) {
       console.error('Error fetching doctor preferences:', err);
-      // Default to queue if there's an error
-      setDoctorPreference('queue');
+      console.error('Error details:', {
+        response: err.response?.data,
+        status: err.response?.status,
+        message: err.message
+      });
+      
+      // Default to slot if there's an error
+      setDoctorPreference('slot');
       
       // Fetch bookings with the default preference
-      fetchTodaysBookings('queue');
+      fetchTodaysBookings('slot');
     }
   };
 
   
   // Function to fetch today's bookings from API
   const fetchTodaysBookings = async (preferenceOverride = null) => {
+    // Reset states
+    setActiveBookings([]);
+    setCompletedBookings([]);
+    setHoldBookings([]);
+    setTimeSlots([]);
+    setEstimatedWaitTime(0);
+    setQueueLength(0);
+
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
@@ -148,7 +176,9 @@ const TodaysBookings = () => {
         
         console.log("Queue response data", response.data);
         
-        if (response.data.success) {
+        if (response.data.success && response.data.queue) {
+          // Process queue appointments
+          const appointments = response.data.queue || [];
           // Map API data to match the structure expected by the component
           const bookings = response.data.queue.map((item) => ({
             id: item.id,
@@ -196,7 +226,9 @@ const TodaysBookings = () => {
         
         console.log("Slot response data", response.data);
         
-        if (response.data.success) {
+        if (response.data.success && response.data.appointments) {
+          // Process slot appointments
+          const appointments = response.data.appointments || [];
           // Map API data to match the structure expected by the component
           const bookings = response.data.appointments.map((item) => ({
             id: item.id,
@@ -811,11 +843,23 @@ const TodaysBookings = () => {
       setHoldBookings(prev => prev.filter(b => b.id !== booking.id));
 
       const token = localStorage.getItem('token');
+      const doctor = JSON.parse(localStorage.getItem('user'));
+
+      // Prepare the request body with necessary booking information
+      const reqBody = {
+        patientName: booking.patientName,
+        email: booking.email,
+        contactNumber: booking.contactNumber,
+        reason: booking.reason,
+        status: 'waiting',
+        doctorId: doctor._id,
+        date: new Date().toISOString().split('T')[0] // Today's date
+      };
 
       // Call the readdToQueue API endpoint
       const response = await axios.patch(
         `http://localhost:5000/api/doctor/queue/${booking.id}/requeue`,
-        {},  // Empty body, as we'll determine the new queue number on the server
+        reqBody,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -825,12 +869,16 @@ const TodaysBookings = () => {
       );
 
       if (response.data.success) {
+        // Show success message
+        toast.success('Patient successfully added back to queue');
         // Refresh the bookings to reflect the updated queue
         fetchTodaysBookings();
       } else {
+        toast.error(response.data.message || 'Error adding back to queue');
         console.error('Error adding back to queue:', response.data.message);
       }
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Error adding back to queue');
       console.error('Error adding back to queue:', err);
     }
   };
@@ -1011,7 +1059,6 @@ const TodaysBookings = () => {
             followUpDate: ''
           });
         } else {
-          // Reset to default empty prescription if none found
           setPrescription({
             medications: [{ name: '', dosage: '', frequency: '', duration: '', notes: '' }],
             instructions: '',
@@ -1049,7 +1096,7 @@ const TodaysBookings = () => {
     return new Date(b.createdAt) - new Date(a.createdAt);
   });
 
-  console.log("booking",activeBookings)
+  console.log("doctor prefrence",doctorPreference)
 
   return (
     <div className="section-container todays-bookings-container">

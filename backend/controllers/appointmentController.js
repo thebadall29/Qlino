@@ -902,7 +902,6 @@ exports.addToQueue = async (req, res) => {
 };
 
 // Get queue for a specific date
-// Get queue for a specific date
 exports.getQueue = async (req, res) => { 
   try { 
     const { date } = req.params; 
@@ -915,48 +914,110 @@ exports.getQueue = async (req, res) => {
     } 
     
     const doctorId = req.user.id; 
-    const formattedDate = formatDate(date); 
+    
+    // First get doctor's booking preference
+    const doctor = await Doctor.findById(doctorId);
+    if (!doctor) {
+      return res.status(404).json({
+        success: false,
+        message: 'Doctor not found'
+      });
+    }
 
-    // Get all appointments for the date with type 'queue'
+    const formattedDate = formatDate(date);
+
+    // Get appointments based on doctor's preference
     const appointments = await Appointment.find({ 
       doctorId, 
       date: { 
         $gte: new Date(`${formattedDate}T00:00:00.000Z`), 
         $lt: new Date(`${formattedDate}T23:59:59.999Z`) 
       },
-      type: 'queue' // Add this filter to only get queue appointments
-    }) 
+      type: doctor.bookingPreference // Use doctor's preference instead of hardcoding 'queue'
+    })
     .populate('patientId', 'firstName lastName fullName mobile'); 
     
-    // Sort appointments - first by wasOnHold flag (false first), then by queueNumber 
-    appointments.sort((a, b) => { 
-      // If one was on hold and the other wasn't, the one that wasn't on hold comes first 
-      if ((a.wasOnHold && !b.wasOnHold) || (!a.wasOnHold && b.wasOnHold)) { 
-        return a.wasOnHold ? 1 : -1; 
-      } 
-      // If both have the same hold status, sort by queueNumber 
-      return a.queueNumber - b.queueNumber; 
-    }); 
+    // Sort appointments based on booking type
+    if (doctor.bookingPreference === 'queue') {
+      // Sort queue appointments
+      appointments.sort((a, b) => { 
+        // If one was on hold and the other wasn't, the one that wasn't on hold comes first 
+        if ((a.wasOnHold && !b.wasOnHold) || (!a.wasOnHold && b.wasOnHold)) { 
+          return a.wasOnHold ? 1 : -1; 
+        } 
+        // If both have the same hold status, sort by queueNumber 
+        return a.queueNumber - b.queueNumber; 
+      }); 
+    } else {
+      // Sort slot appointments by time
+      appointments.sort((a, b) => {
+        return a.time.localeCompare(b.time);
+      });
+    }
 
-    // Map appointments to queue format 
-    const queueItems = appointments.map((appt, index) => ({ 
-      queueNumber: appt.queueNumber || index + 1, 
-      id: appt._id, 
-      name: appt.patientName || appt.patientId?.fullName, 
-      contact: appt.contactNumber || appt.patientId?.mobile, 
-      email: appt.patientEmail, 
-      reason: appt.reason, 
-      status: appt.status, 
-      type: appt.type, 
-      createdAt: appt.createdAt, 
-      time: appt.time, 
-      wasOnHold: appt.wasOnHold || false 
-    })); 
+    // Map appointments to appropriate format based on booking type
+    const appointmentItems = appointments.map((appt, index) => {
+      const baseAppointment = {
+        id: appt._id,
+        name: appt.patientName || appt.patientId?.fullName,
+        contact: appt.contactNumber || appt.patientId?.mobile,
+        email: appt.patientEmail,
+        reason: appt.reason,
+        status: appt.status,
+        type: appt.type,
+        createdAt: appt.createdAt,
+        time: appt.time
+      };
 
+      // Add queue-specific or slot-specific properties
+      if (doctor.bookingPreference === 'queue') {
+        return {
+          ...baseAppointment,
+          queueNumber: appt.queueNumber || index + 1,
+          wasOnHold: appt.wasOnHold || false
+        };
+      } else {
+        return {
+          ...baseAppointment,
+          slotTime: appt.time
+        };
+      }
+    });
+
+    // If slot-based, also include available slots
+    if (doctor.bookingPreference === 'slot') {
+      // Get doctor's working hours for this day
+      const dayOfWeek = new Date(date).getDay();
+      const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+      const dayName = dayNames[dayOfWeek];
+      
+      if (doctor.workingDays[dayName] && doctor.workingDays[dayName].active) {
+        const workingDay = doctor.workingDays[dayName];
+        const allSlots = generateTimeSlots(workingDay);
+        
+        // Mark booked slots
+        const bookedTimes = new Set(appointments.map(app => app.time));
+        const availableSlots = allSlots.map(slot => ({
+          time: slot.time,
+          available: !bookedTimes.has(slot.time),
+          booked: bookedTimes.has(slot.time)
+        }));
+
+        return res.status(200).json({
+          success: true,
+          bookingType: 'slot',
+          appointments: appointmentItems,
+          availableSlots
+        });
+      }
+    }
+
+    // For queue-based bookings
     res.status(200).json({ 
-      success: true, 
-      queue: queueItems 
-    }); 
+      success: true,
+      bookingType: 'queue',
+      queue: appointmentItems 
+    });
   } catch (error) { 
     console.error('Error fetching queue:', error); 
     res.status(500).json({ 
@@ -1497,20 +1558,40 @@ exports.bookPublicAppointment = async (req, res) => {
 exports.readdToQueue = async (req, res) => {
   try {
     const { id } = req.params;
-    const { queueNumber } = req.body;
+    const { date } = req.body;
 
-    if (!queueNumber || isNaN(queueNumber)) {
-      return res.status(400).json({
+    console.log('Re-adding to queue for appointment ID:', id);
+    console.log('Request body:', req.body);
+
+    // First, get the appointment to get the doctorId
+    const existingAppointment = await Appointment.findById(id);
+    if (!existingAppointment) {
+      return res.status(404).json({
         success: false,
-        message: 'Valid queue number is required'
+        message: 'Appointment not found'
       });
     }
 
+    // Find the highest queue number for this doctor and date
+    const highestQueue = await Appointment.findOne({
+      doctorId: existingAppointment.doctorId,
+      date: {
+        $gte: new Date(`${date}T00:00:00.000Z`),
+        $lt: new Date(`${date}T23:59:59.999Z`)
+      },
+      type: 'queue'
+    }).sort({ queueNumber: -1 });
+
+    // Generate new queue number
+    const newQueueNumber = highestQueue ? highestQueue.queueNumber + 1 : 1;
+
+    // Update the appointment
     const appointment = await Appointment.findByIdAndUpdate(
       id,
       {
-        status: 'Waiting',
-        queueNumber: queueNumber
+        status: 'scheduled', // Changed from 'waiting' to 'scheduled' to match the valid enum values
+        queueNumber: newQueueNumber,
+        wasOnHold: true // Add this flag to track that it was re-added from hold
       },
       { new: true, runValidators: true }
     );

@@ -195,6 +195,15 @@ const Subscription = () => {
 
     return (
         <div className="subscription-container">
+            {subscription?.status === 'eligible_for_trial' && (
+                <div className="trial-banner">
+                    <p>{subscription.message}</p>
+                    <button onClick={startTrial} className="start-trial-btn">
+                        Start 30-Day Free Trial
+                    </button>
+                </div>
+            )}
+            
             {/* Current Subscription Status */}
             <div className="current-subscription">
                 <h2>Current Subscription Status</h2>
@@ -225,7 +234,7 @@ const Subscription = () => {
                             <ul>
                                 {subscription.subscription.features && Object.entries(subscription.subscription.features).map(([feature, hasAccess]) => (
                                     hasAccess && (
-                                        <li key={feature}>✓ {
+                                        <li key={feature}> {
                                             feature === 'patientManagement' ? 'Patient Management' :
                                             feature === 'appointments' ? 'Appointments' :
                                             feature === 'chat' ? 'Chat' :

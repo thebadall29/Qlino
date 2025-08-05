@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import io from 'socket.io-client';
+import './Chat.css';
 
 const Chat = () => {
   const [messages, setMessages] = useState([]);
@@ -8,6 +9,7 @@ const Chat = () => {
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const messagesEndRef = useRef(null);
   const socketRef = useRef(null);
@@ -33,7 +35,6 @@ const Chat = () => {
             'Content-Type': 'application/json'
           }
         });
-
 
         if (!response.ok) {
           throw new Error(`Failed to fetch patients: ${response.status}`);
@@ -120,9 +121,18 @@ const Chat = () => {
     };
   }, []);
 
-  // Scroll to bottom of messages
+  // Scroll to bottom only when new messages are added
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // Only scroll if the new message is from the current conversation
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage && Date.now() - new Date(lastMessage.timestamp) < 1000) {
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ 
+          behavior: 'smooth',
+          block: 'end'
+        });
+      }
+    }
   }, [messages]);
 
   // Fetch chat history when a patient is selected
@@ -231,19 +241,43 @@ const Chat = () => {
   };
 
   const handleSelectPatient = (patient) => {
+    setMessages([]); // Clear messages before loading new ones
     setSelectedPatient(patient);
   };
 
-  console.log('Selected Patient:', selectedPatient);
+  const handleBackToList = () => {
+    setSelectedPatient(null);
+    setMessages([]);
+  };
+
+  const filteredPatients = patients.filter(patient => 
+    patient.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    patient.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="chat-page-container">
-      <h2 className="chat-page-title">Patient Communication</h2>
-
       <div className="chat-interface">
-        <div className="contacts-list">
-          <div className="contacts-header">Your Patients</div>
-          {loading && !selectedPatient && <div className="loading">Loading patients...</div>}
+        {/* Contacts List */}
+        <div className={`contacts-list ${selectedPatient ? 'hide-on-mobile' : ''}`}>
+          <div className="contacts-header">
+            <div className="header-content">
+              <h2>Chats</h2>
+            </div>
+            <div className="search-box">
+              <input
+                type="text"
+                placeholder="Search patients..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="search-input"
+              />
+            </div>
+          </div>
+
+          {loading && !selectedPatient && (
+            <div className="loading">Loading patients...</div>
+          )}
 
           {patients.length === 0 && !loading ? (
             <div className="no-contacts">
@@ -251,7 +285,7 @@ const Chat = () => {
             </div>
           ) : (
             <ul className="contacts">
-              {patients.map(patient => (
+              {filteredPatients.map(patient => (
                 <li
                   key={patient._id}
                   className={`contact-item ${selectedPatient?._id === patient._id ? 'selected' : ''}`}
@@ -261,7 +295,12 @@ const Chat = () => {
                     {patient.name ? patient.name.charAt(0).toUpperCase() : 'P'}
                   </div>
                   <div className="contact-info">
-                    <span className="contact-name">{patient.name}</span>
+                    <div className="contact-header">
+                      <span className="contact-name">{patient.name}</span>
+                      <span className="last-message-time">
+                        {/* Add last message time if available */}
+                      </span>
+                    </div>
                     <span className="contact-subtitle">{patient.email}</span>
                   </div>
                 </li>
@@ -270,16 +309,18 @@ const Chat = () => {
           )}
         </div>
 
-        <div className="chat-container">
-          {!selectedPatient ? (
-            <div className="select-contact-prompt">
-              <p>Select a patient to start chatting</p>
-            </div>
-          ) : (
+        {/* Chat Container */}
+        <div className={`chat-container ${!selectedPatient ? 'hide-on-mobile' : ''}`}>
+          {selectedPatient && (
             <>
               <div className="chat-header">
-                <h3>{selectedPatient.name}</h3>
-                <span className="contact-subtitle">{selectedPatient.email}</span>
+                <div className="back-button" onClick={handleBackToList}>
+                  <span className="back-arrow">‹</span>
+                </div>
+                <div className="selected-patient-info">
+                  <h3>{selectedPatient.name}</h3>
+                  <span className="contact-subtitle">{selectedPatient.email}</span>
+                </div>
               </div>
 
               <div className="chat-messages">
@@ -295,15 +336,14 @@ const Chat = () => {
                       messages.map(message => (
                         <div
                           key={message._id}
-                          className={`message ${message.sender === 'doctor' || message.senderModel === 'Doctor' ? 'user-message' : 'patient-message'}`}
+                          className={`message-wrapper ${message.sender === 'doctor' || message.senderModel === 'Doctor' ? 'user-message' : 'patient-message'}`}
                         >
-                          <div className="message-header">
-                            <span className="sender-name">
-                              {message.sender === 'doctor' || message.senderModel === 'Doctor' ? 'You' : selectedPatient.name}
-                            </span>
-                            <span className="message-time">{message.time}</span>
+                          <div className="message">
+                            <div className="message-content">{message.content}</div>
+                            <div className="message-meta">
+                              <span className="message-time">{message.time}</span>
+                            </div>
                           </div>
-                          <div className="message-content">{message.content}</div>
                         </div>
                       ))
                     )}
@@ -320,21 +360,25 @@ const Chat = () => {
                   placeholder="Type your message..."
                   disabled={loading}
                 />
-                <button type="submit" className="send-button" disabled={loading || newMessage.trim() === ''}>
+                <button 
+                  type="submit" 
+                  className="send-button" 
+                  disabled={loading || newMessage.trim() === ''}
+                >
                   Send
                 </button>
               </form>
             </>
           )}
-
-          {error && (
-            <div className="error-message">
-              <p>{error}</p>
-              <button onClick={() => setError(null)}>Dismiss</button>
-            </div>
-          )}
         </div>
       </div>
+
+      {error && (
+        <div className="error-message">
+          <p>{error}</p>
+          <button onClick={() => setError(null)}>Dismiss</button>
+        </div>
+      )}
     </div>
   );
 };

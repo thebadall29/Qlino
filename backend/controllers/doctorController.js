@@ -507,6 +507,8 @@ exports.getDoctorPreference = async (req, res) => {
   try {
     const doctorId = req.user.id;
     const doctor = await Doctor.findById(doctorId).select('bookingPreference');
+
+    
     
     if (!doctor) {
       return res.status(404).json({ 
