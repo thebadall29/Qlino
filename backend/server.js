@@ -25,8 +25,14 @@ connectDB();
 // Middleware
 // Update your CORS configuration
 app.use(cors({
-  origin: 'http://localhost:3000', // Your frontend URL
-  credentials: true
+  origin: [
+    'https://qlyno-frontend.onrender.com',  // Your frontend URL
+    'http://localhost:3000',                // For local development
+    'http://localhost:3001'                 // If using different local ports
+  ],
+  credentials: true,  // Important for cookies/sessions
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 app.use(express.json());
 
