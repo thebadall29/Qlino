@@ -4,6 +4,7 @@ import { useNavigate, Navigate, useLocation } from 'react-router-dom';
 import './MedicalRecords.scss';
 import { FaFilePdf, FaDownload, FaEye } from 'react-icons/fa';
 import ReactDOM from 'react-dom';
+import config from '../../config/config';
 
 const MedicalRecordsCompo = () => {
     const navigate = useNavigate();
@@ -64,7 +65,7 @@ const MedicalRecordsCompo = () => {
       const filename = fileUrl.split('/').pop();
       
       // Create the full URL for viewing
-      const fullUrl = `http://localhost:5000/api/patient/download-report/${filename}`;
+      const fullUrl = `${config.API_URL}/api/patient/download-report/${filename}`;
 
       // Fetch the file with authentication
       const response = await axios({
@@ -101,7 +102,7 @@ const MedicalRecordsCompo = () => {
       }
 
       const filename = fileUrl.split('/').pop();
-      const fullUrl = `http://localhost:5000/api/patient/download-report/${filename}`;
+      const fullUrl = `${config.API_URL}/api/patient/download-report/${filename}`;
 
       const response = await axios({
         url: fullUrl,
@@ -137,7 +138,7 @@ const MedicalRecordsCompo = () => {
           throw new Error('Authentication token not found');
         }
 
-        const response = await axios.get('http://localhost:5000/api/patient/reports', {
+        const response = await axios.get(`${config.API_URL}/api/patient/reports`, {
           headers: {
             Authorization: `Bearer ${token}`
           }

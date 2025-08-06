@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import './PatientAppointmentHistory.scss';
+import config from '../../config/config';
 
 const PatientAppointmentHistory = ({ patientEmail, onClearSelection }) => {
   const [patientHistory, setPatientHistory] = useState(null);
@@ -69,7 +70,7 @@ const PatientAppointmentHistory = ({ patientEmail, onClearSelection }) => {
       
       const token = localStorage.getItem('token');
       
-      const response = await fetch(`http://localhost:5000/api/patient/appointment/${email}`, {
+      const response = await fetch(`${config.API_URL}/api/patient/appointment/${email}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -191,7 +192,7 @@ const PatientAppointmentHistory = ({ patientEmail, onClearSelection }) => {
       setLoading(true);
       const token = localStorage.getItem('token');
       
-      const response = await fetch(`http://localhost:5000/api/patient/appointment/cancel/${appointmentId}`, {
+      const response = await fetch(`${config.API_URL}/api/patient/appointment/cancel/${appointmentId}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,

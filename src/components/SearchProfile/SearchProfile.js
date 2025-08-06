@@ -4,6 +4,7 @@ import axios from 'axios';
 import DoctorCard from '../DoctorCard/DoctorCard';
 import DoctorProfileModel from '../DoctorProfileModel/DoctorProfileModel';
 import './SearchProfile.scss';
+import config from '../../config/config';
 
 const SearchProfile = ({ doctor, resultCount, index, totalResults }) => {
   const navigate = useNavigate();
@@ -26,7 +27,7 @@ const SearchProfile = ({ doctor, resultCount, index, totalResults }) => {
   const fetchDoctorReviews = async (doctorId) => {
     try {
       setReviewsLoading(prev => ({ ...prev, [doctorId]: true }));
-      const response = await axios.get(`http://localhost:5000/api/doctor/${doctorId}/reviews`);
+      const response = await axios.get(`${config.API_URL}/api/doctor/${doctorId}/reviews`);
       setDoctorReviews(prev => ({
         ...prev,
         [doctorId]: response.data

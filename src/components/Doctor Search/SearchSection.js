@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import SearchProfile from '../SearchProfile/SearchProfile';
 import Pagination from '../Pagination/Pagination'; // Import the Pagination component
+import config from '../../config/config';
 
 const SearchSection = () => {
   const location = useLocation();
@@ -47,7 +48,7 @@ const [searchContext, setSearchContext] = useState('all'); // 'all', 'doctor', '
   const fetchLocations = async (query) => {
     try {
       setIsLoadingLocations(true);
-      const response = await axios.get(`http://localhost:5000/api/doctor/locations?query=${encodeURIComponent(query)}`);
+      const response = await axios.get(`${config.API_URL}/api/doctor/locations?query=${encodeURIComponent(query)}`);
       setLocations(response.data);
       setIsLoadingLocations(false);
     } catch (error) {
@@ -85,7 +86,7 @@ const [searchContext, setSearchContext] = useState('all'); // 'all', 'doctor', '
         searchQuery = parts[0];
       }
       
-      let url = `http://localhost:5000/api/doctor/search?query=${encodeURIComponent(searchQuery)}&page=${page}&limit=${RESULTS_PER_PAGE}`;
+      let url = `${config.API_URL}/api/doctor/search?query=${encodeURIComponent(searchQuery)}&page=${page}&limit=${RESULTS_PER_PAGE}`;
       if (location) {
         url += `&location=${encodeURIComponent(location)}`;
       }
@@ -124,7 +125,7 @@ const [searchContext, setSearchContext] = useState('all'); // 'all', 'doctor', '
   const fetchDoctorById = async (id) => {
     try {
       setIsSearching(true);
-      const response = await axios.get(`http://localhost:5000/api/doctor/${id}`);
+      const response = await axios.get(`${config.API_URL}/api/doctor/${id}`);
       console.log('Doctor fetched successfully:', response.data);
       return response.data;
     } catch (error) {

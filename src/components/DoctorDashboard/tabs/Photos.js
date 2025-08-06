@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../DoctorDashboard.scss';
+import config from '../../../config/config';
 
 const Photos = () => {
   const [photos, setPhotos] = useState([]);
@@ -29,7 +30,7 @@ const Photos = () => {
       if (!token) {
         throw new Error('No authentication token found');
       }
-      const response = await fetch(`http://localhost:5000/api/doctor/photos/${userData.id}`, {
+      const response = await fetch(`${config.API_URL}/api/doctor/photos/${userData.id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!response.ok) {
@@ -75,7 +76,7 @@ const Photos = () => {
       formData.append('description', newPhoto.description);
       formData.append('image', newPhoto.file);
 
-      const response = await fetch('http://localhost:5000/api/doctor/photos', {
+      const response = await fetch(`${config.API_URL}/api/doctor/photos`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -109,7 +110,7 @@ const Photos = () => {
         throw new Error('No authentication token found');
       }
 
-      const response = await fetch(`http://localhost:5000/api/doctor/photos/${photoId}`, {
+      const response = await fetch(`${config.API_URL}/api/doctor/photos/${photoId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -208,7 +209,7 @@ const Photos = () => {
           <div className="photo-grid">
           {photos.map(photo => (
               <div key={photo._id} className="photo-card">
-                <img src={`http://localhost:5000${photo.imageUrl}`} alt={photo.title} />
+                <img src={`${config.API_URL}${photo.imageUrl}`} alt={photo.title} />
                 <div className="photo-details">
                   <h4>{photo.title}</h4>
                   {photo.description && <p>{photo.description}</p>}
@@ -224,7 +225,7 @@ const Photos = () => {
                     </button>
                     <button
                       className="open-image-button"
-                      onClick={() => openModal(`http://localhost:5000${photo.imageUrl}`)}
+                      onClick={() => openModal(`${config.API_URL}${photo.imageUrl}`)}
                     >
                       Open Image
                     </button>

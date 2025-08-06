@@ -3,6 +3,7 @@ import axios from 'axios';
 import './DoctorSpecialties.scss';
 import { Link } from 'react-router-dom';
 import { FaSearch, FaAngleRight } from 'react-icons/fa';
+import config from '../../config/config';
 
 const Specialties = () => {
   const [specialties, setSpecialties] = useState([]);
@@ -15,7 +16,7 @@ const Specialties = () => {
     const fetchSpecialties = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('http://localhost:5000/api/specialties');
+        const response = await axios.get(`${config.API_URL}/api/specialties`);
         setSpecialties(response.data);
         setLoading(false);
         setTimeout(() => setIsVisible(true), 100);

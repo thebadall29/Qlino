@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import AppointmentManager from '../../AppointmentManager/AppointmentManager';
+import config from '../../../config/config';
 import "../DoctorDashboard.scss";
 
 const Appointments = () => {
@@ -16,7 +17,7 @@ const Appointments = () => {
           return;
         }
 
-        const response = await fetch('http://localhost:5000/api/doctor/doctor-dashboard', {
+        const response = await fetch(`${config.API_URL}/api/doctor/doctor-dashboard`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }

@@ -5,6 +5,7 @@ import { FaSearch, FaFilter } from 'react-icons/fa';
 import './DoctorList.scss';
 import DoctorProfileModel from '../DoctorProfileModel/DoctorProfileModel';
 import DoctorCard from '../DoctorCard/DoctorCard'; // Import the new DoctorCard component
+import config from '../../config/config';
 
 const DoctorList = () => {
   const { specialty } = useParams();
@@ -32,7 +33,7 @@ const DoctorList = () => {
       try {
         setLoading(true);
         // Update the endpoint to match your backend
-        const response = await axios.get(`http://localhost:5000/api/specialties/${specialty}/doctors`);
+        const response = await axios.get(`${config.API_URL}/api/specialties/${specialty}/doctors`);
         console.log('API Response:', response.data);
         setDoctors(Array.isArray(response.data) ? response.data : []);
         setLoading(false);
@@ -50,7 +51,7 @@ const DoctorList = () => {
   const fetchDoctorReviews = async (doctorId) => {
     try {
       setReviewsLoading(prev => ({ ...prev, [doctorId]: true }));
-      const response = await axios.get(`http://localhost:5000/api/doctor/${doctorId}/reviews`);
+      const response = await axios.get(`${config.API_URL}/api/doctor/${doctorId}/reviews`);
       setDoctorReviews(prev => ({
         ...prev,
         [doctorId]: response.data

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import config from '../../../config/config';
 import './Subscription.scss';
 
 const Subscription = () => {
@@ -74,7 +75,7 @@ const Subscription = () => {
         try {
             setLoading(true);
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/subscription/status', {
+            const response = await fetch(`${config.API_URL}/api/subscription/status`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -97,7 +98,7 @@ const Subscription = () => {
 
     const fetchSubscriptionPlans = async () => {
         try {
-            const response = await fetch('http://localhost:5000/api/subscription/plans');
+            const response = await fetch(`${config.API_URL}/api/subscription/plans`);
             if (!response.ok) {
                 throw new Error('Failed to fetch subscription plans');
             }
@@ -113,7 +114,7 @@ const Subscription = () => {
     const startTrial = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/subscription/trial', {
+            const response = await fetch(`${config.API_URL}/api/subscription/trial`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -139,7 +140,7 @@ const Subscription = () => {
     const handleSubscribe = async (planType) => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/subscription/subscribe', {
+            const response = await fetch(`${config.API_URL}/api/subscription/subscribe`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -167,7 +168,7 @@ const Subscription = () => {
         if (window.confirm('Are you sure you want to cancel your subscription?')) {
             try {
                 const token = localStorage.getItem('token');
-                const response = await fetch('http://localhost:5000/api/subscription/cancel', {
+                const response = await fetch(`${config.API_URL}/api/subscription/cancel`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,

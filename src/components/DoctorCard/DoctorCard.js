@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './DoctorCard.scss';
 import AppointmentManager from '../AppointmentManager/AppointmentManager';
+import config from '../../config/config';
 
 const colors = [
   '#FF6B6B', // coral red
@@ -50,7 +51,7 @@ const DoctorCard = ({
             <div className="doctor-image">
               {doctor.photoUrl && doctor.photoUrl !== "" ? (
                 <img 
-                  src={`http://localhost:5000${doctor.photoUrl}`} 
+                  src={`${config.API_URL}${doctor.photoUrl}`} 
                   alt={`${doctor.firstName} ${doctor.lastName}`} 
                   onError={(e) => {
                     e.target.src = '/default-doctor.png';

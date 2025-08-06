@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './DoctorReview.scss';
+import config from '../../config/config';
 
 const DoctorReview = ({ doctorId, reviews, setReviews }) => {
   const [userRating, setUserRating] = useState(0);
@@ -16,7 +17,7 @@ const DoctorReview = ({ doctorId, reviews, setReviews }) => {
   const fetchDoctorReviews = async (doctorId) => {
     try {
       setReviewsLoading(true);
-      const response = await fetch(`http://localhost:5000/api/doctor/${doctorId}/reviews`);
+      const response = await fetch(`${config.API_URL}/api/doctor/${doctorId}/reviews`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch doctor reviews');
@@ -61,7 +62,7 @@ const DoctorReview = ({ doctorId, reviews, setReviews }) => {
       };
       
       // Make API call to add review
-      const response = await fetch(`http://localhost:5000/api/doctor/${doctorId}/reviews`, {
+      const response = await fetch(`${config.API_URL}/api/doctor/${doctorId}/reviews`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

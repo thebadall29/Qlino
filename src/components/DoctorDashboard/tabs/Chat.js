@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import io from 'socket.io-client';
+import config from '../../../config/config';
 import './Chat.css';
 
 const Chat = () => {
@@ -29,7 +30,7 @@ const Chat = () => {
         const userData = JSON.parse(userString);
         const token = localStorage.getItem('token');
 
-        const response = await fetch(`http://localhost:5000/api/doctor/chat/patients`, {
+        const response = await fetch(`${config.API_URL}/api/doctor/chat/patients`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -69,7 +70,7 @@ const Chat = () => {
     const userData = JSON.parse(userString);
 
     // Connect to socket.io server
-    socketRef.current = io('http://localhost:5000', {
+    socketRef.current = io(config.API_URL, {
       auth: {
         token: token
       }
@@ -147,7 +148,7 @@ const Chat = () => {
         const token = localStorage.getItem('token');
         console.log('Fetching chat history for patient:', selectedPatient);
 
-        const response = await fetch(`http://localhost:5000/api/doctor/chat/history/${selectedPatient._id}`, {
+        const response = await fetch(`${config.API_URL}/api/doctor/chat/history/${selectedPatient._id}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'

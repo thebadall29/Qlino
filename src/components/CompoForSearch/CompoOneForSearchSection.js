@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import DoctorFilter from '../DoctorFilter/DoctorFilter';
 import { Link } from "react-router-dom";
+import config from '../../config/config.js';
 
 const CompoOneForSearchSection = () => {
   const [activeDoctor, setActiveDoctor] = useState(0);
@@ -92,11 +93,11 @@ const CompoOneForSearchSection = () => {
   const fetchSystemStats = async () => {
     try {
       // Fetch total doctor count
-      const doctorsResponse = await axios.get('http://localhost:5000/api/doctor');
+      const doctorsResponse = await axios.get(`${config.API_URL}/api/doctor`);
       const doctorCount = doctorsResponse.data.length;
 
       // Fetch all reviews to count them - adding a required parameter to avoid 400 error
-      const reviewsResponse = await axios.get('http://localhost:5000/api/doctor/search?limit=100&verified=true');
+      const reviewsResponse = await axios.get(`${config.API_URL}/api/doctor/search?limit=100&verified=true`);
       let totalReviews = 0;
       if (reviewsResponse.data && Array.isArray(reviewsResponse.data)) {
         reviewsResponse.data.forEach(doctor => {
@@ -139,7 +140,7 @@ const CompoOneForSearchSection = () => {
   // Fetch reviews for a specific doctor
   const fetchDoctorReviews = async (doctorId) => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/doctor/${doctorId}/reviews`);
+      const response = await axios.get(`${config.API_URL}/api/doctor/${doctorId}/reviews`);
       return response.data;
     } catch (error) {
       console.error(`Error fetching reviews for doctor ${doctorId}:`, error);
@@ -210,7 +211,7 @@ const CompoOneForSearchSection = () => {
     const applyDefaultFilters = async () => {
       try {
         setIsLoading(true);
-        const response = await axios.get('http://localhost:5000/api/doctor/search?sortBy=rating_high&verified=true&limit=5');
+        const response = await axios.get(`${config.API_URL}/api/doctor/search?sortBy=rating_high&verified=true&limit=5`);
         await handleFilterResults(response.data);
       } catch (error) {
         console.error('Error applying default filters:', error);
@@ -335,7 +336,7 @@ const CompoOneForSearchSection = () => {
                     <div className="doctor-avatar">
                       {doctor.photoUrl && doctor.photoUrl !== "" ? (
                         <img
-                          src={`http://localhost:5000${doctor.photoUrl}`}
+                          src={`${config.API_URL}${doctor.photoUrl}`}
                           alt={`${doctor.name}`}
                           onError={(e) => {
                             e.target.src = '/default-doctor.png';

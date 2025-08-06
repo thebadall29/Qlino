@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaGoogle, FaUser, FaEnvelope, FaMobile, FaLock } from 'react-icons/fa';
 import logo from '../../images/logo.png';
+import config from '../../config/config';
 
 const PatientLogin = () => {
   const navigate = useNavigate();
@@ -52,7 +53,7 @@ const PatientLogin = () => {
     try {
       if (isLogin) {
         // Handle login
-        const response = await fetch('http://localhost:5000/api/auth/login', {
+        const response = await fetch(`${config.API_URL}/api/auth/login`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -109,7 +110,7 @@ const PatientLogin = () => {
         // Create username from first and last name
         const username = `${formData.firstName.toLowerCase()}_${formData.lastName.toLowerCase()}`;
         
-        const response = await fetch('http://localhost:5000/api/auth/register', {
+        const response = await fetch(`${config.API_URL}/api/auth/register`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -164,7 +165,7 @@ const PatientLogin = () => {
   const handleGoogleLogin = () => {
     // Redirect to Google OAuth endpoint for patients with state parameter
     console.log('Initiating Google OAuth login for patient');
-    window.location.href = 'http://localhost:5000/api/auth/google/patient';
+    window.location.href = `${config.API_URL}/api/auth/google/patient`;
   };
 
   return (

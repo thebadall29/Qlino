@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import config from '../../config/config';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { handleAuthRedirect } from '../../utils/authUtils';
 import { 
@@ -93,7 +94,7 @@ const DoctorDashboardCompo = () => {
           return;
         }
 
-        const response = await fetch('http://localhost:5000/api/doctor/doctor-dashboard', {
+        const response = await fetch(`${config.API_URL}/api/doctor/doctor-dashboard`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -126,7 +127,7 @@ const DoctorDashboardCompo = () => {
         const fetchDoctorProfile = async () => {
           try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/doctor/profile/${userData.id}`, {
+            const response = await fetch(`${config.API_URL}/api/doctor/profile/${userData.id}`, {
               headers: { 'Authorization': `Bearer ${token}` }
             });
             if (response.ok) {
@@ -217,7 +218,7 @@ const DoctorDashboardCompo = () => {
           <div className="user-avatar">
             {doctorData.avatar ? (
               <img 
-                src={`http://localhost:5000${doctorData.avatar}`} 
+                src={`${config.API_URL}${doctorData.avatar}`} 
                 alt={doctorData.name}
                 onError={(e) => {
                   e.target.onError = null;

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import config from '../../config/config';
 import { useNavigate } from 'react-router-dom';
 
 const withSubscriptionCheck = (WrappedComponent, requiredFeature) => {
@@ -13,7 +14,7 @@ const withSubscriptionCheck = (WrappedComponent, requiredFeature) => {
                     const token = localStorage.getItem('token');
                     console.log(`Checking access for feature: ${requiredFeature}`);
                     // First check subscription status
-                    const statusResponse = await fetch(`http://localhost:5000/api/subscription/status`, {
+                    const statusResponse = await fetch(`${config.API_URL}/api/subscription/status`, {
                         method: 'GET',
                         headers: {
                             'Authorization': `Bearer ${token}`,
@@ -40,7 +41,7 @@ const withSubscriptionCheck = (WrappedComponent, requiredFeature) => {
                     }
 
                     // If not all features, check specific feature access
-                    const response = await fetch(`http://localhost:5000/api/subscription/check-feature/${requiredFeature}`, {
+                    const response = await fetch(`${config.API_URL}/api/subscription/check-feature/${requiredFeature}`, {
                         method: 'GET',
                         headers: {
                             'Authorization': `Bearer ${token}`,

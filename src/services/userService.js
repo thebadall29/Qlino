@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/users';
+import config from '../config/config';
+const API_URL = `${config.API_URL}/api/users`;
 
 export const getUserData = async (userId) => {
   try {

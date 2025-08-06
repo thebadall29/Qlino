@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-
+import config from '../../../config/config';
 const SymptomChecker = () => {
   const [symptom, setSymptom] = useState('');
   const [severity, setSeverity] = useState('mild');
@@ -9,6 +9,7 @@ const SymptomChecker = () => {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,7 +20,7 @@ const SymptomChecker = () => {
     try {
       console.log('Submitting symptoms:', { symptom, severity, duration });
       
-      const response = await fetch('http://localhost:5000/api/symptoms/analyze', {
+      const response = await fetch(`${config.API_URL}/api/symptoms/analyze`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

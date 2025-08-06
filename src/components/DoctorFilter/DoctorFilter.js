@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import './DoctorFilter.scss';
+import config from '../../config/config';
 
 const DoctorFilter = ({ onFilterResults }) => {
   const [filters, setFilters] = useState({
@@ -39,7 +40,7 @@ const DoctorFilter = ({ onFilterResults }) => {
       if (filters.verified) params.append('verified', 'true');
       if (filters.sortBy) params.append('sortBy', filters.sortBy);
       
-      const url = `http://localhost:5000/api/doctor/search?${params.toString()}`;
+      const url = `${config.API_URL}/api/doctor/search?${params.toString()}`;
       const response = await axios.get(url);
       
       // Pass the filtered results to the parent component

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
+import config from '../../../config/config';
 
 const UserProfile = () => {
   const [personalInfo, setPersonalInfo] = useState({
@@ -85,7 +86,7 @@ const UserProfile = () => {
         }
 
         // Fetch API data
-        const response = await fetch('http://localhost:5000/api/patient/patient-dashboard', {
+        const response = await fetch(`${config.API_URL}/api/patient/patient-dashboard`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -121,7 +122,7 @@ const UserProfile = () => {
 
         // Add this code to fetch the patient photo
         try {
-          const photoResponse = await fetch(`http://localhost:5000/api/patient/profile-photo`, {
+          const photoResponse = await fetch(`${config.API_URL}/api/patient/profile-photo`, {
             headers: {
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json'
@@ -200,7 +201,7 @@ const UserProfile = () => {
         const formData = new FormData();
         formData.append('photo', selectedFile);
 
-        const photoResponse = await fetch('http://localhost:5000/api/patient/upload-profile-photo', {
+        const photoResponse = await fetch(`${config.API_URL}/api/patient/upload-profile-photo`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`
@@ -223,7 +224,7 @@ const UserProfile = () => {
         medicalHistory: editData.medicalHistory
       });
 
-      const response = await fetch('http://localhost:5000/api/patient/patient-dashboard', {
+      const response = await fetch(`${config.API_URL}/api/patient/patient-dashboard`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -417,15 +418,15 @@ const UserProfile = () => {
             <div className="profile-photo-container">
               {(photoPreview || personalInfo.photoUrl) ? (
                 <>
-                  {console.log('Image URL:', photoPreview || `http://localhost:5000${personalInfo.photoUrl}`)}
+                  {console.log('Image URL:', photoPreview || `${config.API_URL}${personalInfo.photoUrl}`)}
                   <img
-                    src={photoPreview || `http://localhost:5000${personalInfo.photoUrl}`}
+                    src={photoPreview || `${config.API_URL}${personalInfo.photoUrl}`}
                     alt="Profile"
                     className="profile-image"
                     onError={(e) => {
                       console.error('Image load error for URL:', e.target.src);
                       // Try without the server prefix as a fallback
-                      if (e.target.src.startsWith('http://localhost:5000/')) {
+                      if (e.target.src.startsWith(`${config.API_URL}/`)) {
                         console.log('Trying direct URL as fallback...');
                         e.target.src = personalInfo.photoUrl;
                       } else {

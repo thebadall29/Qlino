@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import './AppointmentManager.scss';
+import config from '../../config/config';
 
 
 const AppointmentManager = ({ doctorId: propDoctorId }) => {
@@ -108,7 +109,7 @@ const AppointmentManager = ({ doctorId: propDoctorId }) => {
       console.log(`Fetching appointments for date: ${formattedDate}`);
 
       // Add includeCreatedAt=true to get creation timestamps
-      const response = await fetch(`http://localhost:5000/api/doctor/public/appointments/${formattedDate}?doctorId=${doctorId}&includeCreatedAt=true`);
+      const response = await fetch(`${config.API_URL}/api/doctor/public/appointments/${formattedDate}?doctorId=${doctorId}&includeCreatedAt=true`);
 
       if (!response.ok) {
         throw new Error(`Failed to fetch appointments: ${response.status}`);
@@ -137,7 +138,7 @@ const AppointmentManager = ({ doctorId: propDoctorId }) => {
 
       const formattedDate = formatDate(date);
       // Add includeCreatedAt=true to get creation timestamps
-      const response = await fetch(`http://localhost:5000/api/doctor/public/queue/${formattedDate}?doctorId=${doctorId}&includeCreatedAt=true`);
+      const response = await fetch(`${config.API_URL}/api/doctor/public/queue/${formattedDate}?doctorId=${doctorId}&includeCreatedAt=true`);
 
       if (!response.ok) {
         throw new Error(`Failed to fetch queue: ${response.status}`);
@@ -188,7 +189,7 @@ const AppointmentManager = ({ doctorId: propDoctorId }) => {
           return;
         }
 
-        const response = await fetch(`http://localhost:5000/api/doctor/public/doctor-dashboard?doctorId=${doctorId}`);
+        const response = await fetch(`${config.API_URL}/api/doctor/public/doctor-dashboard?doctorId=${doctorId}`);
 
         if (!response.ok) {
           throw new Error(`Failed to fetch doctor data: ${response.status}`);
@@ -332,7 +333,7 @@ const AppointmentManager = ({ doctorId: propDoctorId }) => {
       }
 
       // Update status in the backend
-      const response = await fetch(`http://localhost:5000/api/doctor/queue/${id}/status`, {
+      const response = await fetch(`${config.API_URL}/api/doctor/queue/${id}/status`, {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -383,7 +384,7 @@ const AppointmentManager = ({ doctorId: propDoctorId }) => {
       }
 
       // Call the API to re-add to queue
-      const response = await fetch(`http://localhost:5000/api/doctor/queue/${booking._id}/requeue`, {
+      const response = await fetch(`${config.API_URL}/api/doctor/queue/${booking._id}/requeue`, {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -547,7 +548,7 @@ const AppointmentManager = ({ doctorId: propDoctorId }) => {
       };
 
       // Send queue request to API
-      const response = await fetch('http://localhost:5000/api/doctor/public/queue', {
+      const response = await fetch('${config.API_URL}/api/doctor/public/queue', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -651,7 +652,7 @@ const AppointmentManager = ({ doctorId: propDoctorId }) => {
       };
 
       // Send booking request to API
-      const response = await fetch('http://localhost:5000/api/doctor/public/appointments', {
+      const response = await fetch('${config.API_URL}/api/doctor/public/appointments', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

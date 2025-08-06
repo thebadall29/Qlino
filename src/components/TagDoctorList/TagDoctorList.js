@@ -4,6 +4,7 @@ import axios from 'axios';
 import { FaSearch, FaFilter } from 'react-icons/fa';
 import DoctorProfileModel from '../DoctorProfileModel/DoctorProfileModel';
 import DoctorCard from '../DoctorCard/DoctorCard';
+import config from '../../config/config'; 
 
 const TagDoctorList = () => {
   const { tag } = useParams();
@@ -30,7 +31,7 @@ const TagDoctorList = () => {
     const fetchDoctorsByTag = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`http://localhost:5000/api/tags/doctors`, {
+        const response = await axios.get(`${config.API_URL}/api/tags/doctors`, {
           params: {
             tag: decodeURIComponent(tag) // Changed from query to tag
           }
@@ -58,7 +59,7 @@ const TagDoctorList = () => {
   const fetchDoctorReviews = async (doctorId) => {
     try {
       setReviewsLoading(prev => ({ ...prev, [doctorId]: true }));
-      const response = await axios.get(`http://localhost:5000/api/doctor/${doctorId}/reviews`);
+      const response = await axios.get(`${config.API_URL}/api/doctor/${doctorId}/reviews`);
       setDoctorReviews(prev => ({
         ...prev,
         [doctorId]: response.data

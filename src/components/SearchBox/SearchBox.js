@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import config from '../../config/config';
 import { FaSearch, FaMapMarkerAlt, FaUser, FaStethoscope } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -31,7 +32,7 @@ const SearchBox = () => {
   const fetchLocations = async (query) => {
     try {
       setIsLoadingLocations(true);
-      const response = await axios.get(`http://localhost:5000/api/doctor/locations?query=${encodeURIComponent(query)}`);
+      const response = await axios.get(`${config.API_URL}/api/doctor/locations?query=${encodeURIComponent(query)}`);
       
       // Group locations by name and count doctors
       const locationMap = {};
@@ -81,7 +82,7 @@ const SearchBox = () => {
     try {
       setIsLoadingDoctors(true);
       
-      let url = `http://localhost:5000/api/doctor/search`;
+      let url = `${config.API_URL}/api/doctor/search`;
       const params = new URLSearchParams();
       
       if (query) params.append('query', query);
@@ -328,7 +329,7 @@ const SearchBox = () => {
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/doctors/search?q=${encodeURIComponent(trimmedQuery)}`);
+      const response = await fetch(`${config.API_URL}/api/doctors/search?q=${encodeURIComponent(trimmedQuery)}`);
       const data = await response.json();
 
       if (data.success) {

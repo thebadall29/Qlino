@@ -4,6 +4,7 @@ import './TagsSearch.scss';
 import { Link } from 'react-router-dom';
 import { FaSearch, FaAngleRight } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import config from '../../config/config';
 
 const TagSearch = () => {
   const [tags, setTags] = useState([]);
@@ -17,7 +18,7 @@ const TagSearch = () => {
     const fetchTags = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('http://localhost:5000/api/tags');
+        const response = await axios.get(`${config.API_URL}/api/tags`);
         setTags(response.data);
         setLoading(false);
         setTimeout(() => setIsVisible(true), 100);

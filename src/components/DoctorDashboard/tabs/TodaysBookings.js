@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import config from '../../../config/config';
 import "../DoctorDashboard.scss";
 import axios from 'axios';
 import { FaPrint, FaPlus, FaFilePdf } from 'react-icons/fa';
@@ -99,7 +100,7 @@ const TodaysBookings = () => {
       }
       
       const response = await axios.get(
-        `http://localhost:5000/api/doctor/booking-preferences/${user.id}`,
+        `${config.API_URL}/api/doctor/booking-preferences/${user.id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -166,7 +167,7 @@ const TodaysBookings = () => {
       if (currentPreference === 'queue') {
         // Fetch queue data from API
         response = await axios.get(
-          `http://localhost:5000/api/doctor/queue/${formattedDate}`,
+          `${config.API_URL}/api/doctor/queue/${formattedDate}`,
           {
             headers: {
               Authorization: `Bearer ${token}`
@@ -216,7 +217,7 @@ const TodaysBookings = () => {
       } else {
         // Fetch slot-based appointments
         response = await axios.get(
-          `http://localhost:5000/api/doctor/slot/${formattedDate}`,
+          `${config.API_URL}/api/doctor/slot/${formattedDate}`,
           {
             headers: {
               Authorization: `Bearer ${token}`
@@ -299,7 +300,7 @@ const TodaysBookings = () => {
 
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        `http://localhost:5000/api/patient/doctor/patient/${selectedPatient.email}/reminders`,
+        `${config.API_URL}/api/patient/doctor/patient/${selectedPatient.email}/reminders`,
         reminderToAdd,
         {
           headers: {
@@ -367,7 +368,7 @@ const TodaysBookings = () => {
       // Update in the database
       const token = localStorage.getItem('token');
       const response = await axios.patch(
-        `http://localhost:5000/api/patient/doctor/patient/${selectedPatient.email}/reminders/${id}`,
+        `${config.API_URL}/api/patient/doctor/patient/${selectedPatient.email}/reminders/${id}`,
         { status: newStatus },
         {
           headers: {
@@ -412,7 +413,7 @@ const TodaysBookings = () => {
       const token = localStorage.getItem('token');
       // Use the correct endpoint for patient registration
       const response = await axios.post(
-        'http://localhost:5000/api/auth/register',
+        `${config.API_URL}/api/auth/register`,
         patientData,
         {
           headers: {
@@ -434,7 +435,7 @@ const TodaysBookings = () => {
         alert('Patient registered successfully! Their password is their email address.');
 
         // Refresh patient list
-        const patientsResponse = await axios.get('http://localhost:5000/api/doctor/unique-patients', {
+        const patientsResponse = await axios.get(`${config.API_URL}/api/doctor/unique-patients`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -515,7 +516,7 @@ const TodaysBookings = () => {
       if (prescription._id) {
         // Update existing prescription
         response = await axios.put(
-          `http://localhost:5000/api/patient/doctor/patient/${selectedPatient.email}/prescriptions/${prescription._id}`,
+          `${config.API_URL}/api/patient/doctor/patient/${selectedPatient.email}/prescriptions/${prescription._id}`,
           prescriptionData,
           {
             headers: {
@@ -535,7 +536,7 @@ const TodaysBookings = () => {
       } else {
         // Add new prescription
         response = await axios.post(
-          `http://localhost:5000/api/patient/doctor/patient/${selectedPatient.email}/prescriptions`,
+          `${config.API_URL}/api/patient/doctor/patient/${selectedPatient.email}/prescriptions`,
           prescriptionData,
           {
             headers: {
@@ -695,7 +696,7 @@ const TodaysBookings = () => {
       }
 
       const response = await axios.post(
-        `http://localhost:5000/api/patient/doctor/patient/${selectedPatient.email}/reports`,
+        `${config.API_URL}/api/patient/doctor/patient/${selectedPatient.email}/reports`,
         reportData,
         {
           headers: {
@@ -760,7 +761,7 @@ const TodaysBookings = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        'http://localhost:5000/api/doctor/patients',
+        `${config.API_URL}/api/doctor/patients`,
         newPatient,
         {
           headers: {
@@ -774,7 +775,7 @@ const TodaysBookings = () => {
         alert('Patient added successfully');
         setShowAddForm(false);
         // Refresh patient list
-        const patientsResponse = await axios.get('http://localhost:5000/api/doctor/unique-patients', {
+        const patientsResponse = await axios.get(`${config.API_URL}/api/doctor/unique-patients`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -858,7 +859,7 @@ const TodaysBookings = () => {
 
       // Call the readdToQueue API endpoint
       const response = await axios.patch(
-        `http://localhost:5000/api/doctor/queue/${booking.id}/requeue`,
+        `${config.API_URL}/api/doctor/queue/${booking.id}/requeue`,
         reqBody,
         {
           headers: {
@@ -887,7 +888,7 @@ const TodaysBookings = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.patch(
-        `http://localhost:5000/api/doctor/queue/${id}/status`,
+        `${config.API_URL}/api/doctor/queue/${id}/status`,
         { status },
         {
           headers: {
@@ -911,7 +912,7 @@ const TodaysBookings = () => {
     try {
       const token = localStorage.getItem('token');
       await axios.post(
-        `http://localhost:5000/api/notifications/patient/${id}`,
+        `${config.API_URL}/api/notifications/patient/${id}`,
         {
           message: `Your doctor is ready to see you now.`,
           type: 'appointment'
@@ -933,7 +934,7 @@ const TodaysBookings = () => {
   const checkPatientRegistration = async (email) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`http://localhost:5000/api/patient/doctor/check-patient/${email}`, {
+      const response = await axios.get(`${config.API_URL}/api/patient/doctor/check-patient/${email}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -979,7 +980,7 @@ const TodaysBookings = () => {
 
       // Fetch patient visits
       try {
-        const response = await axios.get(`http://localhost:5000/api/patient/appointment/${booking.email}`, {
+        const response = await axios.get(`${config.API_URL}/api/patient/appointment/${booking.email}`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -1008,7 +1009,7 @@ const TodaysBookings = () => {
 
       // Fetch patient reminders
       try {
-        const remindersResponse = await axios.get(`http://localhost:5000/api/patient/doctor/patient/${booking.email}/reminders`, {
+        const remindersResponse = await axios.get(`${config.API_URL}/api/patient/doctor/patient/${booking.email}/reminders`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -1024,7 +1025,7 @@ const TodaysBookings = () => {
 
       // Fetch patient reports
       try {
-        const reportsResponse = await axios.get(`http://localhost:5000/api/patient/doctor/patient/${booking.email}/reports`, {
+        const reportsResponse = await axios.get(`${config.API_URL}/api/patient/doctor/patient/${booking.email}/reports`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -1041,7 +1042,7 @@ const TodaysBookings = () => {
 
       // Fetch patient prescriptions
       try {
-        const prescriptionsResponse = await axios.get(`http://localhost:5000/api/patient/doctor/patient/${booking.email}/prescriptions`, {
+        const prescriptionsResponse = await axios.get(`${config.API_URL}/api/patient/doctor/patient/${booking.email}/prescriptions`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -1840,7 +1841,7 @@ const TodaysBookings = () => {
                                       try {
                                         const token = localStorage.getItem('token');
                                         const response = await axios.delete(
-                                          `http://localhost:5000/api/patient/doctor/patient/${selectedPatient.email}/prescriptions/${prescriptionItem._id}`,
+                                          `${config.API_URL}/api/patient/doctor/patient/${selectedPatient.email}/prescriptions/${prescriptionItem._id}`,
                                           {
                                             headers: {
                                               Authorization: `Bearer ${token}`
@@ -2026,7 +2027,7 @@ const TodaysBookings = () => {
                                     </button>
                                     {report.fileUrl && (
                                       <a
-                                        href={`http://localhost:5000${report.fileUrl}`}
+                                        href={`${config.API_URL}${report.fileUrl}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         style={{
@@ -2145,7 +2146,7 @@ const TodaysBookings = () => {
                             <div>
                               <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '5px' }}>Attached File:</label>
                               <a
-                                href={`http://localhost:5000${report.fileUrl}`}
+                                href={`${config.API_URL}${report.fileUrl}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 style={{

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../MedicationPlan.scss'
+import config from '../../../config/config';
 
 const MedicationPlan = () => {
   const [prescriptions, setPrescriptions] = useState([]);
@@ -53,7 +54,7 @@ const MedicationPlan = () => {
         throw new Error('User email not found in local storage');
       }
       
-      const response = await fetch(`http://localhost:5000/api/patient/doctor/patient/${email}/prescriptions`, {
+      const response = await fetch(`${config.API_URL}/api/patient/doctor/patient/${email}/prescriptions`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import './DoctorProfileModel.scss';
 import AppointmentManager from '../AppointmentManager/AppointmentManager';
 import DoctorReview from '../DoctorReview/DoctorReview';
+import config from '../../config/config';
 
 const DoctorProfileModel = ({ doctor, isOpen, onClose }) => {
   const [activeTab, setActiveTab] = useState('profile');
@@ -43,8 +44,8 @@ const DoctorProfileModel = ({ doctor, isOpen, onClose }) => {
   const fetchDoctorData = async (doctorId) => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5000/api/doctor/${doctorId}/data`);
-   const photosResponse = await fetch(`http://localhost:5000/api/doctor/photos/${doctorId}`);
+      const response = await fetch(`${config.API_URL}/api/doctor/${doctorId}/data`);
+   const photosResponse = await fetch(`${config.API_URL}/api/doctor/photos/${doctorId}`);
       
    if (photosResponse.ok) {
       const photosData = await photosResponse.json();
@@ -99,7 +100,7 @@ const DoctorProfileModel = ({ doctor, isOpen, onClose }) => {
 
   const fetchAvailableSlots = async (doctorId, date) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/doctor/${doctorId}/slots?date=${date}`);
+      const response = await fetch(`${config.API_URL}/api/doctor/${doctorId}/slots?date=${date}`);
 
       if (!response.ok) {
         throw new Error('Failed to fetch available slots');
@@ -173,7 +174,7 @@ const DoctorProfileModel = ({ doctor, isOpen, onClose }) => {
       };
 
       // Make API call to book appointment
-      const response = await fetch('http://localhost:5000/api/appointments', {
+      const response = await fetch(`${config.API_URL}/api/appointments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -228,7 +229,7 @@ const DoctorProfileModel = ({ doctor, isOpen, onClose }) => {
       };
 
       // Make API call to join queue
-      const response = await fetch('http://localhost:5000/api/doctor/queue', {
+      const response = await fetch(`${config.API_URL}/api/doctor/queue`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -306,7 +307,7 @@ const DoctorProfileModel = ({ doctor, isOpen, onClose }) => {
   <div className="dpm-profile-image">
     {displayDoctor.photoUrl ? (
       <img
-        src={`http://localhost:5000${displayDoctor.photoUrl}`}
+        src={`${config.API_URL}${displayDoctor.photoUrl}`}
         alt={`Dr. ${displayDoctor.name}`}
         onError={(e) => {
           // If image fails to load, show avatar fallback
@@ -520,7 +521,7 @@ const DoctorProfileModel = ({ doctor, isOpen, onClose }) => {
         photos.map(photo => (
           <div key={photo._id || photo.id} className="dpm-photo-card">
             <img 
-              src={`http://localhost:5000${photo.imageUrl}`} 
+              src={`${config.API_URL}${photo.imageUrl}`} 
               alt={photo.title || photo.caption || 'Doctor photo'} 
               onError={(e) => {
                 if (e.target.src !== FALLBACK_IMAGE) {

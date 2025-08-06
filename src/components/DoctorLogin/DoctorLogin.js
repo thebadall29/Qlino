@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import config from '../../config/config';
 import { useNavigate } from 'react-router-dom';
 import { FaGoogle, FaUser, FaEnvelope, FaMobile, FaLock, FaStethoscope } from 'react-icons/fa';
 import logo from '../../images/logo.png';
@@ -89,7 +90,7 @@ const DoctorLogin = () => {
     try {
       if (isLogin) {
         // Handle login
-        const response = await fetch('http://localhost:5000/api/auth/doctor-login', {
+        const response = await fetch(`${config.API_URL}/api/auth/doctor-login`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -140,7 +141,7 @@ const DoctorLogin = () => {
         
       } else {
         // Handle signup
-        const response = await fetch('http://localhost:5000/api/auth/doctor-register', {
+        const response = await fetch(`${config.API_URL}/api/auth/doctor-register`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -219,7 +220,7 @@ const DoctorLogin = () => {
     
     // Add timestamp to URL to prevent caching
     const timestamp = new Date().getTime();
-    const oauthUrl = `http://localhost:5000/api/auth/google/doctor?t=${timestamp}`;
+    const oauthUrl = `${config.API_URL}/api/auth/google/doctor?t=${timestamp}`;
     
     console.log('Redirecting to OAuth URL:', oauthUrl);
     

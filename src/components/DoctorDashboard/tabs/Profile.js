@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { mockDoctorData } from '../mockData';
+import config from '../../../config/config';
 import "../DoctorDashboard.scss"
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -48,7 +49,7 @@ const Profile = () => {
           throw new Error('Authentication token not found');
         }
 
-        const response = await fetch('http://localhost:5000/api/doctor/doctor-dashboard', {
+        const response = await fetch(`${config.API_URL}/api/doctor/doctor-dashboard`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -156,7 +157,7 @@ const Profile = () => {
         const formData = new FormData();
         formData.append('photo', selectedFile);
 
-        const photoResponse = await fetch('http://localhost:5000/api/doctor/upload-photo', {
+        const photoResponse = await fetch(`${config.API_URL}/api/doctor/upload-photo`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`
@@ -183,7 +184,7 @@ const Profile = () => {
 
       console.log('Sending profile update:', updateData);
 
-      const response = await fetch('http://localhost:5000/api/doctor/profile', {
+      const response = await fetch(`${config.API_URL}/api/doctor/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -325,7 +326,7 @@ const Profile = () => {
   }
 
   // Add this before the return statement
-  console.log('Image URL:', doctorData?.photoUrl ? `http://localhost:5000${doctorData.photoUrl}` : 'No photo URL');
+  console.log('Image URL:', doctorData?.photoUrl ? `${config.API_URL}${doctorData.photoUrl}` : 'No photo URL');
 
 
   // Add safe access to fee property with default values
@@ -340,7 +341,7 @@ const Profile = () => {
               <div className="profile-photo-circle">
                 {(photoPreview || doctorData?.photoUrl) ? (
                   <img
-                    src={photoPreview || (doctorData?.photoUrl ? `http://localhost:5000${doctorData.photoUrl}` : '')}
+                    src={photoPreview || (doctorData?.photoUrl ? `${config.API_URL}${doctorData.photoUrl}` : '')}
                     alt="Profile"
                     className="profile-image"
                   />

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import config from '../../config/config';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { handleAuthRedirect } from '../../utils/authUtils';
 import { 
@@ -41,7 +42,7 @@ const PatientDashboardCompo = () => {
         const fetchPatientProfile = async () => {
           try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/patient/profile/${userData.id}`, {
+            const response = await fetch(`${config.API_URL}/api/patient/profile/${userData.id}`, {
               headers: {
                 'Authorization': `Bearer ${token}`
               }
@@ -81,7 +82,7 @@ const PatientDashboardCompo = () => {
         }
     
         // Add API call to fetch dashboard data
-        const response = await fetch('http://localhost:5000/api/patient/patient-dashboard', {
+        const response = await fetch(`${config.API_URL}/api/patient/patient-dashboard`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -99,7 +100,7 @@ const PatientDashboardCompo = () => {
         
         // Fetch profile photo
         try {
-          const photoResponse = await fetch(`http://localhost:5000/api/patient/profile-photo`, {
+          const photoResponse = await fetch(`${config.API_URL}/api/patient/profile-photo`, {
             headers: {
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json'
@@ -172,7 +173,7 @@ const PatientDashboardCompo = () => {
           <div className="user-avatar">
             {profilePhoto ? (
               <img 
-                src={`http://localhost:5000${profilePhoto}`} 
+                src={`${config.API_URL}${profilePhoto}`} 
                 alt="Profile" 
                 className="avatar-image"
                 onError={(e) => {

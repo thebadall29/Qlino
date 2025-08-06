@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import "../DoctorDashboard.scss";
 import { FaFilePdf, FaPrint, FaPlus } from 'react-icons/fa';
+import config from '../../../config/config';
 
 const PatientManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -69,7 +70,7 @@ const PatientManagement = () => {
 
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        `http://localhost:5000/api/patient/doctor/patient/${selectedPatient.email}/reminders`,
+        `${config.API_URL}/api/patient/doctor/patient/${selectedPatient.email}/reminders`,
         reminderToAdd,
         {
           headers: {
@@ -117,7 +118,7 @@ const PatientManagement = () => {
       // Update in the database
       const token = localStorage.getItem('token');
       const response = await axios.patch(
-        `http://localhost:5000/api/patient/doctor/patient/${selectedPatient.email}/reminders/${id}`,
+        `${config.API_URL}/api/patient/doctor/patient/${selectedPatient.email}/reminders/${id}`,
         { status: newStatus },
         {
           headers: {
@@ -179,7 +180,7 @@ const PatientManagement = () => {
 
  
 
-      const response = await axios.get('http://localhost:5000/api/doctor/unique-patient', {
+      const response = await axios.get(`${config.API_URL}/api/doctor/unique-patient`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -211,7 +212,7 @@ const PatientManagement = () => {
   const checkPatientRegistration = async (email) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`http://localhost:5000/api/patient/doctor/check-patient/${email}`, {
+      const response = await axios.get(`${config.API_URL}/api/patient/doctor/check-patient/${email}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -254,7 +255,7 @@ const PatientManagement = () => {
 
       // Fetch patient visits
       try {
-        const response = await axios.get(`http://localhost:5000/api/patient/appointment/${patient.email}`, {
+        const response = await axios.get(`${config.API_URL}/api/patient/appointment/${patient.email}`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -283,7 +284,7 @@ const PatientManagement = () => {
 
       // Fetch patient reminders
       try {
-        const remindersResponse = await axios.get(`http://localhost:5000/api/patient/doctor/patient/${patient.email}/reminders`, {
+        const remindersResponse = await axios.get(`${config.API_URL}/api/patient/doctor/patient/${patient.email}/reminders`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -299,7 +300,7 @@ const PatientManagement = () => {
 
       // Fetch patient reports
       try {
-        const reportsResponse = await axios.get(`http://localhost:5000/api/patient/doctor/patient/${patient.email}/reports`, {
+        const reportsResponse = await axios.get(`${config.API_URL}/api/patient/doctor/patient/${patient.email}/reports`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -315,7 +316,7 @@ const PatientManagement = () => {
 
       // Fetch patient prescriptions
       try {
-        const prescriptionsResponse = await axios.get(`http://localhost:5000/api/patient/doctor/patient/${patient.email}/prescriptions`, {
+        const prescriptionsResponse = await axios.get(`${config.API_URL}/api/patient/doctor/patient/${patient.email}/prescriptions`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -421,7 +422,7 @@ const PatientManagement = () => {
       }
 
       const response = await axios.post(
-        `http://localhost:5000/api/patient/doctor/patient/${selectedPatient.email}/reports`,
+        `${config.API_URL}/api/patient/doctor/patient/${selectedPatient.email}/reports`,
         reportData,
         {
           headers: {
@@ -542,7 +543,7 @@ const PatientManagement = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        `http://localhost:5000/api/doctor/patient/${selectedPatient.id}/visits`,
+        `${config.API_URL}/api/doctor/patient/${selectedPatient.id}/visits`,
         newVisit,
         {
           headers: {
@@ -614,7 +615,7 @@ const PatientManagement = () => {
 
       // Make the API call to update patient data
       const response = await axios.put(
-        `http://localhost:5000/api/patient/doctor/patient/${selectedPatient.email}/update`,
+        `${config.API_URL}/api/patient/doctor/patient/${selectedPatient.email}/update`,
         updateData,
         {
           headers: {
@@ -700,7 +701,7 @@ const PatientManagement = () => {
       if (prescription._id) {
         // Update existing prescription
         response = await axios.put(
-          `http://localhost:5000/api/patient/doctor/patient/${selectedPatient.email}/prescriptions/${prescription._id}`,
+          `${config.API_URL}/api/patient/doctor/patient/${selectedPatient.email}/prescriptions/${prescription._id}`,
           prescriptionData,
           {
             headers: {
@@ -720,7 +721,7 @@ const PatientManagement = () => {
       } else {
         // Add new prescription
         response = await axios.post(
-          `http://localhost:5000/api/patient/doctor/patient/${selectedPatient.email}/prescriptions`,
+          `${config.API_URL}/api/patient/doctor/patient/${selectedPatient.email}/prescriptions`,
           prescriptionData,
           {
             headers: {
@@ -859,7 +860,7 @@ const PatientManagement = () => {
       const token = localStorage.getItem('token');
       // Use the correct endpoint for patient registration
       const response = await axios.post(
-        'http://localhost:5000/api/auth/register',
+        '${config.API_URL}/api/auth/register',
         patientData,
         {
           headers: {
@@ -880,7 +881,7 @@ const PatientManagement = () => {
         alert('Patient registered successfully! Their password is their email address.');
 
         // Refresh patient list
-        const patientsResponse = await axios.get('http://localhost:5000/api/doctor/unique-patients', {
+        const patientsResponse = await axios.get(`${config.API_URL}/api/doctor/unique-patients`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -915,7 +916,7 @@ const handleDeleteAppointment = async (appointmentId) => {
     }
 
     const response = await axios.delete(
-      `http://localhost:5000/api/appointment/delete/${appointmentId}`,
+      `${config.API_URL}/api/appointment/delete/${appointmentId}`,
       {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -933,7 +934,7 @@ const handleDeleteAppointment = async (appointmentId) => {
 
       // Refresh the patients list
       const refreshResponse = await axios.get(
-        'http://localhost:5000/api/doctor/unique-patients',
+        `${config.API_URL}/api/doctor/unique-patients`,
         {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -956,7 +957,7 @@ const handleDeleteAppointment = async (appointmentId) => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        'http://localhost:5000/api/auth/patients',
+        `${config.API_URL}/api/auth/patients`,
         newPatient,
         {
           headers: {
@@ -970,7 +971,7 @@ const handleDeleteAppointment = async (appointmentId) => {
         alert('Patient added successfully');
         setShowAddForm(false);
         // Refresh patient list
-        const patientsResponse = await axios.get('http://localhost:5000/api/doctor/unique-patients', {
+        const patientsResponse = await axios.get(`${config.API_URL}/api/doctor/unique-patients`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -1616,7 +1617,7 @@ const handleDeleteAppointment = async (appointmentId) => {
                                       try {
                                         const token = localStorage.getItem('token');
                                         const response = await axios.delete(
-                                          `http://localhost:5000/api/patient/doctor/patient/${selectedPatient.email}/prescriptions/${prescriptionItem._id}`,
+                                          `${config.API_URL}/api/patient/doctor/patient/${selectedPatient.email}/prescriptions/${prescriptionItem._id}`,
                                           {
                                             headers: {
                                               Authorization: `Bearer ${token}`
@@ -1802,7 +1803,7 @@ const handleDeleteAppointment = async (appointmentId) => {
                                     </button>
                                     {report.fileUrl && (
                                       <a
-                                        href={`http://localhost:5000${report.fileUrl}`}
+                                        href={`${config.API_URL}${report.fileUrl}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         style={{
@@ -1921,7 +1922,7 @@ const handleDeleteAppointment = async (appointmentId) => {
                             <div>
                               <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '5px' }}>Attached File:</label>
                               <a
-                                href={`http://localhost:5000${report.fileUrl}`}
+                                href={`${config.API_URL}${report.fileUrl}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 style={{
