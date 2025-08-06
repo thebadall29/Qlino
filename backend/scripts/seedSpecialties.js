@@ -14,7 +14,7 @@ const specialties = [
   { name: 'Urology', description: 'Urinary system' }
 ];
 
-mongoose.connect('mongodb://localhost:27017/qlino', {
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/qlino', {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
