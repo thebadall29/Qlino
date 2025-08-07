@@ -24,16 +24,35 @@ connectDB();
 
 // Middleware
 // Update your CORS configuration
-app.use(cors({
-  origin: [
-    'https://qlyno-frontend.onrender.com',  // Your frontend URL
-    'http://localhost:3000',                // For local development
-    'http://localhost:3001'                 // If using different local ports
-  ],
-  credentials: true,  // Important for cookies/sessions
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-}));
+app.use((req, res, next) => {
+  const allowedOrigins = [
+    'https://qlyno-frontend.onrender.com',
+    'http://localhost:3000',
+    'http://localhost:3001'
+  ];
+  
+  const origin = req.headers.origin;
+  
+  // Allow requests from allowed origins or no origin (for direct server requests)
+  if (!origin || allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin || '*');
+  }
+  
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Cache-Control, X-File-Name');
+  res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    console.log(`OPTIONS request for ${req.path} from origin: ${origin}`);
+    return res.status(200).end();
+  }
+  
+  // Log all requests for debugging
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - Origin: ${origin}`);
+  next();
+});
 app.use(express.json());
 
 app.use(express.json({ limit: '100mb' })); // Adjust limit as needed, e.g., '10mb', '50mb', '100mb'
@@ -67,7 +86,14 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/uploads/patients', express.static(path.join(__dirname, 'uploads/patients')));
 app.use('/uploads/reports', express.static(path.join(__dirname, 'uploads/reports')));
 
-
+app.get('/api/test-cors', (req, res) => {
+  res.json({
+    message: 'CORS is working!',
+    origin: req.headers.origin,
+    method: req.method,
+    timestamp: new Date().toISOString()
+  });
+});
 // Initialize socket.io
 
 // Start server
